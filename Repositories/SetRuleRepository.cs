@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using practice_mvc02.Models.dataTable;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Repositories
 {

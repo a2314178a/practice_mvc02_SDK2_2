@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using practice_mvc02.Models.dataTable;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Repositories
 {
@@ -18,18 +19,18 @@ namespace practice_mvc02.Repositories
 
         public PunchCardLog GetTodayPunchLog(int employeeID, WorkTimeRule thisWorkTime){
             //
-            DateTime sDateTime = DateTime.Now.Date;
-            DateTime eDateTime = DateTime.Now.Date;
+            DateTime sDateTime = definePara.dtNow().Date;
+            DateTime eDateTime = definePara.dtNow().Date;
             if(thisWorkTime != null){
-                sDateTime = DateTime.Now.Date + thisWorkTime.startTime;
-                eDateTime = DateTime.Now.Date + thisWorkTime.endTime;
+                sDateTime = definePara.dtNow().Date + thisWorkTime.startTime;
+                eDateTime = definePara.dtNow().Date + thisWorkTime.endTime;
                 eDateTime = eDateTime <= sDateTime ? eDateTime.AddDays(1): eDateTime;
                 sDateTime = sDateTime.AddHours(lessStHour);
                 eDateTime = eDateTime.AddHours(addEtHour);
-                if(DateTime.Now >= eDateTime){
+                if(definePara.dtNow() >= eDateTime){
                     sDateTime = sDateTime.AddDays(1);
                     eDateTime = eDateTime.AddDays(1);
-                }else if(DateTime.Now < sDateTime){
+                }else if(definePara.dtNow() < sDateTime){
                     sDateTime = sDateTime.AddDays(-1);
                     eDateTime = eDateTime.AddDays(-1);
                 }
@@ -143,7 +144,7 @@ namespace practice_mvc02.Repositories
             warnLog.principalID = query.principalID;
             warnLog.punchLogID = log.ID;
             warnLog.warnStatus = 0;
-            warnLog.createTime = DateTime.Now;
+            warnLog.createTime = definePara.dtNow();
             var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == log.ID);
             if(context == null){
                 _DbContext.punchlogwarns.Add(warnLog);
@@ -157,7 +158,7 @@ namespace practice_mvc02.Repositories
             var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == punchLogID);
             if(context != null){
                 context.warnStatus = 1;
-                context.updateTime = DateTime.Now;
+                context.updateTime = definePara.dtNow();
                 _DbContext.SaveChanges();
             }
         }
@@ -205,7 +206,7 @@ namespace practice_mvc02.Repositories
             nullPunchLog.departmentID = departID;
             nullPunchLog.logDate = targetDate;
             nullPunchLog.punchStatus = 0;
-            nullPunchLog.createTime = DateTime.Now;
+            nullPunchLog.createTime = definePara.dtNow();
             try{
                 _DbContext.punchcardlogs.Add(nullPunchLog);
                 _DbContext.SaveChanges();
@@ -215,7 +216,7 @@ namespace practice_mvc02.Repositories
         }
 
         public List<PunchCardLog> GetAllPunchLogWithWarn(int day){
-            var dtRange = DateTime.Now.Date.AddDays(-1*day);
+            var dtRange = definePara.dtNow().Date.AddDays(-1*day);
             var query = _DbContext.punchcardlogs.Where(b=> b.punchStatus != 0x01 && b.logDate >= dtRange);                                           
             return query.ToList();
         }
@@ -243,7 +244,7 @@ namespace practice_mvc02.Repositories
                 _DbContext.SaveChanges();
             }else{
                 context.totalTime = data.totalTime;
-                context.updateTime = DateTime.Now;
+                context.updateTime = definePara.dtNow();
                 _DbContext.SaveChanges();
             }
         }

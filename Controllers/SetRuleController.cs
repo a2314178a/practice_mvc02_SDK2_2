@@ -50,10 +50,10 @@ namespace practice_mvc02.Controllers
         public int addUpTimeRule(WorkTimeRule data){
             data.lastOperaAccID = (int)loginID;
             if(data.ID==0){
-                data.createTime = DateTime.Now;
+                data.createTime = definePara.dtNow();
                 return Repository.AddTimeRule(data);
             }else{
-                data.updateTime = DateTime.Now;
+                data.updateTime = definePara.dtNow();
                 return Repository.UpdateTimeRule(data);
             }
         }
@@ -73,7 +73,7 @@ namespace practice_mvc02.Controllers
 
         public int addGroup(GroupRule newGroup){
             newGroup.lastOperaAccID = (int)loginID;
-            newGroup.createTime = DateTime.Now;
+            newGroup.createTime = definePara.dtNow();
             return Repository.AddGroup(newGroup);
         }
 
@@ -83,7 +83,7 @@ namespace practice_mvc02.Controllers
 
         public int updateGroup(GroupRule updateGroup){
             updateGroup.lastOperaAccID = (int)loginID;
-            updateGroup.updateTime = DateTime.Now;
+            updateGroup.updateTime = definePara.dtNow();
             return Repository.UpdateGroup(updateGroup);
         }
 
@@ -104,10 +104,10 @@ namespace practice_mvc02.Controllers
         public int addUpSpecialTime(SpecialDate spDate){
             spDate.lastOperaAccID = (int)loginID;
             if(spDate.ID == 0){     
-                spDate.createTime = DateTime.Now;
+                spDate.createTime = definePara.dtNow();
                 return Repository.AddSpecialTime(spDate);
             }else{
-                spDate.updateTime = DateTime.Now;
+                spDate.updateTime = definePara.dtNow();
                 return Repository.UpdateSpecialTime(spDate);
             } 
         }
@@ -129,10 +129,10 @@ namespace practice_mvc02.Controllers
         public int addUpLeave(LeaveName data){
             data.lastOperaAccID = (int)loginID;
             if(data.ID == 0){
-               data.createTime = DateTime.Now;
+               data.createTime = definePara.dtNow();
                return Repository.AddLeave(data);
             }else{
-                data.updateTime = DateTime.Now;
+                data.updateTime = definePara.dtNow();
                 return Repository.UpdateLeave(data);
             }
         }
@@ -154,10 +154,10 @@ namespace practice_mvc02.Controllers
         public int addUpSpLeaveRule(AnnualLeaveRule data){
             data.lastOperaAccID = (int)loginID;
             if(data.ID == 0){
-               data.createTime = DateTime.Now;
+               data.createTime = definePara.dtNow();
                return Repository.AddSpLeaveRule(data);
             }else{
-                data.updateTime = DateTime.Now;
+                data.updateTime = definePara.dtNow();
                 return Repository.UpdateSpLeaveRule(data);
             }
         }

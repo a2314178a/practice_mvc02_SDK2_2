@@ -27,6 +27,7 @@ namespace practice_mvc02.Controllers
         protected int? ruleVal;
         protected int? principalID;
         public groupRuleCode ruleCode {get;}
+        
 
         public BaseController(IHttpContextAccessor httpContextAccessor)
         {

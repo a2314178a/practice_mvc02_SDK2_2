@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
 {
@@ -24,7 +25,7 @@ namespace practice_mvc02.Models
 
         private void calEmployeeWorkTime(){
             var workEmployee = Repository.GetNeedPunchAcc("全體", 2);
-            var dtNow = DateTime.Now;
+            var dtNow = definePara.dtNow();
             var startDT = dtNow.AddDays(1 - dtNow.Day).Date;
             var endDT = startDT.AddMonths(1).AddDays(-1).Date;
             //var startDT = dtNow.AddMonths(-1).AddDays(1 - dtNow.Day).Date;
@@ -82,10 +83,10 @@ namespace practice_mvc02.Models
         public void saveTotalTimeRecord(int accID, double totalTime){
             var timeRecord = new workTimeTotal();
             timeRecord.accountID = accID;
-            timeRecord.dateMonth = DateTime.Now.AddDays(1 - DateTime.Now.Day).Date;
-            //timeRecord.dateMonth = DateTime.Now.AddMonths(-1).AddDays(1 - DateTime.Now.Day).Date;
+            timeRecord.dateMonth = definePara.dtNow().AddDays(1 - definePara.dtNow().Day).Date;
+            //timeRecord.dateMonth = definePara.dtNow().AddMonths(-1).AddDays(1 - definePara.dtNow().Day).Date;
             timeRecord.totalTime = totalTime;
-            timeRecord.createTime = DateTime.Now;
+            timeRecord.createTime = definePara.dtNow();
             Repository.SaveTotalTimeRecord(timeRecord);
         }
 

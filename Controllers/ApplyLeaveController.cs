@@ -71,13 +71,13 @@ namespace practice_mvc02.Controllers
             int result = 0;
             data.principalID = (int)principalID;
             if(data.ID ==0){
-                data.createTime = DateTime.Now;
+                data.createTime = definePara.dtNow();
                 result = Repository.CreateApplyLeave(data);
                 if(result == 1){
                     Repository.systemSendMessage(loginName, (int)loginID, "leave");
                 }
             }else{
-                data.updateTime = DateTime.Now;
+                data.updateTime = definePara.dtNow();
                 result = Repository.UpdateApplyLeave(data);
             }
             return result;

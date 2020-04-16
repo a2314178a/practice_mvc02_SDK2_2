@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MySql.Data.MySqlClient;
 using practice_mvc02.Models.dataTable;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Repositories
 {
@@ -153,7 +154,7 @@ namespace practice_mvc02.Repositories
             var downWithUp = new EmployeePrincipal(){
                 employeeID = account.ID,    principalID = depart.principalID,
                 principalAgentID = departAgent,   
-                lastOperaAccID = account.lastOperaAccID,    createTime = DateTime.Now
+                lastOperaAccID = account.lastOperaAccID,    createTime = definePara.dtNow()
             };
             _DbContext.employeeprincipals.Add(downWithUp);  //所屬部門主管一定會新增
             _DbContext.SaveChanges();
@@ -195,7 +196,7 @@ namespace practice_mvc02.Repositories
 
         public object GetMyAnnualLeave(int employeeID){
             var query = _DbContext.employeeannualleaves
-                            .Where(b=>b.employeeID == employeeID && b.deadLine > DateTime.Now)
+                            .Where(b=>b.employeeID == employeeID && b.deadLine > definePara.dtNow())
                             .Select(b=>new{b.specialDays, b.remainHours, b.deadLine})
                             .OrderBy(b=>b.deadLine);
             return query.ToList();

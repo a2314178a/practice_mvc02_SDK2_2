@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
 {
@@ -24,7 +25,7 @@ namespace practice_mvc02.Models
         }
 
         private void addPunchLogWhenNoPunch(int rangeDay){
-            var targetDate = (DateTime.Now.Date).AddDays(-rangeDay);
+            var targetDate = (definePara.dtNow().Date).AddDays(-rangeDay);
             var spDate = Repository.GetThisSpecialDate(targetDate);
             List<Account> needPunchAcc = new List<Account>(){};
 

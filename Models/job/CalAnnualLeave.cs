@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
 {
@@ -28,7 +29,7 @@ namespace practice_mvc02.Models
         private void calSeniorityAndLeave(List<EmployeeDetail> allDetail, List<AnnualLeaveRule> spDaysRule){
             foreach(var detail in allDetail)
             {
-                var dtNow = DateTime.Now;
+                var dtNow = definePara.dtNow();
                 var dtStart = detail.startWorkDate; //報到日
                 if(dtStart.Year==1 || dtStart > dtNow){
                     continue;
@@ -78,7 +79,7 @@ namespace practice_mvc02.Models
                         }
                         data02.remainHours = data02.specialDays*8 - Repository.GetSpLeaveTotalHours(
                                         data02.employeeID, data02.deadLine.AddMonths(-(dlMonth+buffMonth)), data02.deadLine);
-                        if(data02.deadLine >= DateTime.Now)
+                        if(data02.deadLine >= definePara.dtNow())
                             Repository.RecordEmployeeSpDays(data02);
                     }
                 }

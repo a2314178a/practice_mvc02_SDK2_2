@@ -32,7 +32,7 @@ namespace practice_mvc02.Repositories
                             b.deadLine == data.deadLine
                         );
             if(query == null){
-                data.createTime = DateTime.Now;
+                data.createTime = definePara.dtNow();
                 _DbContext.employeeannualleaves.Add(data);
                 _DbContext.SaveChanges();
             }
@@ -41,7 +41,7 @@ namespace practice_mvc02.Repositories
         public void UpEmployeeSpLeave(int ruleID , int diffSpecialDays, int diffBuffDays){
             var query = _DbContext.employeeannualleaves.Where(b=>b.ruleID == ruleID).ToList();
             foreach(var tmp in query){
-                tmp.updateTime = DateTime.Now;
+                tmp.updateTime = definePara.dtNow();
                 if(diffSpecialDays != 0){
                     tmp.specialDays += diffSpecialDays;
                     tmp.remainHours += diffSpecialDays*8;

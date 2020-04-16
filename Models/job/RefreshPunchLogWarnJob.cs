@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Pomelo.AspNetCore.TimedJob;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
 {
@@ -21,9 +22,9 @@ namespace practice_mvc02.Models
         [Invoke(Begin = "2020-02-21 00:00", Interval = 1000*3600*24, SkipWhileExecuting =true, IsEnabled = true)]
         public void Run()
         {
-            Console.WriteLine("Start RefreshPunchLogWarnJob------"+DateTime.Now);
+            Console.WriteLine("Start RefreshPunchLogWarnJob------"+definePara.dtNow());
             chkWarn.start();
-            Console.WriteLine("Finish RefreshPunchLogWarnJob------"+DateTime.Now);
+            Console.WriteLine("Finish RefreshPunchLogWarnJob------"+definePara.dtNow());
         }
 
     }

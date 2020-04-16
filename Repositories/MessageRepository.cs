@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using practice_mvc02.Models.dataTable;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Repositories
 {
@@ -43,7 +44,7 @@ namespace practice_mvc02.Repositories
             if(context != null){
                 context.read = 1;
                 context.lastOperaAccID = loginID;
-                context.updateTime = DateTime.Now;
+                context.updateTime = definePara.dtNow();
                 count = _DbContext.SaveChanges();
             }
             return count;
@@ -59,7 +60,7 @@ namespace practice_mvc02.Repositories
                     context.sDelete = true;
                 }
                 context.lastOperaAccID = loginID;
-                context.updateTime = DateTime.Now;
+                context.updateTime = definePara.dtNow();
                 count = _DbContext.SaveChanges();
             }
             return count;

@@ -81,7 +81,7 @@ namespace practice_mvc02.Controllers
                 return 0;
             }
             msg.lastOperaAccID = (int)loginID;
-            msg.createTime = DateTime.Now;
+            msg.createTime = definePara.dtNow();
             var msgID = Repository.createMessage(msg);
             if(msgID >0){
                 return sendMessage(msgID, depart, receiveID);
@@ -114,7 +114,7 @@ namespace practice_mvc02.Controllers
                 record.messageID = msgID;
                 record.sendID = record.lastOperaAccID = (int)loginID;
                 record.receiveID = account.ID;
-                record.createTime = DateTime.Now;
+                record.createTime = definePara.dtNow();
                 count += Repository.SendMessage(record);
             }
             return count;

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using practice_mvc02.Models;
 using practice_mvc02.Models.dataTable;
 
 namespace practice_mvc02.Repositories

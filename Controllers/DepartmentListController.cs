@@ -50,7 +50,7 @@ namespace practice_mvc02.Controllers
         
         public int createDepartment(Department newData){
             newData.lastOperaAccID = (int)loginID;
-            newData.createTime = DateTime.Now;   
+            newData.createTime = definePara.dtNow();   
             return Repository.CreateDepartment(newData);
         }
 
@@ -60,7 +60,7 @@ namespace practice_mvc02.Controllers
 
         public int updateDepartment(Department updateDate){
             updateDate.lastOperaAccID = (int)loginID;
-            updateDate.updateTime = DateTime.Now; 
+            updateDate.updateTime = definePara.dtNow(); 
             return Repository.UpdateDepartment(updateDate);
         }
 

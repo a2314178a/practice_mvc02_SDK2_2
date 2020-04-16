@@ -43,7 +43,7 @@ namespace practice_mvc02.Controllers
             if(userData != null)
             {
                 var userID = (int)getObjectValue("ID", userData);
-                DateTime nowTime= DateTime.Now;
+                DateTime nowTime= definePara.dtNow();
                 DateTime Jan1st1970 = new DateTime(1970, 1, 1, 8, 0, 0, DateTimeKind.Utc);
                 long timeStamp = Convert.ToInt64((nowTime - Jan1st1970).TotalMilliseconds);
                 int count = Repository.UpdateTimeStamp(userID, timeStamp.ToString(), nowTime);

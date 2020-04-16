@@ -74,13 +74,13 @@ namespace practice_mvc02.Controllers
             accData.lastOperaAccID = employeeDetail.lastOperaAccID = (int)loginID;
             if(action =="add"){
                 accData.password = loginFn.GetMD5(accData.account + accData.password);
-                accData.createTime = employeeDetail.createTime = DateTime.Now;
+                accData.createTime = employeeDetail.createTime = definePara.dtNow();
                 result = Repository.CreateEmployee(accData, employeeDetail, thisManager);  //-2:mulUserlongin -1:already account, 0:add fail, 1:add success
             }else if(action == "update"){
                 if(accData.password != null){
                     accData.password = loginFn.GetMD5((accData.account + accData.password));
                 }
-                accData.updateTime = employeeDetail.updateTime = DateTime.Now;
+                accData.updateTime = employeeDetail.updateTime = definePara.dtNow();
                 result = Repository.UpdateEmployee(accData, employeeDetail, thisManager);
             }
             return result;

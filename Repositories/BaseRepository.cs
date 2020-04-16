@@ -46,7 +46,7 @@ namespace practice_mvc02.Repositories
                 case "leave": text = "辦理了請假手續，若方便請前往處理，謝謝"; break;
             }
             var content = name + text;
-            var msg = new Message{title=title, content=content, createTime=DateTime.Now};
+            var msg = new Message{title=title, content=content, createTime=definePara.dtNow()};
             _DbContext.message.Add(msg);
             _DbContext.SaveChanges();
             var msgID = msg.ID;
@@ -54,7 +54,7 @@ namespace practice_mvc02.Repositories
                 var arr = _DbContext.employeeprincipals.Where(b=>b.employeeID == loginID).ToList();
                 var hadSend = new List<int>();
                 foreach(var tmp in arr){
-                    var record = new MsgSendReceive{messageID=msgID, createTime=DateTime.Now};
+                    var record = new MsgSendReceive{messageID=msgID, createTime=definePara.dtNow()};
                     if(hadSend.IndexOf(tmp.principalID) == -1){
                         hadSend.Add(tmp.principalID);
                         record.receiveID = tmp.principalID;
@@ -101,7 +101,7 @@ namespace practice_mvc02.Repositories
                 if(context != null){
                     context.password = data.password;
                     context.lastOperaAccID = loginID;
-                    context.updateTime = DateTime.Now;
+                    context.updateTime = definePara.dtNow();
                     count = _DbContext.SaveChanges() > 0? 1: count;
                 }
             }
@@ -110,7 +110,7 @@ namespace practice_mvc02.Repositories
                 context2.myAgentID = data.myAgentID;
                 context2.agentEnable = data.agentEnable;
                 context2.lastOperaAccID = loginID;
-                context2.updateTime = DateTime.Now;
+                context2.updateTime = definePara.dtNow();
                 count = _DbContext.SaveChanges() > 0? 1: count;
                 setPrincipalAgent(loginID, context2.myAgentID, context2.agentEnable);
             }

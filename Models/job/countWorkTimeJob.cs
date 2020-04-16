@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Pomelo.AspNetCore.TimedJob;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
 {
@@ -23,9 +24,9 @@ namespace practice_mvc02.Models
         [Invoke(Begin = "2020-02-21 00:01", Interval = 1000*3600*24, SkipWhileExecuting =true, IsEnabled = true)]
         public void Run()
         {
-            Console.WriteLine("Start countWorkTimeJob------"+DateTime.Now);
+            Console.WriteLine("Start countWorkTimeJob------"+definePara.dtNow());
             calTime.start();
-            Console.WriteLine("Finish countWorkTimeJob------"+DateTime.Now);
+            Console.WriteLine("Finish countWorkTimeJob------"+definePara.dtNow());
         }
 
         

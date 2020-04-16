@@ -18,6 +18,7 @@ namespace practice_mvc02.filters
         private string loginTimeStamp;
         private ISession _session;
         private groupRuleCode ruleCode {get;}
+        public const int UTC_offset = 8;
 
         public ActionFilter(AccountRepository repository){
             this.Repository = repository;
