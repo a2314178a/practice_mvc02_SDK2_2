@@ -1,0 +1,180 @@
+﻿
+.allAccount_table, .allDepartment_table, .punchLog_table, 
+.allTimeRule_table, .allGroup_table, .specialDate_table,
+.timeTotal_table, .annualLeave_table{
+  text-align:center;
+  margin-left:auto; 
+  margin-right:auto;
+  font-size:30px;
+  word-break:break-all;
+}
+.punchLogWarn_table, .applyLeave_table, .message_table, .leave_table, .myDetail{
+  text-align:center;
+  margin-left:auto; 
+  margin-right:auto;
+  font-size:24px;
+  word-break:break-all;
+}
+
+.employeeDetail .detailTitleTd{
+  font-size: 18px;
+
+}
+.employeeDetail .detailMainTd{
+  font-size: 18px;
+}
+
+#leaveTimeDiv, #annualLeaveDiv{
+  margin: auto;
+  width: 60%;
+}
+.leave_table td{
+  width: 33%;
+}
+
+.applyLeave_table > tbody > tr > td{
+  padding: 12px 6px;
+}
+td{
+  vertical-align: middle !important;
+}
+.container{
+  max-width: 1300px;
+}
+.btn{
+  margin: 3px;
+}
+
+#groupList td[name='groupAuthority']{
+  text-align:left !important;
+}
+
+.template, .newRestType, .noDisplay{
+  display:none;
+}
+
+#rePunchBtn{
+  display: none;
+  position: relative;
+  left: 5px;
+}
+
+
+input[name='punchOption']{
+  zoom:200%;
+}
+
+.forRadio{
+  font-size:30px;
+}
+
+.forChkBox{
+  font-size:20px;
+  margin: auto 10px;
+}
+.forChkBox > [type='checkbox']{
+  zoom: 125%;
+}
+
+/*tr[name='groupRow'] td, tr[name='addGroupRow'] td{
+  vertical-align: middle;
+}*/
+
+select, input, ul[group='table']{
+  margin: 5px;
+}
+
+#writeMsgDiv{
+  text-align: center;
+}
+
+.writeMsg_table{
+  text-align:center;
+  margin-left:auto; 
+  margin-right:auto;
+  font-size:24px;
+  word-break:break-all;
+  max-width: 700px;
+}
+
+.writeMsg_table .msgTitle{
+  padding: 6px ;
+  width: 100px !important;
+}
+
+.writeMsg_table #msgTitle{
+  width: 550px;
+  height: 50px;
+}
+
+.writeMsg_table #content{
+  width: 550px;
+  height: 500px;
+}
+
+
+
+.calendar_table{
+  width: 60%;
+  text-align:center;
+  margin-left:auto; 
+  margin-right:auto;
+  font-size:25px;
+  word-break:break-all;
+}
+.calendar_table td{
+  height: 80px !important;
+}
+#calendar .tdGray{
+  background-color: #ccc;
+}
+#calendar .tdRed{
+  background-color: #F002;
+}
+#calendar .tdRed.tdHighRed{
+  background-color: #F006;
+}
+#calendar .tdGreen{
+  background-color: #0F02;
+}
+#calendar .tdGreen.tdHighGreen{
+  background-color: #0F06;
+}
+
+#calendar .tdBlue{
+  background-color: #00F3;
+}
+#calendar .tdBlue.tdHighBlue{
+  background-color: #00F6;
+}
+
+#calendar .tdRedBlue{
+  background: linear-gradient(45deg,#F002,#00F4);
+}
+#calendar .tdRedBlue.tdHighRedBlue{
+  background: linear-gradient(45deg,#F006,#00F6);
+}
+
+
+#thisManagerDiv{
+  display:inline-block; 
+  vertical-align:middle;
+  text-align: end;
+}
+
+#thisManagerDiv div{
+  margin: 10px;
+}
+
+#thisManagerDiv input{
+  zoom:50%;
+  margin:auto 40px;
+}
+
+
+.annualLeave_table th,.annualLeave_table td{
+  width: 25%;
+}
+.annualLeave_table select{
+  width: 80%;
+}

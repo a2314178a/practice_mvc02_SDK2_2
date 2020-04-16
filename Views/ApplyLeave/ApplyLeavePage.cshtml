@@ -1,0 +1,159 @@
+﻿@{
+    ViewData["Title"] = "歡迎";
+}
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1">				    
+        @* <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">       *@
+
+	</head>
+
+	<body>			
+        <div class="container"><!--內容-->
+            <div class="row mx-0 align-items-center justify-content-center w-100">
+                <div class="col-12">
+                    <div id="ApplyLeavePage">
+
+                        <ul class="nav nav-tabs justify-content-end" group="table">                         
+                            <span style="width:30px;"></span>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page!="log"?"active":"")' href="#" name="applyLeave" onclick="showApplyLeavePage();">申請</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page=="log"?"active":"")' href="#" name="applyLeaveLog" onclick="showApplyLeavePage('log');">申請紀錄</a>
+                            </li>
+                        </ul>
+                        
+                        <div id="searchFilterDiv" style="text-align:center; margin:20px auto;">
+                            <p>
+                                <form>
+                                    起始 Date: <input type="date" id="filter_sDate">&nbsp;&nbsp;&nbsp;&nbsp;
+                                    結束 Date: <input type="date" id="filter_eDate">
+                                    <input type="button" name="searchFilterBtn" value="搜尋">
+                                </form>
+                            </p>   
+                        </div>
+                        
+                        @if(ViewBag.Page!="log")
+                        {
+                            <div id="applyLeaveDiv">
+                                <table class="table table-hover table-bordered applyLeave_table">
+                                    <thead class="thead-dark" >
+                                        <tr>
+                                            <th scope="col">申請日期</th>
+                                            <th scope="col">申請類別</th>
+                                            <th scope="col" width="20%">備註</th>
+                                            <th scope="col">開始時間</th>
+                                            <th scope="col">時間長度</th>
+                                            <th scope="col" width="15%">管理動作</th>
+                                        </tr>
+                                    </thead> 
+                                    <tbody id="applyLeaveList">
+                                    </tbody>
+                                </table>
+                                <a href="javascript:void(0);" class="btn btn-primary btnActive add_applyLeave" style="float:right" onclick="showAddApplyLeaveRow();">申請</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="applyLeaveLogDiv">
+                                <table class="table table-hover table-bordered applyLeave_table">
+                                    <thead class="thead-dark" >
+                                        <tr>
+                                            <th scope="col">申請日期</th>
+                                            <th scope="col">申請類別</th>
+                                            <th scope="col" width="20%">備註</th>
+                                            <th scope="col">開始時間</th>
+                                            <th scope="col">結束時間</th>
+                                            <th scope="col">審核狀態</th>
+                                        </tr>
+                                    </thead> 
+                                    <tbody id="applyLeaveLogList">
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    <br/>    
+                    </div>
+                </div>
+            </div>		
+        </div>	
+
+
+
+        <div class="template">
+           <table>
+                @if(ViewBag.Page!="log")
+                {
+                    <tr name="applyLeaveRow">
+                        <td scope="col" name="applyDate"></td>
+                        <input type="hidden" name="applyTypeVal">
+                        <td scope="col" name="applyType"></td>
+                        <td scope="col" name="note" width="20%"></td>
+                        <td scope="col" name="startTime"></td>
+                        <td scope="col" name="endTime"></td>
+                        <td scope="col" width="15%">
+                            @* <a href="javascript:void(0);" class="btn btn-primary edit_applyLeave btnActive" >編輯</a> *@
+                            <a href="javascript:void(0);" class="btn btn-danger del_applyLeave btnActive" >取消申請</a>
+                        </td>
+                    </tr>
+                    <tr name="addApplyLeaveRow">
+                        <td scope="col" name="newApplyDate"></td>
+                        <td scope="col">
+                            <select name="newApplyType">                             
+                            </select>
+                        </td>
+                        <td scope="col" width="20%">
+                            <textarea style="width:200px;height:100px; margin:auto ;" name="newApplyNote"></textarea>
+                        </td>
+                        <td scope="col">
+                            <input type='date' name="newStartDate" style='zoom:80%'><br/>
+                            <input type='time' name="newStartTime" style='zoom:80%' step="1800">
+                        </td>
+                        <td scope="col">
+                            @* <input type='date' name="newEndDate" style='zoom:80%'><br/>
+                            <input type='time' name="newEndTime" style='zoom:80%' step="1800"><br/> *@
+                            <input type="text" name="newTimeLength" style="width:75px;">
+                            <select name="newTimeUnit">
+                                <option value="1">天</option>
+                                <option value="2">半天</option>
+                                <option value="3">小時</option>
+                            </select>
+                        </td>
+                        <td scope="col" width="15%">
+                            <a href="javascript:void(0);" class="btn btn-primary add_applyLeave" >申請</a>
+                            @* <a href="javascript:void(0);" class="btn btn-primary up_applyLeave" >更新</a> *@
+                            <a href="javascript:void(0);" class="btn btn-danger cel_applyLeave" >取消</a>
+                        </td>
+                    </tr> 
+                }
+                else
+                {
+                    <tr name="applyLeaveLogRow">
+                        <td scope="col" name="applyDate"></td>
+                        <td scope="col" name="applyType"></td>
+                        <td scope="col" name="note" width="20%"></td>
+                        <td scope="col" name="startTime"></td>
+                        <td scope="col" name="endTime"></td>
+                        <td scope="col" name="applyStatus"></td>
+                    </tr>
+                }
+            </table>
+        </div>
+
+
+
+
+
+        	
+        @section Scripts{
+            <script src="~/js/baseJS.js" type="text/javascript"></script>	 
+            <script src="~/js/applyLeave.js" type="text/javascript"></script>
+        }
+        	 
+	</body>
+</html>
