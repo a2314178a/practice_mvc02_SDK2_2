@@ -10,10 +10,6 @@ $(document).ready(function() {
         punchCardFn();
     });
 
-    $("input[name='punchOption']").on("click", function(){
-        chkPunchOptionStatus();
-    });
-
 });//.ready function
 
 function showPunchCardPage(){
@@ -59,37 +55,26 @@ function getTodayPunchStatus(){
 }
 
 function chkPunchOptionStatus(){
-    $("#punchCardBtn").addClass("btn-primary").removeClass("btn-success");
-    $("#punchCardBtn").css('pointer-events', "").text("打卡");
-    $("#punchTimeText").text("");
-    $("#rePunchBtn").hide();
-    var optionVal = $('input[name=punchOption]:checked').val();
-    if(optionVal == 1){
-        if(myObj.onlineStatus){
-            $("#punchCardBtn").addClass("btn-success").removeClass("btn-primary");
-            $("#punchCardBtn").css('pointer-events', "none").text("上班已打卡");
-            $("#punchTimeText").text("打卡時間 : " + myObj.onlineTime);
-        }
-    }else if(optionVal == 0){
-        if(myObj.offlineStatus){
-            $("#punchCardBtn").addClass("btn-success").removeClass("btn-primary");
-            $("#punchCardBtn").text("");
-            var msg = "下班已打卡<br/><span style='font-size:10px'>(點選再次打卡)</span>";
-            var btn = $("#punchCardBtn").append(msg);
-            //btn.html(btn.html().replace(/\n/g, "<br/>"));
-            $("#punchTimeText").text("打卡時間 : " + myObj.offlineTime);
-            //$("#rePunchBtn").show();
-        }
+    $("#punchTimeText_on,#punchTimeText_off").text("");
+    $("#punchCardBtn").text(myObj.onlineStatus? "打下班卡" : "打上班卡");
+    if(myObj.onlineStatus){
+        $("#punchTimeText_on").text("今日上班打卡時間 : " + myObj.onlineTime);
+    }else{
+        $("#punchTimeText_on").text("今日上班打卡時間 : 尚未打卡");
+    }
+    if(myObj.offlineStatus){
+        $("#punchTimeText_off").text("今日下班打卡時間 : " + myObj.offlineTime);
+    }else{
+        $("#punchTimeText_off").text("今日下班打卡時間 : 尚未打卡");
     }
 }
 
 function punchCardFn(){
-    var optionVal = $('input[name=punchOption]:checked').val();
-    if(isNaN(optionVal) || (optionVal == 1 && myObj.onlineStatus)){
-        alert("請點選打卡選項");
-        return;
+    if(!myObj.onlineStatus){
+        var optionVal = 1;
+    }else{
+        var optionVal = 0;
     }
-    
     var successFn = function(res){
         switch(res){
             case 1: getTodayPunchStatus(); break;
@@ -97,7 +82,7 @@ function punchCardFn(){
             case 3: alert("現在時段不能打下班卡"); break;
             case 4: alert("不能補打上班時間"); break;
         }
-    }
+    };
     myObj.cudAjaxFn("/PunchCard/addPunchCardLog", {action: optionVal}, successFn);
 }
 

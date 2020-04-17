@@ -22,7 +22,13 @@ namespace practice_mvc02.Models
             this.departmentList = 0x0020;  //部門職位相關
             this.setRule = 0x0040; //設定規則
             this.applySign = 0x0080;    //相關審核
-        } 
+        }
+
+        public int getTotalValue(){
+            var val = baseActive | editPunchLog | departEmployeeList | allEmployeeList | employeeEdit |
+                        departmentList | setRule | applySign;
+            return val;
+        }
     }
     
     public class punchStatusCode

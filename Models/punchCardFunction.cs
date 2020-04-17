@@ -33,56 +33,26 @@ namespace practice_mvc02.Models
         public int punchCardProcess(PunchCardLog logData, WorkTimeRule thisWorkTime, int action, int employeeID)
         {   
             WorkDateTime wt = workTimeProcess(thisWorkTime);
-            int resultCount = 0; //0:操作異常 1:成功 2:上班已打卡 3:現在時段不能打下班卡 4:不能補打上班時間
+            int resultCount = 0; //0:操作異常 1:成功 
             
             if(logData == null) //今日皆未打卡      
             {
                 logData = new PunchCardLog(){
                     accountID = employeeID, departmentID = (int)loginDepartmentID, logDate = wt.sWorkDt.Date,
-                    lastOperaAccID = (int)loginID, createTime = definePara.dtNow()
-                };
-
-                if(action == 0){    //下班
-                    if(definePara.dtNow() >= wt.sPunchDT && definePara.dtNow() <= wt.sWorkDt){
-                        return 3;
-                    }
-                    logData.offlineTime = definePara.dtNow();
-                }else if(action == 1){  //上班
-                    if(definePara.dtNow() >= wt.eWorkDt){
-                        return 4;
-                    }
-                    logData.onlineTime = definePara.dtNow();
-                }else{
-                    return 0;
-                }    
+                    lastOperaAccID = (int)loginID, onlineTime = definePara.dtNow(), createTime = definePara.dtNow()
+                };    
             }
             else   //今日有打過卡 or 電腦生成(跨日才有可能遇到)
             {
                 logData.lastOperaAccID = (int)loginID;
                 logData.updateTime = definePara.dtNow();
-                if(action == 0) //打下班卡
-                {   
-                    if(definePara.dtNow() >= wt.sPunchDT && definePara.dtNow() <= wt.sWorkDt && logData.onlineTime.Year == 1){
-                        return 3;   //現在時段不能打下班卡
-                    }else{
-                        logData.offlineTime = definePara.dtNow(); 
-                    }
-                }
-                else if(action == 1)  //打上班卡
-                {  
-                    if(logData.onlineTime.Year != 1){    //已打上班卡
-                        return 2;   //上班已打卡
-                    }else{  
-                        if(definePara.dtNow() >= wt.eWorkDt || logData.offlineTime.Year !=1){
-                            return 4;   //不能補打上班時間
-                        }else{
-                            logData.onlineTime = definePara.dtNow();                           
-                        }
-                    }
+
+                if(logData.onlineTime.Year ==1 && logData.offlineTime.Year ==1){
+                    logData.onlineTime = definePara.dtNow();
                 }else{
-                    return 0;
-                } 
-            }//Repository.AddPunchCardLog(logData);
+                    logData.offlineTime = definePara.dtNow();
+                }
+            }
             logData.punchStatus = getStatusCode(wt, logData);
             resultCount = logData.ID ==0? Repository.AddPunchCardLog(logData):Repository.UpdatePunchCard(logData);
             if(resultCount == 1 && logData.punchStatus > 1 && logData.punchStatus != psCode.takeLeave){    //一定要新增log成功 不然會沒logID

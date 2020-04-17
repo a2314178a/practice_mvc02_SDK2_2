@@ -53,21 +53,29 @@ namespace practice_mvc02.Repositories
             modelBuilder.Entity<SpecialDate>().Property(b=>b.departClass).HasColumnType("varchar(255)");
             modelBuilder.Entity<AnnualLeaveRule>().HasIndex(b=>b.seniority).IsUnique();
 
-            /*modelBuilder.Entity<Account>().HasData(new Account{
+             
+            //createDefaultData(modelBuilder);
+        }
+
+        private void createDefaultData(ModelBuilder modelBuilder){
+            var grCode = new groupRuleCode();
+
+            modelBuilder.Entity<Account>().HasData(new Account{
                 ID = 1, account = "admin", password = "F6FDFFE48C908DEB0F4C3BD36C032E72", userName = "Administrator",
                 accLV=7, departmentID = 1, groupID = 1, timeRuleID = 0, createTime = definePara.dtNow(), updateTime = definePara.dtNow()
-            });
-            modelBuilder.Entity<Department>().HasData(new Department{
-                ID = 1, department = "董事", position = "董事長", principalID = 1, createTime = definePara.dtNow(), updateTime = definePara.dtNow()
-            });
-            modelBuilder.Entity<GroupRule>().HasData(new GroupRule{
-                ID = 1, groupName = "超級管理員", ruleParameter = 255 , createTime = definePara.dtNow(), updateTime = definePara.dtNow()
             });
             modelBuilder.Entity<EmployeeDetail>().HasData(new EmployeeDetail{
                 ID = 1, accountID = 1, birthday = definePara.dtNow(), startWorkDate = definePara.dtNow(), 
                 createTime = definePara.dtNow(), updateTime = definePara.dtNow()
             });
-            */
+
+            modelBuilder.Entity<Department>().HasData(new Department{
+                ID = 1, department = "董事", position = "董事長", principalID = 1, createTime = definePara.dtNow(), updateTime = definePara.dtNow()
+            });
+            modelBuilder.Entity<GroupRule>().HasData(new GroupRule{
+                ID = 1, groupName = "超級管理員", ruleParameter = grCode.getTotalValue() , createTime = definePara.dtNow(), updateTime = definePara.dtNow()
+            });
+            
             
         }
     }
