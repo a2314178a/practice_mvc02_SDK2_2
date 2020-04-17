@@ -9,11 +9,12 @@ namespace practice_mvc02.Repositories
     public class BaseRepository
     {
         protected DBContext _DbContext {get;set;}
-        protected const string specialName = "特休";
+        protected string specialName;
 
         public BaseRepository(DBContext dbContext)
         {
             this._DbContext = dbContext;
+            this.specialName = definePara.annualName();
         }
 
         public string QueryTimeStamp(int? id){

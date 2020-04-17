@@ -11,12 +11,13 @@ namespace practice_mvc02.Repositories
     {
         private punchStatusCode psCode;
         private punchCardFunction punchCardFn {get;} 
-        public string spName = specialName;
+        public string spName;
         
         public ApplySignRepository(DBContext dbContext, punchCardFunction fn):base(dbContext)
         {
             this.psCode = new punchStatusCode();
             this.punchCardFn = fn;
+            this.spName = specialName;
         }
 
         #region punchWarn
@@ -256,11 +257,11 @@ namespace practice_mvc02.Repositories
             do{
                 var log = _DbContext.punchcardlogs.FirstOrDefault(b=>
                                         b.accountID == restLog.accountID && b.logDate == startDate);
-                WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, log);
                 if(log != null){
                     log.lastOperaAccID = 0;
                     log.updateTime = definePara.dtNow();
                     if(restLog.applyStatus == 1){  
+                        WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, log);
                         log.punchStatus = punchCardFn.getStatusCode(wt, log, restLog);
                     }else{
                         log.punchStatus &= ~psCode.takeLeave;
@@ -279,6 +280,7 @@ namespace practice_mvc02.Repositories
                             accountID = restLog.accountID, departmentID = departID,
                             logDate = startDate, createTime = definePara.dtNow(),
                         };
+                        WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, newLog);
                         newLog.punchStatus = punchCardFn.getStatusCode(wt, newLog, restLog);
                         _DbContext.punchcardlogs.Add(newLog);
                         _DbContext.SaveChanges();
