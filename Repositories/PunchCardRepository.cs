@@ -133,20 +133,21 @@ namespace practice_mvc02.Repositories
         }
 
         public void AddPunchLogWarnAndMessage(PunchCardLog log){
-            var query = (from a in _DbContext.departments 
+            var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == log.ID);
+            if(context == null){
+                var query = (from a in _DbContext.departments 
                         join b in _DbContext.punchcardlogs on a.ID equals b.departmentID
                         join c in _DbContext.accounts on b.accountID equals c.ID
                         where b.ID == log.ID
                         select new{a.principalID, b.accountID, c.userName}).FirstOrDefault();
 
-            var warnLog = new PunchLogWarn();
-            warnLog.accountID = log.accountID;
-            warnLog.principalID = query.principalID;
-            warnLog.punchLogID = log.ID;
-            warnLog.warnStatus = 0;
-            warnLog.createTime = definePara.dtNow();
-            var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == log.ID);
-            if(context == null){
+                var warnLog = new PunchLogWarn();
+                warnLog.accountID = log.accountID;
+                warnLog.principalID = query.principalID;
+                warnLog.punchLogID = log.ID;
+                warnLog.warnStatus = 0;
+                warnLog.createTime = definePara.dtNow();
+
                 _DbContext.punchlogwarns.Add(warnLog);
                 if(_DbContext.SaveChanges() > 0){
                     systemSendMessage(query.userName, query.accountID, "punch");

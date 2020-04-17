@@ -55,8 +55,8 @@ namespace practice_mvc02.Repositories
                 var arr = _DbContext.employeeprincipals.Where(b=>b.employeeID == loginID).ToList();
                 var hadSend = new List<int>();
                 foreach(var tmp in arr){
-                    var record = new MsgSendReceive{messageID=msgID, createTime=definePara.dtNow()};
                     if(hadSend.IndexOf(tmp.principalID) == -1){
+                        var record = new MsgSendReceive{messageID=msgID, createTime=definePara.dtNow()};
                         hadSend.Add(tmp.principalID);
                         record.receiveID = tmp.principalID;
                         _DbContext.msgsendreceive.Add(record);
@@ -64,9 +64,9 @@ namespace practice_mvc02.Repositories
                     }
                     if(hadSend.IndexOf(tmp.principalAgentID) == -1){
                         hadSend.Add(tmp.principalAgentID);
-                        record.ID = 0;
-                        record.receiveID = tmp.principalAgentID;
-                        _DbContext.msgsendreceive.Add(record);
+                        var record2 = new MsgSendReceive{messageID=msgID, createTime=definePara.dtNow()};
+                        record2.receiveID = tmp.principalAgentID;
+                        _DbContext.msgsendreceive.Add(record2);
                         _DbContext.SaveChanges();
                     }
                 }
