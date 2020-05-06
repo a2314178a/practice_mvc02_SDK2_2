@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using practice_mvc02.Repositories;
 using practice_mvc02.filters;
 using practice_mvc02.Models;
+using practice_mvc02.Middleware;
 
 namespace practice_mvc02
 {
@@ -47,6 +48,7 @@ namespace practice_mvc02
             services.AddTransient<MessageRepository>();
             services.AddTransient<AnnualLeaveRepository>();
             services.AddTransient<punchCardFunction>(); 
+			services.AddTransient<ExportXlsxRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -62,6 +64,7 @@ namespace practice_mvc02
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSession();

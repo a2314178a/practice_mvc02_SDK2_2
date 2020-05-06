@@ -2,9 +2,9 @@
 var myObj = new MyObj();
 
 $(document).ready(function() {  
-    showEmployee();
-    getFilterOption();
 
+    init();
+    
     $("#searchFilterDiv").on("click", "[name='searchFilterBtn']", function(){
         getAccountByFilter();
     });
@@ -16,6 +16,18 @@ $(document).ready(function() {
     });
 });//.ready function
 
+function showEmployeePage(page){
+    window.location.href = "/EmployeeList/Index?page="+page; 
+}
+
+function init(){
+    if($("#accountDiv").length > 0){
+        showEmployee();
+        getFilterOption();
+    }
+}
+
+//#region  employee List
 function getFilterOption(){
     var successFn = function(res){
         res.department.forEach(function(value){
@@ -90,3 +102,4 @@ function showAddAccWindow(employeeID=0){
     };
     myObj.rAjaxFn("get", "/EmployeeList/chkLoginStatus", null, successFn);
 }
+//#endregion  employee List

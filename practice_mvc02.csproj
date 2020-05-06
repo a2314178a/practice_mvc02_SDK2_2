@@ -32,6 +32,7 @@
     </PackageReference>
     <PackageReference Include="Pomelo.AspNetCore.TimedJob" Version="2.0.0-rtm-10046" />
     <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="2.2.0" />
+	<PackageReference Include="EPPlus.Core" Version="1.5.4" />
   </ItemGroup>
 
 

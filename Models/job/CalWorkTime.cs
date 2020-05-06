@@ -11,17 +11,17 @@ namespace practice_mvc02.Models
     {
         private PunchCardRepository Repository {get;}
         private punchCardFunction punchCardFn {get;}
+        private punchStatusCode psCode;
 
         public CalWorkTime(PunchCardRepository repository, IHttpContextAccessor httpContextAccessor){
             this.Repository = repository;
             this.punchCardFn = new punchCardFunction(repository, httpContextAccessor);
+            psCode = new punchStatusCode();
         } 
 
         public void start(){
             calEmployeeWorkTime();
-        }
-
-        
+        }    
 
         private void calEmployeeWorkTime(){
             var workEmployee = Repository.GetNeedPunchAcc("全體", 2);
@@ -37,61 +37,69 @@ namespace practice_mvc02.Models
             }
         }
 
-
         private void countWorkTime(List<PunchCardLog> thisMonthAllLog, WorkTimeRule thisWorkTime){
-            double totalTime = 0.0;
-            double restTime = 0.0;
-            WorkDateTime workTime = punchCardFn.workTimeProcess(thisWorkTime);
-            var workAllTime = workTime.workAllTime;
-            var sWorkTime = workTime.sWorkDt.TimeOfDay;  //只取時間
-            var eWorkTime = workTime.eWorkDt.TimeOfDay;
-            var sRestTime = workTime.sRestDt.TimeOfDay;
-            var eRestTime = workTime.eRestDt.TimeOfDay;
+            var totalTimeMinute = 0.0;
+            var restTimeMinute = 0.0;
+            var endStartWorkTimeMinute = 0.0;
+            var noRestWorkTimeMinute = 0.0;
+            var sWorkTime = thisWorkTime.startTime;  //只取時間
+            var eWorkTime = thisWorkTime.endTime;
+            var sRestTime = thisWorkTime.sRestTime;
+            var eRestTime = thisWorkTime.eRestTime;
             var restlength = TimeSpan.Zero;
+
             if(eRestTime < sRestTime){
                 restlength = eRestTime.Add(new TimeSpan(24,0,0)) - sRestTime;
             }else{
                 restlength = eRestTime - sRestTime;
             }
-            restTime = restlength.Hours + restlength.Minutes/60.0;
+            restTimeMinute = restlength.TotalMinutes;
+
+            var endStartLength = TimeSpan.Zero;
+            if(eWorkTime < sWorkTime){
+                endStartLength = eWorkTime.Add(new TimeSpan(24,0,0)) - sWorkTime;
+            }else{
+                endStartLength = eWorkTime - sWorkTime;
+            }
+            endStartWorkTimeMinute = endStartLength.TotalMinutes;
+            noRestWorkTimeMinute = (endStartWorkTimeMinute - restTimeMinute);
+
             foreach(var log in thisMonthAllLog){
                 if(log.onlineTime.Year == 1 || log.offlineTime.Year == 1 || log.onlineTime >= log.offlineTime){
                     continue;
                 }
-                var onlineTime = log.onlineTime.TimeOfDay;
-                var offlineTime = log.offlineTime.TimeOfDay;
-                var subStartTime = (log.punchStatus & 0x02)>0? onlineTime : sWorkTime;
-                var subEndTime = (log.punchStatus & 0x04)>0? offlineTime : eWorkTime;
-                if(log.punchStatus == 0x01){
-                    totalTime += 8.0;
-                }else{
-                    var length = TimeSpan.Zero;
-                    if(subEndTime < subStartTime){  //23:00~08:00   
-                        length = subEndTime.Add(new TimeSpan(24,0,0)) - subStartTime;   //8+24 - 23 = 9
+                WorkDateTime workTime = punchCardFn.workTimeProcess(thisWorkTime, log);
+
+                //計算工作時間
+                if(log.onlineTime <= workTime.sRestDt && log.offlineTime >= workTime.eRestDt){
+                    totalTimeMinute += (int)((log.offlineTime - log.onlineTime).TotalMinutes) - restTimeMinute;
+                }else if(log.onlineTime < workTime.sRestDt && log.offlineTime <= workTime.eRestDt){
+                    if(log.offlineTime < workTime.sRestDt){
+                        totalTimeMinute += (int)(log.offlineTime - log.onlineTime).TotalMinutes;
                     }else{
-                        length = subEndTime - subStartTime;
+                        totalTimeMinute += (int)(workTime.sRestDt - log.onlineTime).TotalMinutes;
                     }
-                    totalTime += length.Hours - restTime;
-                    totalTime = length.Minutes >=30 ? totalTime+0.5 : totalTime;
-                } 
+                }else if(log.onlineTime >= workTime.sRestDt && log.offlineTime > workTime.eRestDt){
+                    if(log.onlineTime > workTime.eRestDt){
+                        totalTimeMinute += (int)(log.offlineTime - log.onlineTime).TotalMinutes;
+                    }else{
+                        totalTimeMinute += (int)(log.offlineTime - workTime.eRestDt).TotalMinutes;
+                    }
+                }
             }
             if(thisMonthAllLog.Count>0){
-                saveTotalTimeRecord(thisMonthAllLog[0].accountID, totalTime);
+                saveTotalTimeRecord(thisMonthAllLog[0].accountID, totalTimeMinute);
             }
         }
 
-        public void saveTotalTimeRecord(int accID, double totalTime){
+        public void saveTotalTimeRecord(int accID, double totalTimeMinute){
             var timeRecord = new workTimeTotal();
             timeRecord.accountID = accID;
             timeRecord.dateMonth = definePara.dtNow().AddDays(1 - definePara.dtNow().Day).Date;
             //timeRecord.dateMonth = definePara.dtNow().AddMonths(-1).AddDays(1 - definePara.dtNow().Day).Date;
-            timeRecord.totalTime = totalTime;
+            timeRecord.totalTime = totalTimeMinute;
             timeRecord.createTime = definePara.dtNow();
             Repository.SaveTotalTimeRecord(timeRecord);
         }
-
-
-
-
     }
 }

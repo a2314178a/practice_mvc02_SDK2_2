@@ -201,6 +201,13 @@ namespace practice_mvc02.Repositories
         }
 
         public void AddNullPunchLog(int accID, int departID, DateTime targetDate){
+            var thisAccDetail = _DbContext.employeedetails.FirstOrDefault(b=>b.accountID == accID);
+            if(thisAccDetail != null){
+                if(targetDate < thisAccDetail.startWorkDate){   //避免處理報到日之前的日期
+                    return;
+                }
+            }
+
             var count = 0;
             var nullPunchLog = new PunchCardLog();
             nullPunchLog.accountID = accID;

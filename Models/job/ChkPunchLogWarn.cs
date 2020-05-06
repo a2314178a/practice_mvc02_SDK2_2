@@ -27,7 +27,13 @@ namespace practice_mvc02.Models
         private void addPunchLogWhenNoPunch(int rangeDay){
             var targetDate = (definePara.dtNow().Date).AddDays(-rangeDay);
             var spDate = Repository.GetThisSpecialDate(targetDate);
-            List<Account> needPunchAcc = new List<Account>(){};
+            List<Account> needPunchAcc = new List<Account>(){};  
+            /*
+            Dictionary<int, bool> isRest = new Dictionary<int, bool>(){};
+            if(test.ContainsKey(1)){
+                Console.WriteLine(test[1]);
+            }
+            */
 
             if(spDate == null){
                 if((targetDate.DayOfWeek.ToString("d")== "0" || targetDate.DayOfWeek.ToString("d")== "6")){

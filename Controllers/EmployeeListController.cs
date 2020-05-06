@@ -28,18 +28,19 @@ namespace practice_mvc02.Controllers
             this.loginFn = new loginFunction(repository);
         }
 
-        public IActionResult Index()
+        public IActionResult Index(string page="list")
         {       
-            return selectPage();    
+            return selectPage(page);    
         }
         
-        public IActionResult selectPage(){
+        public IActionResult selectPage(string page){
             ViewBag.ruleVal = ruleVal;
             ViewBag.canEmployeeEdit = (ruleVal & ruleCode.employeeEdit) > 0 ? true : false;
             ViewData["loginName"] = loginName;
             ViewBag.Auth = "Y";
             ViewBag.ID = (int)loginID;
             ViewBag.loginAccLV = loginAccLV;
+            ViewBag.Page = page;
             return View("EmployeeListPage");
         }
  
@@ -126,11 +127,6 @@ namespace practice_mvc02.Controllers
         }
         
         #endregion
-
-
-
-
-
 
 
     }

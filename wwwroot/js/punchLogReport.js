@@ -1,0 +1,165 @@
+﻿
+var myObj = new MyObj();
+
+$(document).ready(function() {  
+
+    init();
+
+    $("#selDepart").on("change", function(){
+        $("#selEmployee").empty();
+        if($(this).val() =="所有部門"){
+            $("#selEmployeeSpan").hide();
+        }else{
+            getDepartmentEmployee($(this).val());
+        }
+    });
+    
+});//.ready function
+
+function showEmployeePage(page){
+    window.location.href = "/EmployeeList/Index?page="+page; 
+}
+
+function init(){
+    if($("#punchReportDiv").length > 0){
+        getDepartment();
+    }
+}
+
+function getDepartment(){
+    var successFn = function(res){
+        res.forEach(function(value){
+            $("#selDepart").append(new Option(value, value));
+        });
+    };
+    myObj.rAjaxFn("get", "/ExportXlsx/getDepartment", null, successFn);
+}
+
+function getDepartmentEmployee(depart){
+    $("#selEmployee").append(new Option("所有人員", "")).prop("disabled", true);
+    var successFn = function(res){
+        res.forEach(function(value){
+            $("#selEmployee").append(new Option(value.userName, value.id));
+        });
+        $("#selEmployee").prop("disabled", false);
+        $("#selEmployeeSpan").show();
+    };
+    myObj.rAjaxFn("get", "/ExportXlsx/getDepartmentEmployee", {depart:depart}, successFn);
+}
+
+function processReport(){
+    var sDate = $("#reportStartDate").val();
+    var chk_sDate = myObj.dateTimeFormat(sDate);
+    var eDate = $("#reportEndDate").val();
+    var chk_eDate = myObj.dateTimeFormat(eDate);
+    var departName = $("#selDepart").val();
+    var accID = $("#selEmployee").val();
+    if(chk_sDate.year != chk_eDate.year || chk_sDate.month != chk_eDate.month || chk_eDate.day <chk_sDate.day){
+        alert("時間範圍需在同年同月");
+        return;
+    }
+    //var para = `?sDate=${sDate}&eDate=${eDate}&departName=${departName}&accID=${accID}`;
+    var exportPara = {
+        sDate, eDate, departName, accID
+    };
+    var successFn = (res)=>{
+        printTable(res);
+        $(".exportXlsx").show();
+    };
+    myObj.rAjaxFn("get", "/ExportXlsx/getPrintTableData", exportPara, successFn);
+}
+
+function printTable(res){
+    initTable(res);
+    printTitle(res);
+    printDetail(res);
+}
+
+function initTable(res){
+    $(".exportXlsx").hide();
+    $("#reportTable").empty();
+    var colTotal = res.columnTotal;
+    var rowTotal = res.rowTotal;
+    var leaveStart = res.leaveStartIndex;
+    if(res.type == "day"){
+        var leaveColSpan = colTotal - res.leaveStartIndex +1;
+    }
+    else{
+        var dayStart = res.dayStartIndex;
+        var leaveColSpan = res.dayStartIndex - res.leaveStartIndex;
+        var dayColSpan = colTotal - res.dayStartIndex + 1;
+    }
+    for(let i=0; i<=rowTotal; i++){
+        let row = $(`<tr name='row_${i}'></tr>`);
+        for(let j=1; j<=colTotal; j++){
+            if(i==0){
+                if(j <leaveStart){
+                    row.append($(`<td rowspan='2' name='col_${j}'></td>`));
+                }else if(j == leaveStart){
+                    row.append($(`<td colspan='${leaveColSpan}' name='col_${j}'></td>`));
+                }else if(j == dayStart){
+                    row.append($(`<td colspan='${dayColSpan}' name='col_${j}'></td>`));
+                }else{
+                    continue;
+                }
+            }else if(i==1 && j<leaveStart){
+                continue;
+            }else{
+                row.append($(`<td name='col_${j}'></td>`));
+            }
+        }
+        $("#reportTable").append(row);
+    }
+}
+
+function printTitle(res){
+    for(let i=1; i<= res.columnTotal; i++){
+        if(res.titleData[i] != undefined){
+            if(i >= res.leaveStartIndex){
+                if(i == res.leaveStartIndex){
+                    $(`tr[name='row_0'] td[name='col_${i}']`).text("請假相關");
+                }else if(i == res.dayStartIndex){
+                    $(`tr[name='row_0'] td[name='col_${i}']`).text("打卡結果");
+                }
+                $(`tr[name='row_1'] td[name='col_${i}']`).text(res.titleData[i]);
+            }else{
+                $(`tr[name='row_0'] td[name='col_${i}']`).text(res.titleData[i]);
+            }
+        }
+    }
+    $("tr[name='row_0'],tr[name='row_1']").addClass("title");
+}
+
+function printDetail(res){
+    var rowIndex = 2;
+    res.detail.forEach(function(rowData){
+        for(let i=1; i<=res.columnTotal; i++){
+            if(rowData[i] == undefined){
+                continue;
+            }
+            $(`tr[name='row_${rowIndex}'] td[name='col_${i}']`).text(rowData[i]);
+
+            if((res.type=="day" && i == res.colDef.punchStatus) || (res.type=="month" && i >= res.dayStartIndex)){
+                if(rowData[i] != "正常" && rowData[i] != "休息"){
+                    if(rowData[i] == "請假"){
+                        $(`tr[name='row_${rowIndex}'] td[name='col_${i}']`).addClass('takeRest');
+                    }else{
+                        $(`tr[name='row_${rowIndex}'] td[name='col_${i}']`).addClass('abnormal');
+                    }
+                }
+            }
+        }
+        rowIndex++;
+    });
+}
+
+function exportXlsx(){
+    var successFn = (res)=>{
+        if(res === 1){
+            window.location.href = "/ExportXlsx/Export";
+        }else{
+            alert("檔案下載失敗");
+        }
+    };
+    myObj.rAjaxFn("get", "/ExportXlsx/chkFileStatus", null, successFn);
+}

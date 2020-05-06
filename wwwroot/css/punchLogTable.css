@@ -1,0 +1,22 @@
+﻿#reportTable{
+  display:block; 
+  overflow:auto; 
+  white-space:nowrap;
+  text-align: center;
+  max-height: 600px;
+  font-size: 20px;
+}
+
+#reportTable td{
+  padding: 5px;
+}
+
+.title{
+  background-color: burlywood;
+}
+.takeRest{
+  background-color: lightgreen;
+}
+.abnormal{
+  background-color: lightpink;
+}

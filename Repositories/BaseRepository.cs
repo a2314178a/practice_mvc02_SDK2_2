@@ -62,7 +62,7 @@ namespace practice_mvc02.Repositories
                         _DbContext.msgsendreceive.Add(record);
                         _DbContext.SaveChanges();
                     }
-                    if(hadSend.IndexOf(tmp.principalAgentID) == -1){
+                    if(tmp.principalAgentID >0 && hadSend.IndexOf(tmp.principalAgentID) == -1){
                         hadSend.Add(tmp.principalAgentID);
                         var record2 = new MsgSendReceive{messageID=msgID, createTime=definePara.dtNow()};
                         record2.receiveID = tmp.principalAgentID;
