@@ -30,8 +30,10 @@ namespace practice_mvc02.Middleware
                 using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "errorLog.txt"), true)){
                    await outputFile.WriteLineAsync(definePara.dtNow() + "  " + ex.ToString());
                 }
-                await context.Response
-                    .WriteAsync($"{GetType().Name} catch exception.");
+                context.Response.StatusCode = 500;
+                //context.Response.Redirect("/Home/Error");
+                //await context.Response
+                    //.WriteAsync($"{GetType().Name} catch exception.");
                 //
             }
         }

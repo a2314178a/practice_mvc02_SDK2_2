@@ -11,6 +11,32 @@
   padding: 5px;
 }
 
+#searchFilterDiv{
+  text-align:center; 
+  margin:20px auto;
+  position: relative;
+}
+
+#searchFilterDiv .selDepartment{
+  vertical-align: top !important;
+}
+#searchFilterDiv table{
+  margin: auto;
+}
+
+
+
+.setDateBtn{
+  position: relative;
+  top: -2px;
+  left: 20px;
+}
+.setDateBtn input{
+  zoom: 80%;
+}
+
+
+
 .title{
   background-color: burlywood;
 }
@@ -20,3 +46,4 @@
 .abnormal{
   background-color: lightpink;
 }
+

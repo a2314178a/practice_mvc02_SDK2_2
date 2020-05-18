@@ -10,7 +10,6 @@ using practice_mvc02.Models.dataTable;
 using OfficeOpenXml.Style;
 using System.Drawing;
 
-
 namespace practice_mvc02.Models
 {
     public class exportPunchLogFunction
@@ -125,11 +124,11 @@ namespace practice_mvc02.Models
 
                 objectList.Add("dayStartIndex", colCount);    //day start col index
 
-                var sDay = qPara.sDate.Day;
-                var eDay = qPara.eDate.Day;
+                var sDay = qPara.sDate;
+                var eDay = qPara.eDate;
                 while(sDay <= eDay){                //新增日期
-                    dCol.Add(sDay.ToString(), colCount++);
-                    sDay++;
+                    dCol.Add(sDay.ToString("M/d"), colCount++);
+                    sDay=sDay.AddDays(1);
                 }
             }
             else
@@ -247,16 +246,16 @@ namespace practice_mvc02.Models
                     tmpList_leave.Add(leave.Value);
                 }
 
-                var sDay = qPara.sDate.Day;
-                var eDay = qPara.eDate.Day;
+                var sDay = qPara.sDate;
+                var eDay = qPara.eDate;
                 while(sDay <= eDay){
-                    if(sDay == qPara.sDate.Day){
-                        ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Value = "打卡結果";
-                        ws.Cells[ rowIndex,dCol[sDay.ToString()], rowIndex,dCol[eDay.ToString()]].Merge = true;
+                    if(sDay == qPara.sDate){
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "打卡結果";
+                        ws.Cells[ rowIndex,dCol[sDay.ToString("M/d")], rowIndex,dCol[eDay.ToString("M/d")]].Merge = true;
                     }
-                    ws.Cells[ rowIndex+1, dCol[sDay.ToString()] ].Value = sDay;
-                    titleData.Add(dCol[sDay.ToString()].ToString(), sDay.ToString());
-                    sDay++;
+                    ws.Cells[ rowIndex+1, dCol[sDay.ToString("M/d")] ].Value = sDay.ToString("M/d");
+                    titleData.Add(dCol[sDay.ToString("M/d")].ToString(), sDay.ToString("M/d"));
+                    sDay=sDay.AddDays(1);
                 }       
             }
             else{    //日報表
@@ -340,16 +339,20 @@ namespace practice_mvc02.Models
             logDataCalUse ct = new logDataCalUse();
             Dictionary<string, string> logStatus = new Dictionary<string, string>(){};  
             var leaveCellsVal = new Dictionary<string, double>(){};
-            
+
             calRestWorkTimeMinute(ct, wtRule);  //計算休息與工作時間長度
             calLeaveVal(id, ct, leaveCellsVal, wtRule); //計算請假時間
 
             foreach(var log in logs){   //計算相關需要的次數
+                if(log.logDate > definePara.dtNow().Date){
+                    continue;
+                }
+                
                 WorkDateTime workTime = punchCardFn.workTimeProcess(wtRule, log);
 
                 ct.workDays += (log.onlineTime.Year>1 || log.offlineTime.Year>1) ? 1 : 0;
-                ct.offNoPunchCount += (log.onlineTime.Year>1 && log.offlineTime.Year==1) ? 1 : 0;
-                ct.onNoPunchCount += (log.onlineTime.Year ==1 && log.offlineTime.Year >1) ? 1 : 0;
+                ct.offNoPunchCount += ((log.punchStatus & psCode.hadLost) >0 && log.onlineTime.Year>1 && log.offlineTime.Year==1) ? 1 : 0;
+                ct.onNoPunchCount += ((log.punchStatus & psCode.hadLost) >0 && log.onlineTime.Year ==1 && log.offlineTime.Year >1) ? 1 : 0;
                 ct.allNoPunchCount += (log.punchStatus & psCode.noWork)>0 ? 1 : 0;
 
                 if((log.punchStatus & psCode.lateIn)>0){    //計算遲到次數與時間
@@ -390,10 +393,12 @@ namespace practice_mvc02.Models
                     }
                 }
                 setDictionary_daysStatus_month(logStatus, log); //判斷應顯示的打卡狀態
-
             }//foreach(var log in logs)
-            
-            ct.restDays = (int)(qPara.eDate - qPara.sDate).TotalDays + 1 - ct.workDays - ct.allNoPunchCount;
+
+            var useDate = qPara.eDate > definePara.dtNow().Date? definePara.dtNow().Date : qPara.eDate;
+            var add0or1 = (qPara.eDate >= definePara.dtNow().Date)? 0 : 1;  //如搜尋日含今日 先不包含今日
+            add0or1 = (logStatus.ContainsKey(definePara.dtNow().Date.ToString("M/d")))? 1 : add0or1;
+            ct.restDays = (int)(useDate - qPara.sDate).TotalDays + add0or1 - ct.workDays - ct.allNoPunchCount;
             setCellsValue_month(ct, logStatus, leaveCellsVal);  //寫入相關值
         }//void setPunchLogData_month
 
@@ -468,7 +473,7 @@ namespace practice_mvc02.Models
         }
         
         private void setDictionary_daysStatus_month(Dictionary<string, string> logStatus, PunchCardLog log){
-            var key = log.logDate.Day.ToString();
+            var key = log.logDate.ToString("M/d");
             logStatus.Add(key, getPunchLogStatusToText(log.punchStatus));
         }
 
@@ -500,29 +505,34 @@ namespace practice_mvc02.Models
                 detailData.Add(dCol[leave.Key].ToString(), leave.Value);
             }
 
-            var sDay = qPara.sDate.Day;
-            var eDay = qPara.eDate.Day;
+            var sDay = qPara.sDate;
+            var eDay = qPara.eDate;
             while(sDay <= eDay){
-                if(logStatus.ContainsKey(sDay.ToString())){
-                    var status = logStatus[sDay.ToString()];
-                    ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Value = status;
-                    detailData.Add(dCol[sDay.ToString()].ToString(), status);
+                if(logStatus.ContainsKey(sDay.ToString("M/d"))){
+                    var status = logStatus[sDay.ToString("M/d")];
+                    ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = status;
+                    detailData.Add(dCol[sDay.ToString("M/d")].ToString(), status);
 
                     if(status != "正常"){
-                        ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         if(status == "請假"){  
-                            ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
                         }else{
-                            ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
                         }
                     }
                 }else{
-                    ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Value = "休息";
-                    detailData.Add(dCol[sDay.ToString()].ToString(), "休息");
-                    ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    ws.Cells[ rowIndex, dCol[sDay.ToString()] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(240,240,240));  
+                    if(sDay < definePara.dtNow().Date){
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "休息";
+                        detailData.Add(dCol[sDay.ToString("M/d")].ToString(), "休息");
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(240,240,240));
+                    }
                 }
-                sDay++;
+                sDay = sDay.AddDays(1);
+                if(sDay > definePara.dtNow().Date){
+                    break;
+                }
             }
         }
 
@@ -547,7 +557,7 @@ namespace practice_mvc02.Models
             while(sDate <= eDate){
                 detailData = new Dictionary<string, object>(){};   //給前端用的
                 var sDateText = sDate.ToString("yyyy-MM-dd") + week[Convert.ToInt16(sDate.DayOfWeek.ToString("d"))];
-                var isRest = true;
+                var isRest = (sDate >= definePara.dtNow().Date)? false: true;
                 ws.Cells[ rowIndex, dCol["name"] ].Value = normalData.name;
                 ws.Cells[ rowIndex, dCol["workClass"] ].Value = normalData.workClass;
                 ws.Cells[ rowIndex, dCol["department"] ].Value = normalData.department;
@@ -567,12 +577,12 @@ namespace practice_mvc02.Models
                         detailData.Add(dCol["workTime"].ToString(), workTime);
 
                         if(log.onlineTime.Year >1){
-                            ws.Cells[ rowIndex, dCol["onlineTime"] ].Value = log.onlineTime.TimeOfDay.ToString();
-                            detailData.Add(dCol["onlineTime"].ToString(), log.onlineTime.TimeOfDay.ToString());
+                            ws.Cells[ rowIndex, dCol["onlineTime"] ].Value = log.onlineTime.TimeOfDay.ToString(@"hh\:mm\:ss");
+                            detailData.Add(dCol["onlineTime"].ToString(), log.onlineTime.TimeOfDay.ToString(@"hh\:mm\:ss"));
                         }
                         if(log.offlineTime.Year >1){
-                            ws.Cells[ rowIndex, dCol["offlineTime"] ].Value = log.offlineTime.TimeOfDay.ToString();
-                            detailData.Add(dCol["offlineTime"].ToString(), log.offlineTime.TimeOfDay.ToString());
+                            ws.Cells[ rowIndex, dCol["offlineTime"] ].Value = log.offlineTime.TimeOfDay.ToString(@"hh\:mm\:ss");
+                            detailData.Add(dCol["offlineTime"].ToString(), log.offlineTime.TimeOfDay.ToString(@"hh\:mm\:ss"));
                         }
                         var status = getPunchLogStatusToText(log.punchStatus);
                         ws.Cells[ rowIndex, dCol["punchStatus"] ].Value = status;

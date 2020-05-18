@@ -43,7 +43,7 @@ namespace practice_mvc02.Controllers
         public object getPrintTableData(exportPunchLogXlsxPara exportPara)
         {
             string sWebRootFolder = _hostingEnvironment.WebRootPath;
-            string subFolder = Path.Combine("file", "excel", "punchLog");
+            string subFolder = definePara.getPunchExcelSubFolder();
             string fileFolderPath = Path.Combine(sWebRootFolder, subFolder);
             if (!Directory.Exists(fileFolderPath)){     //需用完整目錄來檢查
                 Directory.CreateDirectory(fileFolderPath);

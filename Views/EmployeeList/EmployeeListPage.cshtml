@@ -85,23 +85,45 @@
                         {
                             <div id="punchReportDiv">
                                 
-                                <div id="searchFilterDiv" style="text-align:center; margin:20px auto;">
-                                    <p>
-                                        <form>
-                                            <span>考勤時間: <input type="date" id="reportStartDate">~<input type="date" id="reportEndDate"></span>
-                                            <span>部門: 
-                                                <select id="selDepart">
-                                                    <option value="所有部門">所有部門</option>
-                                                </select>
-                                            </span>
-                                            <span id="selEmployeeSpan" style="display:none">人員: 
-                                                <select id="selEmployee">
-                                                    <option value="0">所有人員</option>
-                                                </select>
-                                            </span>
-                                            <input type="button" value="產生" onclick="processReport();">
-                                        </form>
-                                    </p>   
+                                <div id="searchFilterDiv">
+                                    
+                                    <table>
+                                        <tr>
+                                            <td class="setQueryDate">
+                                                <table>
+                                                    <tr>
+                                                        <td>考勤時間: <input type="date" id="reportStartDate">~<input type="date" id="reportEndDate"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <p class="setDateBtn">
+                                                                <input type="button" value="今日" onclick="setQueryDate(1);">
+                                                                <input type="button" value="昨日" onclick="setQueryDate(2);">
+                                                                <input type="button" value="本週" onclick="setQueryDate(3);">
+                                                                <input type="button" value="上週" onclick="setQueryDate(4);">
+                                                                <input type="button" value="本月" onclick="setQueryDate(5);">
+                                                                <input type="button" value="上個月" onclick="setQueryDate(6);">
+                                                            </p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td class="selDepartment">
+                                                <span>部門: 
+                                                    <select id="selDepart">
+                                                        <option value="所有部門">所有部門</option>
+                                                    </select>
+                                                </span>
+                                                <span id="selEmployeeSpan" style="display:none">人員: 
+                                                    <select id="selEmployee">
+                                                        <option value="0">所有人員</option>
+                                                    </select>
+                                                </span>
+                                                <input type="button" value="產生" onclick="processReport();">
+                                            </td>
+                                        </tr>
+                                    </table>
+                                        
                                 </div>
 
                                 <div id="displayTable" >

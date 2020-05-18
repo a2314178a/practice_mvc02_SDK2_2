@@ -13,6 +13,10 @@ $(document).ready(function() {
             getDepartmentEmployee($(this).val());
         }
     });
+
+    $("#queryDateOption").on("change", function(){
+        setQueryDate(parseInt($(this).val()));
+    });
     
 });//.ready function
 
@@ -21,8 +25,58 @@ function showEmployeePage(page){
 }
 
 function init(){
+    var date = myObj.dateTimeFormat();
+    $("#reportStartDate,#reportEndDate").val(date.ymdHtml);
     if($("#punchReportDiv").length > 0){
         getDepartment();
+    }
+}
+
+function setQueryDate(sel){
+    var dtNow = new Date();
+    var dtNowObj = myObj.dateTimeFormat(dtNow);
+    var setDate = function(start, end){
+        $("#reportStartDate").val(start);
+        $("#reportEndDate").val(end);
+    };
+    switch(sel){
+        //today
+        case 1: setDate(dtNowObj.ymdHtml, dtNowObj.ymdHtml);
+                break;
+        //yesterday
+        case 2: var dtYesterday = new Date(dtNow.getTime() - 24*60*60*1000);
+                var dt = myObj.dateTimeFormat(dtYesterday);
+                setDate(dt.ymdHtml, dt.ymdHtml);
+                break;
+        //this week
+        case 3: var dayOfWeek = dtNow.getDay() ;   //今天是本周的第幾天 0（周日）到 6（周六）
+                var dtStart = new Date(dtNow.getFullYear(), dtNow.getMonth(), (dtNow.getDate()-dayOfWeek));
+                var dtEnd = new Date(dtNow.getFullYear(), dtNow.getMonth(), (dtNow.getDate() + (6- dayOfWeek)));
+                var dtStartObj = myObj.dateTimeFormat(dtStart);
+                var dtEndObj = myObj.dateTimeFormat(dtEnd);
+                setDate(dtStartObj.ymdHtml, dtEndObj.ymdHtml);
+                break;
+        //last week
+        case 4: var dayOfWeek = dtNow.getDay() ;   
+                var dtStart = new Date(dtNow.getFullYear(), dtNow.getMonth(), (dtNow.getDate()-dayOfWeek -7));
+                var dtEnd = new Date(dtNow.getFullYear(), dtNow.getMonth(), (dtNow.getDate() - dayOfWeek -1));
+                var dtStartObj = myObj.dateTimeFormat(dtStart);
+                var dtEndObj = myObj.dateTimeFormat(dtEnd);
+                setDate(dtStartObj.ymdHtml, dtEndObj.ymdHtml);
+                break;
+        //this month
+        case 5: var day1 = dtNowObj.year + "-" + dtNowObj.month + "-" + "01";
+                var dayEnd = new Date(dtNowObj.year, dtNowObj.month, 0).getDate();
+                var dayLast = dtNowObj.year + "-" + dtNowObj.month + "-" + dayEnd;
+                setDate(day1, dayLast);
+                break;
+        //last month
+        case 6: var lastMonthLastDay = new Date(dtNow.getFullYear(), dtNow.getMonth(), 0);
+                var lastMonthFirstDay = new Date(lastMonthLastDay.getFullYear(), lastMonthLastDay.getMonth(), 1);
+                var dtStartObj = myObj.dateTimeFormat(lastMonthFirstDay);
+                var dtEndObj = myObj.dateTimeFormat(lastMonthLastDay);
+                setDate(dtStartObj.ymdHtml, dtEndObj.ymdHtml);
+                break;
     }
 }
 
@@ -48,7 +102,7 @@ function getDepartmentEmployee(depart){
 }
 
 function processReport(){
-    var sDate = $("#reportStartDate").val();
+    /*var sDate = $("#reportStartDate").val();
     var chk_sDate = myObj.dateTimeFormat(sDate);
     var eDate = $("#reportEndDate").val();
     var chk_eDate = myObj.dateTimeFormat(eDate);
@@ -57,8 +111,18 @@ function processReport(){
     if(chk_sDate.year != chk_eDate.year || chk_sDate.month != chk_eDate.month || chk_eDate.day <chk_sDate.day){
         alert("時間範圍需在同年同月");
         return;
+    }*/
+    var sDate = $("#reportStartDate").val();
+    var chk_sDate = new Date(sDate);
+    var eDate = $("#reportEndDate").val();
+    var chk_eDate = new Date(eDate);
+    var departName = $("#selDepart").val();
+    var accID = $("#selEmployee").val();
+    if(chk_eDate <chk_sDate){
+        alert("時間範圍有誤");
+        return;
     }
-    //var para = `?sDate=${sDate}&eDate=${eDate}&departName=${departName}&accID=${accID}`;
+    
     var exportPara = {
         sDate, eDate, departName, accID
     };
