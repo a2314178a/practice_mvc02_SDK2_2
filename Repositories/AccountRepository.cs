@@ -16,7 +16,7 @@ namespace practice_mvc02.Repositories
         public object Login(string account, string password)
         {
             //var query = _DbContext.accounts.FirstOrDefault(b=>b.account == account && b.password == password);  
-            var query = (from a in _DbContext.accounts
+            var baseQuery = (from a in _DbContext.accounts
                        join b in _DbContext.grouprules on a.groupID equals b.ID
                        join c in _DbContext.departments on a.departmentID equals c.ID
                        where a.account == account && a.password == password
@@ -24,7 +24,18 @@ namespace practice_mvc02.Repositories
                            a.ID, a.userName, a.departmentID, a.accLV, a.groupID,
                            b.ruleParameter, c.principalID
                        }).FirstOrDefault();
-            return query;
+
+            if(baseQuery == null){
+                var adQuery = (from a in _DbContext.accounts
+                            where a.account == account && a.password == password && a.accLV == 999 
+                            select new{
+                                a.ID, a.userName, a.departmentID, a.accLV, a.groupID,
+                                ruleParameter = 65535, principalID=0
+                            }).FirstOrDefault();
+                return adQuery;
+            }else{
+                return baseQuery;
+            }
         }
 
         public int UpdateTimeStamp(int id, string timeStamp, DateTime updateTime)

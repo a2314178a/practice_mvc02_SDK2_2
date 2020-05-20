@@ -273,6 +273,7 @@ namespace practice_mvc02.Repositories
 
         public object GetAllPrincipal(){
             var query = from a in _DbContext.accounts
+                        where a.accLV < definePara.DIMALV
                         orderby a.accLV descending
                         select new{
                             a.ID, a.userName, a.accLV
