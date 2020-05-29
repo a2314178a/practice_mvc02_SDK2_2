@@ -8,6 +8,7 @@ $(document).ready(function() {
 });//.ready function
 
 function init(){
+    myObj.agent = {myAgentID: 0, agentEnable: false};
     $("[group='canEdit']").css("display","none");
     if($("select[name='agent']").length > 0){
         getSelOption();
@@ -33,7 +34,8 @@ function setAgent(res){
 
 function getMyDetail(){
     var getAccInfoSuccessFn = function(res){
-        refreshMyDetail(res.myDetail);
+        if(res.myDetail != null)
+            refreshMyDetail(res.myDetail);
         showMyAnnualLeave(res.myAnnualLeave);
     };
     myObj.rAjaxFn("get", "/EmployeeDetail/getMyDetail", null, getAccInfoSuccessFn);
@@ -75,23 +77,24 @@ function showRow(sel){
 }
 
 function showMyAnnualLeave(res){
+    var hourToDay = 8;  //工作幾小時算一天
     var spDays = 0;
     var spHours = 0;
     res.forEach((value)=>{
-        let remainDays = parseInt((value.remainHours)/8);
-        let remainHours = (value.remainHours)%8;
+        let remainDays = parseInt((value.remainHours)/hourToDay);
+        let remainHours = (value.remainHours)%hourToDay;
         let dlDt = myObj.dateTimeFormat(value.deadLine);
         let deadLine = `${remainDays} 天`+ (remainHours>0? `又 ${remainHours} 小時於 `:"於 ") + `${dlDt.ymdText} 到期`;
-        if(remainDays == 0 && remainHours == 0){
-            return;
-        }
+        /*if(remainDays == 0 && remainHours == 0){
+            return;     //期限還沒到但已沒有特休餘額 不顯示該列
+        }*/
         $("[name='spLeaveDeadLine']").append(`<div>${deadLine}</div>`);
         spDays += remainDays;
         spHours += remainHours;
     });
-    if(spHours >=8){
+    if(spHours >= hourToDay){
         spDays +=1;
-        spHours -=8;
+        spHours -= hourToDay;
     }
     var spText = `${spDays} 天` + (spHours >0? `又 ${spHours} 小時` : "");
     $("[name='mySpLeave']").text(spText); 

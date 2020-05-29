@@ -4,6 +4,7 @@
         this.subWin = null;
         this.errorCode = 0;
         this.ajaxCompleteFlag = false;
+        this.workHoursToDay = 8;
     }
     cudAjaxFn(url, data, successFn)
     {

@@ -47,6 +47,7 @@ namespace practice_mvc02.Models
                 var data = new EmployeeAnnualLeave(){employeeID=detail.accountID};
                 data.deadLine = dtStart; //特休期限
                 if(useIndex >-1){
+                    var dayToHour = definePara.dayToHour();
                     data.ruleID = spDaysRule[useIndex].ID;
                     data.specialDays = spDaysRule[useIndex].specialDays;
                     var buffMonth = (spDaysRule[useIndex].buffDays)/30;  //緩衝天數 days to month
@@ -58,7 +59,7 @@ namespace practice_mvc02.Models
                     }
                     var addMon = seniorityMon + dlMonth + buffMonth;    //年資+基本期限+緩衝天數
                     data.deadLine = data.deadLine.AddYears(addYear).AddMonths(addMon);    //從報到日開始算
-                    data.remainHours = data.specialDays*8 - Repository.GetSpLeaveTotalHours(
+                    data.remainHours = data.specialDays*dayToHour - Repository.GetSpLeaveTotalHours(
                                         data.employeeID, data.deadLine.AddMonths(-(dlMonth+buffMonth)), data.deadLine);
                     Repository.RecordEmployeeSpDays(data);
 
@@ -77,7 +78,7 @@ namespace practice_mvc02.Models
                             data02.deadLine = data02.deadLine.AddMonths(buffMonth);
                             dlMonth = spDaysRule[useIndex-1].seniority == 0.5? 6 : 12;   
                         }
-                        data02.remainHours = data02.specialDays*8 - Repository.GetSpLeaveTotalHours(
+                        data02.remainHours = data02.specialDays*dayToHour - Repository.GetSpLeaveTotalHours(
                                         data02.employeeID, data02.deadLine.AddMonths(-(dlMonth+buffMonth)), data02.deadLine);
                         if(data02.deadLine >= definePara.dtNow())
                             Repository.RecordEmployeeSpDays(data02);
@@ -85,6 +86,16 @@ namespace practice_mvc02.Models
                 }
             }//foreach
         }
+        
+        public void calThisEmployeeAnnualDays(EmployeeDetail thisDetail, bool clearOld = false){
+            var spDaysRule = Repository.GetAnnualLeaveRule();
+            var detail = new List<EmployeeDetail>{thisDetail};
+            if(clearOld){
+                Repository.DelAnnualDaysByEmployeeID(thisDetail.accountID);
+            }
+            calSeniorityAndLeave(detail, spDaysRule);
+        }
+
 
         /*
             var nextLength = 0; //該特休年資與下個特休年資的時間長度

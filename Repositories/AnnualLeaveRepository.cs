@@ -40,12 +40,14 @@ namespace practice_mvc02.Repositories
 
         public void UpEmployeeSpLeave(int ruleID , int diffSpecialDays, int diffBuffDays){
             var query = _DbContext.employeeannualleaves.Where(b=>b.ruleID == ruleID).ToList();
+
+            var dayToHour = definePara.dayToHour();
             foreach(var tmp in query){
                 tmp.updateTime = definePara.dtNow();
                 if(diffSpecialDays != 0){
                     tmp.specialDays += diffSpecialDays;
-                    tmp.remainHours += diffSpecialDays*8;
-                    tmp.remainHours = tmp.remainHours+diffSpecialDays*8 >=0? tmp.remainHours+diffSpecialDays*8:0;
+                    tmp.remainHours += diffSpecialDays*dayToHour;
+                    tmp.remainHours = tmp.remainHours+diffSpecialDays*dayToHour >=0? tmp.remainHours+diffSpecialDays*dayToHour :0;
                     _DbContext.SaveChanges();
                 }
                 if(diffBuffDays != 0){
@@ -75,6 +77,14 @@ namespace practice_mvc02.Repositories
             }
         }
 
+        public void DelAnnualDaysByEmployeeID(int ID){
+            var query = _DbContext.employeeannualleaves.Where(b=>b.employeeID == ID);
+            if(query.Count()>0){
+                _DbContext.employeeannualleaves.RemoveRange(query);
+                _DbContext.SaveChanges();
+            }
+        }
+
         public void StartCalAnnualLeave(){
             calObj.start();
         }
@@ -84,13 +94,14 @@ namespace practice_mvc02.Repositories
                         join b in _DbContext.leavenames on a.leaveID equals b.ID
                         where a.accountID == employeeID && a.applyStatus ==1 && 
                                 a.startTime >= sDT && a.endTime < eDT &&
-                                b.leaveName == specialName
+                                b.leaveName == definePara.annualName()
                         select a;
+            var dayToHour = definePara.dayToHour();
             var leaveHour = 0.0F;
             foreach(var leave in query.ToList()){
                 switch(leave.unit){
-                    case 1: leaveHour+= (leave.unitVal)*8; break;
-                    case 2: leaveHour+= (leave.unitVal)*4; break;
+                    case 1: leaveHour+= (leave.unitVal)*dayToHour; break;
+                    case 2: leaveHour+= (leave.unitVal)*dayToHour/2; break;
                     case 3: leaveHour+= (leave.unitVal)*1; break;
                 }
             }

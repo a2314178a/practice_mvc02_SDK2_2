@@ -199,11 +199,16 @@ namespace practice_mvc02.Repositories
 
         public int AddLeave(LeaveName data){
             int count = 0;
-            try{
-                _DbContext.leavenames.Add(data);
-                count = _DbContext.SaveChanges();
-            }catch(Exception e){
-                count = ((MySqlException)e.InnerException).Number;
+            var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName==data.leaveName);
+            if(query == null){
+                try{
+                    _DbContext.leavenames.Add(data);
+                    count = _DbContext.SaveChanges();
+                }catch(Exception e){
+                    count = ((MySqlException)e.InnerException).Number;
+                }
+            }else{
+                count = 1062;
             }
             return count;
         }
@@ -221,11 +226,16 @@ namespace practice_mvc02.Repositories
             try{
                 var context = _DbContext.leavenames.FirstOrDefault(b=>b.ID == data.ID);
                 if(context != null){
-                    context.leaveName = data.leaveName;
-                    context.timeUnit = data.timeUnit;
-                    context.lastOperaAccID = data.lastOperaAccID;
-                    context.updateTime = data.updateTime;
-                    count = _DbContext.SaveChanges();
+                    var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName == data.leaveName);
+                    if(query == null || query.ID == context.ID){
+                        context.leaveName = data.leaveName;
+                        context.timeUnit = data.timeUnit;
+                        context.lastOperaAccID = data.lastOperaAccID;
+                        context.updateTime = data.updateTime;
+                        count = _DbContext.SaveChanges();
+                    }else{
+                        count = 1062;
+                    }
                 }
             }catch(Exception e){
                 count = ((MySqlException)e.InnerException).Number;

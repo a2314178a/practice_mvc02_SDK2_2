@@ -11,13 +11,12 @@ namespace practice_mvc02.Repositories
     {
         private punchStatusCode psCode;
         private punchCardFunction punchCardFn {get;} 
-        public string spName;
+        private string specialName = definePara.annualName();
         
         public ApplySignRepository(DBContext dbContext, punchCardFunction fn):base(dbContext)
         {
             this.psCode = new punchStatusCode();
             this.punchCardFn = fn;
-            this.spName = specialName;
         }
 
         #region punchWarn
@@ -191,10 +190,11 @@ namespace practice_mvc02.Repositories
             if(leaveStatus != 2){
                 return true;
             }else{
+                var DayToHour = definePara.dayToHour();
                 var applyHours = 0.0f;
                 switch(context.unit){
-                    case 1: applyHours = (context.unitVal)*8; break;
-                    case 2: applyHours = (context.unitVal)*4; break;
+                    case 1: applyHours = (context.unitVal)*DayToHour; break;
+                    case 2: applyHours = (context.unitVal)*DayToHour/2; break;
                     case 3: applyHours = (context.unitVal)*1; break;
                 }
                 var query = _DbContext.employeeannualleaves
@@ -211,10 +211,12 @@ namespace practice_mvc02.Repositories
             var query = _DbContext.employeeannualleaves
                             .Where(b=>b.employeeID == context.accountID && context.startTime < b.deadLine)
                             .OrderBy(b=>b.deadLine).ToList();
+
+            var DayToHour = definePara.dayToHour();
             var applyHours = 0.0f;  
             switch(context.unit){
-                case 1: applyHours = (context.unitVal)*8; break;
-                case 2: applyHours = (context.unitVal)*4; break;
+                case 1: applyHours = (context.unitVal)*DayToHour; break;
+                case 2: applyHours = (context.unitVal)*DayToHour/2; break;
                 case 3: applyHours = (context.unitVal)*1; break;
             } 
             if(leaveStatus == 2){   //減時數
@@ -233,9 +235,9 @@ namespace practice_mvc02.Repositories
             }else if(leaveStatus == 1){ //加回時數
                 for(int i = query.Count-1; i>=0; i--){
                     var remainHours = query[i].remainHours;
-                    if((remainHours + applyHours) > (query[i].specialDays)*8){
-                        applyHours -= ((query[i].specialDays)*8 - remainHours);
-                        remainHours = (query[i].specialDays)*8;
+                    if((remainHours + applyHours) > (query[i].specialDays)*DayToHour){
+                        applyHours -= ((query[i].specialDays)*DayToHour - remainHours);
+                        remainHours = (query[i].specialDays)*DayToHour;
                     }else{
                         remainHours += applyHours;
                         applyHours = 0;

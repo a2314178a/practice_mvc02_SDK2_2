@@ -4,14 +4,16 @@ using System.Linq;
 using MySql.Data.MySqlClient;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Models;
+using Newtonsoft.Json;
 
 namespace practice_mvc02.Repositories
 {
     public class MasterRepository : BaseRepository
     {
-        public MasterRepository(DBContext dbContext):base(dbContext)
+        private CalAnnualLeave calAnnualDays {get;}
+        public MasterRepository(DBContext dbContext, AnnualLeaveRepository repository):base(dbContext)
         {
-            
+            this.calAnnualDays = new CalAnnualLeave(repository);
         }
 
         #region employee CRUD
@@ -82,7 +84,8 @@ namespace practice_mvc02.Repositories
                     newDetail.accountID = newEmployee.ID;
                     _DbContext.employeedetails.Add(newDetail);  //新增細項
                     _DbContext.SaveChanges();
-                    setPrincipalAgent(newDetail.accountID, newDetail.myAgentID, newDetail.agentEnable);
+                    setPrincipalAgent(newDetail.accountID, newDetail.myAgentID, newDetail.agentEnable); //設定職務代理人
+                    calAnnualDays.calThisEmployeeAnnualDays(newDetail); //計算此人的年假
                 }
                 var depart = _DbContext.departments.FirstOrDefault(b=>b.ID == newEmployee.departmentID);
                 saveEmployeePrincipals(newEmployee, depart, thisManager);   //新增所屬主管
@@ -109,11 +112,32 @@ namespace practice_mvc02.Repositories
 
         public int UpdateEmployee(Account updateData, EmployeeDetail upDetail, int[] thisManager){
             int count = 0;
+            var oldDic = new Dictionary<string,string>{};
+            var newDic = new Dictionary<string,string>{};
+            var opLog = definePara.dtNow().ToString("yyyy-MM-dd HH:mm:ss");
+            var compareDic = new Dictionary<string, bool>{};
             var context = _DbContext.accounts.FirstOrDefault(b=>b.ID == updateData.ID);
+            var context2 = _DbContext.employeedetails.FirstOrDefault(b=>b.accountID == updateData.ID);
+            //var oldContext = JsonConvert.DeserializeObject<Account>(JsonConvert.SerializeObject(context));
+            //var oldContext2 = JsonConvert.DeserializeObject<EmployeeDetail>(JsonConvert.SerializeObject(context2));
+
+            //employee base data
             if(context != null){
+                // oldDic = toNameFn.UpdateEmployee_IDtoName(context, context2);
+                // oldDic.Add("accLV", context.accLV.ToString());
+
+                // compareDic.Add("userName", context.userName != updateData.userName? true: false);
+                // compareDic.Add("depart", context.departmentID != updateData.departmentID? true: false);
+                // compareDic.Add("accLV", context.accLV != updateData.accLV? true: false);
+                // compareDic.Add("timeRuleID", context.timeRuleID != updateData.timeRuleID? true: false);
+                // compareDic.Add("groupID", context.groupID != updateData.groupID? true: false);
+                
                 if(updateData.password != null){
+                    //compareDic.Add("password", context.password != updateData.password? true: false);
+                    //oldDic.Add("password", context.password);
                     context.password = updateData.password;
                 }
+
                 context.userName = updateData.userName;
                 context.departmentID = updateData.departmentID;
                 context.accLV = updateData.accLV;
@@ -125,12 +149,28 @@ namespace practice_mvc02.Repositories
                 if(count ==1){
                     var query = _DbContext.employeeprincipals.Where(b=>b.employeeID==updateData.ID);
                     _DbContext.RemoveRange(query);      //刪除舊所屬主管
+                    _DbContext.SaveChanges();
                     var depart = _DbContext.departments.FirstOrDefault(b=>b.ID==updateData.departmentID);
                     saveEmployeePrincipals(updateData, depart, thisManager);       //新增所屬主管
                 }
             }
-            var context2 = _DbContext.employeedetails.FirstOrDefault(b=>b.accountID == updateData.ID);
+            //employeeDetail
             if(context2 != null){
+                // oldDic.Add("sex", context2.sex==0?"女":"男");
+                // oldDic.Add("birth", context2.birthday.ToString("yyyy-MM-dd"));
+                // oldDic.Add("humanID", context2.humanID);
+                // oldDic.Add("agentEnable", context2.agentEnable?"啟用":"停用");
+                // oldDic.Add("startWorkDate", context2.startWorkDate.ToString("yyyy-MM-dd"));
+
+                // compareDic.Add("sex", context2.sex != upDetail.sex? true: false);
+                // compareDic.Add("birth", context2.birthday != upDetail.birthday? true: false);
+                // compareDic.Add("humanID", context2.humanID != upDetail.humanID? true: false);
+                // compareDic.Add("myAgentID", context2.myAgentID != upDetail.myAgentID? true: false);
+                // compareDic.Add("agentEnable", context2.agentEnable != upDetail.agentEnable? true: false);
+                // compareDic.Add("startWorkDate", context2.startWorkDate != upDetail.startWorkDate? true: false);
+
+                var diffStartDate = context2.startWorkDate != upDetail.startWorkDate? true : false;
+
                 context2.sex = upDetail.sex;
                 context2.birthday = upDetail.birthday;
                 context2.humanID = upDetail.humanID;
@@ -140,7 +180,48 @@ namespace practice_mvc02.Repositories
                 context2.lastOperaAccID = upDetail.lastOperaAccID;
                 context2.updateTime = upDetail.updateTime;
                 _DbContext.SaveChanges();   //更新細項
+
+                // newDic = toNameFn.UpdateEmployee_IDtoName(updateData, upDetail);
+                // newDic.Add("accLV", context.accLV.ToString());
+                // newDic.Add("password", context.password);
+                // newDic.Add("sex", context2.sex==0?"女":"男");
+                // newDic.Add("birth", context2.birthday.ToString("yyyy-MM-dd"));
+                // newDic.Add("humanID", context2.humanID);
+                // newDic.Add("agentEnable", context2.agentEnable?"啟用":"停用");
+                // newDic.Add("startWorkDate", context2.startWorkDate.ToString("yyyy-MM-dd"));
+    
+
+                // opLog += $" {newDic["operateName"]}對{context.userName}個人資料進行編輯「";
+                // foreach(var tmp in compareDic){
+                //     if(tmp.Value == true){
+                //         switch(tmp.Key){
+                //             case "userName": opLog+= $"姓名: {oldDic["userName"]} => {newDic["userName"]}，";break;
+                //             case "password": opLog+= $"更改密碼，";break;
+                //             case "depart": 
+                //             opLog+= $"部門職位: {oldDic["departName"]}{oldDic["position"]} => {newDic["departName"]}{newDic["position"]}，";
+                //                 break;
+                //             case "accLV": opLog+= $"帳號等級: {oldDic["accLV"]} => {newDic["accLV"]}，";break;
+                //             case "timeRuleID": opLog+= $"工作班別: {oldDic["timeRuleName"]} => {newDic["timeRuleName"]}，";break;
+                //             case "groupID": opLog+= $"動作權限: {oldDic["groupName"]} => {newDic["groupName"]}，";break;
+                //             case "sex": opLog+= $"性別: {oldDic["sex"]} => {newDic["sex"]}，";break;
+                //             case "birth": opLog+= $"生日: {oldDic["birth"]} => {newDic["birth"]}，";break;
+                //             case "humanID": opLog+= $"身分證號: {oldDic["humanID"]} => {newDic["humanID"]}，";break;
+                //             case "myAgentID": opLog+= $"職務代理人: {oldDic["myAgentName"]} => {newDic["myAgentName"]}，";break;
+                //             case "agentEnable": opLog+= $"代理人授權: {oldDic["agentEnable"]} => {newDic["agentEnable"]}，";break;
+                //             case "startWorkDate": opLog+= $"報到日: {oldDic["startWorkDate"]} => {newDic["startWorkDate"]}，";break;
+                //         }
+                //     }
+                // }
+                // opLog+="」";
+                // Console.WriteLine(opLog);
+
+                
+
                 setPrincipalAgent(context2.accountID, context2.myAgentID, context2.agentEnable);
+                if(diffStartDate){
+                    upDetail.accountID = updateData.ID;
+                    calAnnualDays.calThisEmployeeAnnualDays(upDetail, true); //計算此人的年假
+                }
             }
             return count;
         }
@@ -197,7 +278,7 @@ namespace practice_mvc02.Repositories
         public object GetMyAnnualLeave(int employeeID){
             var query = _DbContext.employeeannualleaves
                             .Where(b=>b.employeeID == employeeID && b.deadLine > definePara.dtNow())
-                            .Select(b=>new{b.specialDays, b.remainHours, b.deadLine})
+                            .Select(b=>new{b.ID, b.specialDays, b.remainHours, b.deadLine})
                             .OrderBy(b=>b.deadLine);
             return query.ToList();
         }
@@ -273,7 +354,7 @@ namespace practice_mvc02.Repositories
 
         public object GetAllPrincipal(){
             var query = from a in _DbContext.accounts
-                        where a.accLV < definePara.DIMALV
+                        where a.accLV < definePara.getDIMALV()
                         orderby a.accLV descending
                         select new{
                             a.ID, a.userName, a.accLV

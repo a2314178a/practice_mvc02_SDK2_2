@@ -30,6 +30,9 @@
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="report"?"active":"")' href="#" name="punchReport" onclick="showEmployeePage('report');">員工打卡報表</a>
                             </li>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page=="annual"?"active":"")' href="#" name="annualDays" onclick="showEmployeePage('annual');">員工年假明細</a>
+                            </li>
                             }
                         </ul>
                         @if(ViewBag.Page == "list")
@@ -135,6 +138,49 @@
 
                             </div>
                         }
+                        else if(ViewBag.Page == "annual" && ViewBag.loginAccLV >=4)
+                        {
+                            <div name="searchDiv" style="text-align:center;">
+                                <span>時間範圍:<input type="date" id="startDate">~<input type="date" id="endDate"></span>
+                                <span>部門:
+                                    <select id="selDepart">
+                                        <option value="">請選擇</option>
+                                    </select>
+                                </span>
+                                <span>人員:
+                                    <select id="selEmployee">
+                                        <option value="">請選擇</option>
+                                    </select>
+                                </span>
+                                <input type="button" value="搜尋" onclick="searchAnnualLog();">
+                            </div>
+                            <br/>
+                            <div id="displayTable" >
+                                <table id="annualTable" border="1">
+                                    <thead>
+                                        <tr class="title">
+                                            <th>請假時間(開始)</th>
+                                            <th>請假時間(結束)</th>
+                                            <th>備註</th>
+                                            <th>時間總計</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="annualLogsTable"></tbody>
+                                    <tfoot id="annualDaysTable">
+                                        <tr class="title">
+                                            <th colspan="4">當前特休狀態</th>
+                                        </tr>
+                                        <tr class="title">
+                                            <th>特休天數</th>
+                                            <th>剩餘天數</th>
+                                            <th>特休期限</th>
+                                            <th>調整</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                                             
+                            </div>
+                        }
                     </div>
                       
                 </div>
@@ -163,9 +209,55 @@
                 </tr>
             </table>
             }
-            else if(ViewBag.Page == "report")
+            else if(ViewBag.Page == "annual")
             {
-
+                <table>
+                    <tr name="annualLogRow">
+                        <td scope="col" name="sDate"></td>
+                        <td scope="col" name="eDate"></td>
+                        <td scope="col" name="note"></td>
+                        <td scope="col" name="totalTime"></td>
+                    </tr>
+                    <tr name="annualStatusRow">
+                        <td scope="col" name="spDays"></td>
+                        <td scope="col" name="remainDays"></td>
+                        <td scope="col" name="deadLine"></td>
+                        <td scope="col" name="update">
+                            <a href="javascript:void(0);" class="btn btn-primary edit_spDays btnActive" >編輯</a>
+                        </td>
+                    </tr>
+                    <tr name="addUpAnnualStatusRow">
+                        @* <td scope="col" name="spDays">
+                            <input type="text" name="editSpDays">
+                        </td>
+                        <td scope="col" name="remainDays">
+                            <input type="text" name="editRemainDays">
+                        </td>
+                        <td scope="col" name="remainDays">
+                            <input type="Date" name="editDeadLine">
+                        </td>
+                        <td scope="col" rowspan="2">
+                            <a href="javascript:void(0);" class="btn btn-primary addUp_spDays" >更新</a>
+                        </td> *@
+                        <td scope="col" colspan="2">
+                            剩餘天數調整為: 
+                            <input type="text" name="editRemainDays" oninput="value=value.replace(/[^\d]/g,'')">天
+                            <span name="remainHours"></span>
+                        </td>
+                        <td scope="col">
+                            <input type="Date" name="editDeadLine">
+                        </td>
+                        <td scope="col" rowspan="2">
+                            <a href="javascript:void(0);" class="btn btn-primary addUp_spDays" >更新</a><br/>
+                            <a href="javascript:void(0);" class="btn btn-danger cel_spDays" >取消</a>
+                        </td>
+                    </tr>
+                    <tr name="addUpAnnualStatusRow">
+                        <td scope="col" colspan="3">
+                            理由:<input type="text" name="editReason">
+                        </td>
+                    </tr>
+                </table>
             }
         </div>
 
@@ -176,6 +268,9 @@
             }
             else if(ViewBag.Page == "report"){
                 <script src="~/js/punchLogReport.js" type="text/javascript"></script>
+            }
+            else if(ViewBag.Page == "annual"){
+                <script src="~/js/useAnnualDetail.js" type="text/javascript"></script>
             }
         }	
 	</body>

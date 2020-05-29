@@ -62,7 +62,7 @@ namespace practice_mvc02.Controllers
             data.accountID = data.lastOperaAccID = (int)loginID;
 
             var leaveName = Repository.getApplyLeaveName(data.leaveID);
-            if(leaveName == Repository.spName){
+            if(leaveName == definePara.annualName()){
                 if(!Repository.chkEmployeeAnnualLeave(data)){
                     return -3;
                 }

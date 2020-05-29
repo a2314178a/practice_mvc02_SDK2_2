@@ -102,16 +102,6 @@ function getDepartmentEmployee(depart){
 }
 
 function processReport(){
-    /*var sDate = $("#reportStartDate").val();
-    var chk_sDate = myObj.dateTimeFormat(sDate);
-    var eDate = $("#reportEndDate").val();
-    var chk_eDate = myObj.dateTimeFormat(eDate);
-    var departName = $("#selDepart").val();
-    var accID = $("#selEmployee").val();
-    if(chk_sDate.year != chk_eDate.year || chk_sDate.month != chk_eDate.month || chk_eDate.day <chk_sDate.day){
-        alert("時間範圍需在同年同月");
-        return;
-    }*/
     var sDate = $("#reportStartDate").val();
     var chk_sDate = new Date(sDate);
     var eDate = $("#reportEndDate").val();

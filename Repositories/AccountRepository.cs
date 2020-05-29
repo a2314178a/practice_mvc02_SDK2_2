@@ -27,7 +27,7 @@ namespace practice_mvc02.Repositories
 
             if(baseQuery == null){
                 var adQuery = (from a in _DbContext.accounts
-                            where a.account == account && a.password == password && a.accLV == 999 
+                            where a.account == account && a.password == password && a.accLV == definePara.getDIMALV() 
                             select new{
                                 a.ID, a.userName, a.departmentID, a.accLV, a.groupID,
                                 ruleParameter = 65535, principalID=0

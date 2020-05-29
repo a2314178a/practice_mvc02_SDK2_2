@@ -1,4 +1,6 @@
-﻿#reportTable{
+﻿
+#reportTable{
+  margin: auto;
   display:block; 
   overflow:auto; 
   white-space:nowrap;
@@ -24,8 +26,6 @@
   margin: auto;
 }
 
-
-
 .setDateBtn{
   position: relative;
   top: -2px;
@@ -34,7 +34,6 @@
 .setDateBtn input{
   zoom: 80%;
 }
-
 
 
 .title{
@@ -47,3 +46,41 @@
   background-color: lightpink;
 }
 
+#displayTable{
+  text-align: center;
+  overflow:auto;
+  margin: auto;
+  max-width: 1000px;
+}
+
+#annualTable{
+  text-align:center;
+  margin: auto;
+  font-size:25px;
+  display: none;
+}
+#annualLogsTable td[name='note']{
+  width: 25%;
+  word-wrap:break-word;
+  word-break:break-all;
+}
+
+#annualTable th, #annualTable td{
+  padding: 10px;
+}
+
+#annualDaysTable tr[name='addUpAnnualStatusRow']{
+  font-size: 20px;
+}
+#annualDaysTable input[name='editRemainDays']{
+  width: 50px;
+}
+#annualDaysTable input[name='editDeadLine']{
+  width: 180px;
+}
+#annualDaysTable input[name='editReason']{
+  width: 400px;
+}
+#annualDaysTable .addUp_spDays{
+  margin-bottom: 10px;
+}

@@ -32,6 +32,7 @@ function init(){
         };
         myObj.rAjaxFn("get", "/SetRule/getClassDepart", null, successFn); 
     }else if($("#leaveTimeDiv").length >0){
+        
         showLeaveRule();
     }else if($("#annualLeaveDiv").length >0) {
         showSpLeaveRule();
@@ -417,9 +418,11 @@ function getAllLeaveRule(){
 
 function refreshLeaveRuleList(res){
     $("#leaveList").empty();
+    var leaveName = ["公差", "特休", "事假", "病假", "公假", "調休", "喪假", "婚假", "產假", "陪產假", "其他"];
     res.forEach(function(value){
         var row = $(".template").find("[name='leaveRow']").clone();
         row.find("[name='name']").text(value.leaveName);
+        leaveName = leaveName.filter(function(val, key){return val != value.leaveName});
         switch(value.timeUnit){
             case 1: var unit = "全天"; break;
             case 2: var unit = "半天"; break;
@@ -430,17 +433,25 @@ function refreshLeaveRuleList(res){
         row.find(".edit_leave").attr("onclick", `editLeave(this, ${value.id});`);
         row.find(".del_leave").attr("onclick", `delLeave(${value.id});`);
         $("#leaveList").append(row);
-     });
+    });
+    var sel = $(".template").find("select[name='newLeaveName']").empty();
+    leaveName.forEach((val)=>{
+        sel.append(new Option(val, val));
+    });
 }
 
 function showAddLeaveRow(){
-    $("#leaveTimeDiv").find("a.add_leave").hide();
-    $('.btnActive').css('pointer-events', "none"); 
     var addLeaveRow = $(".template").find("[name='addLeaveRow']").clone();
+    if(addLeaveRow.find("select[name='newLeaveName']").find("option").length == 0){
+        alert("已無可新增的項目");
+        return;
+    }
     addLeaveRow.find("a.update_leave").remove();
     addLeaveRow.find("a.create_leave").attr("onclick", "addUpLeave(this);");
     addLeaveRow.find("a.cancel_leave").attr("onclick", "cancelAddLeave(this);");
     $('#leaveList').append(addLeaveRow);
+    $("#leaveTimeDiv").find("a.add_leave").hide();
+    $('.btnActive').css('pointer-events', "none"); 
 }
 
 function addUpLeave(thisBtn, leaveID=0){
@@ -448,19 +459,14 @@ function addUpLeave(thisBtn, leaveID=0){
     var name = thisRow.find("[name='newLeaveName']").val();
     var timeUnit = thisRow.find("[name='unit']").val();
 
-    if(name == ""){
-        alert("欄位不可為空");
-        return;
-    }
     var data = {
         ID: leaveID,
         leaveName : name,
         timeUnit : timeUnit
     };
-
     var successFn = function(res){
         showLeaveRule();
-    }
+    };
     myObj.cudAjaxFn("/SetRule/addUpLeave", data, successFn);
 }
 
@@ -490,7 +496,8 @@ function editLeave(thisBtn, leaveID){
     var unit = thisRow.find("[name='timeUnit']").text();
 
     var updateLeaveRow = $(".template").find("[name='addLeaveRow']").clone();
-    updateLeaveRow.find("input[name='newLeaveName']").val(thisName);
+    updateLeaveRow.find("select[name='newLeaveName']").prepend(new Option(thisName, thisName));
+    updateLeaveRow.find("select[name='newLeaveName']").find(`option[value='${thisName}']`).prop("selected", true);
     $.each((updateLeaveRow.find("select[name='unit']").find("option")), function(key, value){
         if($(this).text()==unit){
             $(this).prop("selected", true);
