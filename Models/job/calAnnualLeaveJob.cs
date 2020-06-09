@@ -5,6 +5,7 @@ using Pomelo.AspNetCore.TimedJob;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
 using practice_mvc02.Models;
+using System.IO;
 
 namespace practice_mvc02.Models
 {
@@ -25,7 +26,14 @@ namespace practice_mvc02.Models
         public void Run()
         {
             Console.WriteLine("Start calAnnualLeaveJob------"+definePara.dtNow());
-            work.start();
+            try{
+                work.start();
+            }catch(Exception ex){
+                string docPath = Environment.CurrentDirectory;
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "errorLog.txt"), true)){
+                   outputFile.WriteLineAsync(definePara.dtNow() + "  " + ex.ToString());
+                }
+            }
             Console.WriteLine("Finish calAnnualLeaveJob------"+definePara.dtNow());
         }
 

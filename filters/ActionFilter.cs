@@ -65,6 +65,7 @@ namespace practice_mvc02.filters
                                                  (ruleVal & ruleCode.departEmployeeList) ==0)? true : goLogOut; break;
                 case "PunchCard": goLogOut = ((ruleVal & ruleCode.baseActive) == 0)? true : goLogOut; break;
                 case "SetRule": goLogOut = ((ruleVal & ruleCode.setRule) == 0)? true : goLogOut; break;
+                case "AdminFn": goLogOut = ((ruleVal & ruleCode.adminFn) == 0)? true : goLogOut; break;
                 case "EmployeeDetail":
                 case "Message":
                 case "Home": break;

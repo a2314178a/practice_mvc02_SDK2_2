@@ -150,7 +150,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delPunchCardLog(int punchLogID){
-            return Repository.DelPunchCardLog(punchLogID);
+            return Repository.DelPunchCardLog(punchLogID, (int)loginID);
         }
 
         public object getTimeTotalByID(int targetID){

@@ -27,6 +27,7 @@ namespace practice_mvc02.Repositories
         public DbSet<AnnualLeaveRule> annualleaverule {get; set;}
         public DbSet<EmployeeAnnualLeave> employeeannualleaves{get; set;}
         public DbSet<AnnualDaysOffset> annualdaysoffset{get; set;}
+		public DbSet<OperateLog> operateLogs{get; set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   

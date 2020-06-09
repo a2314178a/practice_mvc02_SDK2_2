@@ -72,7 +72,7 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
-        public int AddPunchCardLog(PunchCardLog newData){
+        public int AddPunchCardLog(PunchCardLog newData, bool normal){  //true正常打卡新增/false編輯新增
             int count = 0;
             var query = _DbContext.punchcardlogs.Where(b=>b.accountID == newData.accountID && b.logDate == newData.logDate);
             if(query.Count() > 0){
@@ -80,10 +80,27 @@ namespace practice_mvc02.Repositories
             }
             _DbContext.punchcardlogs.Add(newData);
             count = _DbContext.SaveChanges();
+
+            if(count ==1 && !normal){
+                var dic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    operateID=newData.lastOperaAccID, employeeID=newData.accountID, 
+                    active="新增", category="打卡紀錄", createTime=definePara.dtNow()
+                };
+                toNameFn.AddUpPunchCardLog_convertToDic(ref dic, newData);
+                opLog.content = toNameFn.AddUpPunchCardLog_convertToText(dic);
+                saveOperateLog(opLog);    //紀錄操作紀錄
+            }
             return count;
         }
 
-        public int UpdatePunchCard(PunchCardLog updateData){
+        public int UpdatePunchCard(PunchCardLog updateData, bool normal){   //true正常打卡新增/false編輯新增
+            var oDic = new Dictionary<string,string>{};
+            var nDic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=updateData.lastOperaAccID, employeeID=updateData.accountID, 
+                active="更新", category="打卡紀錄", createTime=definePara.dtNow()
+            };
             int count = 0;
             var query = _DbContext.punchcardlogs.Where(b=>b.accountID == updateData.accountID && 
                                                         b.logDate == updateData.logDate && b.ID != updateData.ID);
@@ -92,6 +109,8 @@ namespace practice_mvc02.Repositories
             }
             PunchCardLog context = _DbContext.punchcardlogs.FirstOrDefault(b=>b.ID == updateData.ID);
             if(context != null){
+                toNameFn.AddUpPunchCardLog_convertToDic(ref oDic, context);
+
                 context.logDate = updateData.logDate;
                 context.onlineTime = updateData.onlineTime;
                 context.offlineTime = updateData.offlineTime;
@@ -100,15 +119,32 @@ namespace practice_mvc02.Repositories
                 context.updateTime = updateData.updateTime;
                 count = _DbContext.SaveChanges();
             }
+            if(count == 1 && !normal){
+                toNameFn.AddUpPunchCardLog_convertToDic(ref nDic, context);
+                opLog.content = toNameFn.AddUpPunchCardLog_convertToText(nDic, oDic);
+                saveOperateLog(opLog);    //紀錄操作紀錄
+            }
             return count;
         }
 
-        public int DelPunchCardLog(int punchLogID){
+        public int DelPunchCardLog(int punchLogID, int loginID){
+            var dic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=loginID, active="刪除", 
+                category="打卡紀錄", createTime=definePara.dtNow()
+            };
             int count = 0;
             var context = _DbContext.punchcardlogs.FirstOrDefault(b=>b.ID == punchLogID);
             if(context != null){
+                toNameFn.AddUpPunchCardLog_convertToDic(ref dic, context);
+                opLog.employeeID = context.accountID;
+
                 _DbContext.Remove(context);
                 count = _DbContext.SaveChanges();
+            }
+            if(count == 1){
+                opLog.content = toNameFn.AddUpPunchCardLog_convertToText(dic);
+                saveOperateLog(opLog);    //紀錄操作紀錄
             }
             return count;
         }
@@ -217,7 +253,7 @@ namespace practice_mvc02.Repositories
             nullPunchLog.createTime = definePara.dtNow();
             try{
                 _DbContext.punchcardlogs.Add(nullPunchLog);
-                _DbContext.SaveChanges();
+                count = _DbContext.SaveChanges();
             }catch(Exception e){
                 count = ((MySqlException)e.InnerException).Number;
             }

@@ -67,7 +67,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delEmployee(int employeeID){
-            return Repository.DelEmployee(employeeID);
+            return Repository.DelEmployee(employeeID, (int)loginID);
         }
 
         public int addUpdateEmployee(Account accData, EmployeeDetail employeeDetail, int[] thisManager, string action){

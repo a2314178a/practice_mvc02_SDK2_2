@@ -20,13 +20,14 @@
 
 					<h3 style="text-align:center;">@ViewBag.mainText</h3><hr/>
 					<div>
+						<span style="float:right">(*:必填)</span>
 						<form id="dataForm">
 							<table class="table table-striped employeeDetail">
 								<tbody>
 									<tr>
-										<td class="detailTitleTd">名字:</td>
+										<td class="detailTitleTd">*名字:</td>
 										<td class="detailMainTd"><input type="text" group="detail" name="userName" value=""></td>
-										<td class="detailTitleTd">帳號:</td>
+										<td class="detailTitleTd">*帳號:</td>
 										@if(ViewBag.Action == "add")
 										{
 										<td class="detailMainTd"><input type="text" group="detail" name="account" value=""></td>
@@ -37,9 +38,9 @@
 										}
 									</tr>
 									<tr>
-										<td class="detailTitleTd">密碼:</td>
+										<td class="detailTitleTd">*密碼:</td>
 										<td class="detailMainTd"><input type="password" group="detail" name="password"></td>
-										<td class="detailTitleTd">確認密碼:</td>
+										<td class="detailTitleTd">*確認密碼:</td>
 										<td class="detailMainTd"><input type="password" group="detail" name="rePassword"></td>
 									</tr>
 									<tr>
@@ -50,24 +51,24 @@
 												<option value="1">男</option>
 											</select>
 										</td>
-										<td class="detailTitleTd">身分證字號:</td>
+										<td class="detailTitleTd">*身分證字號:</td>
 										<td class="detailMainTd"><input type="text" name="humanID"></td>
 									</tr>
 									<tr>
-										<td class="detailTitleTd">生日:</td>
+										<td class="detailTitleTd">*生日:</td>
 										<td class="detailMainTd"><input type="date" group="detail" name="birthday" value=""></td>
-										<td class="detailTitleTd">報到日期:</td>
+										<td class="detailTitleTd">*報到日期:</td>
 										<td class="detailMainTd"><input type="date" group="detail" name="startWorkDate" value=""></td>
 									</tr>
 									<tr>
-										<td class="detailTitleTd">部門:</td>
+										<td class="detailTitleTd">*部門:</td>
 										<td class="detailMainTd">
 											<input type="hidden" id="ruleVal" value="@ViewBag.ruleVal">
 											<select group="detail" name="department">
 												<option value="" >請選擇</option>
 											</select>
 										</td>
-										<td class="detailTitleTd">職位:</td>
+										<td class="detailTitleTd">*職位:</td>
 										<td class="detailMainTd">
 											<select group="detail" name="position">
 												<option value="" >請選擇</option>
@@ -93,7 +94,7 @@
 										</td>
 									</tr>
 									<tr>
-										<td class="detailTitleTd">動作權限:</td>
+										<td class="detailTitleTd">*動作權限:</td>
 										<td class="detailMainTd">
 											<select group="detail" name="actAuthority">
 												<option value="">請選擇</option>

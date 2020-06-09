@@ -149,6 +149,7 @@ function getAccountDetail(employeeID){
         $("select[name='accLV']").find(`option[value='${accInfo.accLV}']`).prop("selected", true);
         $("select[name='agent']").find(`option[value='${accInfo.myAgentID}']`).prop("selected", true);
         $("input[name='agentEnable']").prop("checked", accInfo.agentEnable);
+        myObj.oldManager = (res.manager).map((val)=>{return val.id});
         setThisAllManager(res.manager);
     };
     myObj.rAjaxFn("get", "/EmployeeList/getAccountDetail", {employeeID}, getAccInfoSuccessFn);
@@ -220,6 +221,15 @@ function addUpdateEmployee(action, employeeID=0){
         startWorkDate: $("input[name='startWorkDate']").val(),
     };
 
+    //判斷負責人是否有變化 -1:no -2:yes
+    if(employeeID >0){
+        var equal = myObj.oldManager.sort((a,b)=>{return a-b;}).toString() == myObj.thisManager.sort((a,b)=>{return a-b;}).toString() ? -1 : -2;
+        myObj.thisManager.unshift(equal);
+    }else{     
+        myObj.thisManager = myObj.thisManager == undefined? [] : myObj.thisManager;
+        myObj.thisManager.unshift(-2);
+    }
+        
     var sendData = {
         accData: data, 
         employeeDetail: data2, 

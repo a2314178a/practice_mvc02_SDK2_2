@@ -84,8 +84,10 @@ namespace practice_mvc02.Repositories
         }
 
         public int SendMessage(MsgSendReceive record){
+            var count = 0;
             _DbContext.msgsendreceive.Add(record);
-            return _DbContext.SaveChanges();
+            count = _DbContext.SaveChanges();
+            return count;
         }
 
         public List<Account> GetAllAccID(){

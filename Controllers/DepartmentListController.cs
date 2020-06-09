@@ -55,7 +55,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delDepartment(int departID){
-            return Repository.DelDepartment(departID);
+            return Repository.DelDepartment(departID, (int)loginID);
         }
 
         public int updateDepartment(Department updateDate){

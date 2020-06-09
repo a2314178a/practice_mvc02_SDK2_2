@@ -50,6 +50,7 @@ namespace practice_mvc02
             services.AddTransient<punchCardFunction>(); 
 			services.AddTransient<ExportXlsxRepository>();
 			services.AddTransient<AnnualLogRepository>();
+			services.AddTransient<AdminFnRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

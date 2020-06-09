@@ -32,7 +32,6 @@ function init(){
         };
         myObj.rAjaxFn("get", "/SetRule/getClassDepart", null, successFn); 
     }else if($("#leaveTimeDiv").length >0){
-        
         showLeaveRule();
     }else if($("#annualLeaveDiv").length >0) {
         showSpLeaveRule();
@@ -520,7 +519,7 @@ function setOption(){
     var yearSel = $(".template").find("select[name='yearSel']").append(new Option("半年", 0.5));
     var spDaySel = $(".template").find("select[name='daySel']");
     for(let i=1; i<=30; i++){
-        yearSel.append(new Option(`${i}年`, i));
+        //yearSel.append(new Option(`${i}年`, i));
         spDaySel.append(new Option(`${i}天`, i));
     }
 
@@ -545,10 +544,15 @@ function getAllSpLeaveRule(){
 }
 
 function refreshSpLeaveRuleList(res){
+    var seniority = [0.5];
+    for(let i =1; i<=30;i++){
+        seniority.push(i);
+    }
     $("#spLeaveRuleList").empty();
     res.forEach(function(value){
         var row = $(".template").find("[name='spLeaveRow']").clone();
         var yText = value.seniority == 0.5 ? "6個月" : value.seniority + "年";
+        seniority = seniority.filter(function(val, key){return val != value.seniority});
         row.find("[name='years']").text(yText);
         row.find("[name='days']").text(value.specialDays + "天");
         var buffTest = (value.buffDays/30) + "個月";
@@ -557,16 +561,28 @@ function refreshSpLeaveRuleList(res){
         row.find(".edit_spLeave").attr("onclick",`editSpLeaveRule(this, ${value.id});`);
         row.find(".del_spLeave").attr("onclick",`delSpLeaveRule(${value.id});`);
         $("#spLeaveRuleList").append(row);
-     });
+    });
+    var yearSel = $(".template").find("select[name='yearSel']").empty();
+    seniority.forEach((val)=>{
+        if(val==0.5){
+            yearSel.append(new Option("6個月", val));
+        }else{
+            yearSel.append(new Option(val+"年", val));
+        }
+    });
 }
 
 function showAddSpLeaveRow(){
-    $("#annualLeaveDiv").find("a.add_spLeave").hide();
-    $('.btnActive').css('pointer-events', "none"); 
     var addSpLeaveRow = $(".template").find("[name='addSpLeaveRow']").clone();
+    if(addSpLeaveRow.find("select[name='yearSel']").find("option").length == 0){
+        alert("已無可新增的項目");
+        return;
+    }
     addSpLeaveRow.find("a.update_spLeave").remove();
     addSpLeaveRow.find("a.create_spLeave").attr("onclick", "addUpSpLeaveRule(this);");
     addSpLeaveRow.find("a.cancel_spLeave").attr("onclick", "cancelAddSpLeave(this);");
+    $("#annualLeaveDiv").find("a.add_spLeave").hide();
+    $('.btnActive').css('pointer-events', "none"); 
     $('#spLeaveRuleList').append(addSpLeaveRow);
 }
 
@@ -596,11 +612,12 @@ function editSpLeaveRule(thisBtn, ruleID){
 
     var thisRow = $(thisBtn).closest("tr[name='spLeaveRow']").hide();
     var thisYear = thisRow.find("[name='years']").text();
-    thisYear = thisYear =="6個月"? "半年" : thisYear;
+    var thisYearVal = thisYear == "6個月"? 0.5 : thisYear.substring(0, thisYear.length-1);
     var thisSpDay = thisRow.find("[name='days']").text();
     var thisBuffDay = thisRow.find("[name='buffDays']").text();
 
     var upSpLeaveRow = $(".template").find("[name='addSpLeaveRow']").clone();
+    upSpLeaveRow.find("select[name='yearSel']").prepend(new Option(thisYear, thisYearVal));
     $.each(upSpLeaveRow.find("[name='yearSel']").find("option"), function(){
         if($(this).text() == thisYear){
             $(this).prop("selected", true);

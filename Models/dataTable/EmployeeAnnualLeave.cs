@@ -12,6 +12,7 @@ namespace practice_mvc02.Models.dataTable
         public int specialDays {get; set;}
         public float remainHours {get; set;}
         public DateTime deadLine {get; set;}
+        public int lastOperaAccID {get; set;}
         public DateTime createTime {get; set;}
         public DateTime updateTime {get; set;}
     }

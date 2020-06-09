@@ -77,6 +77,7 @@ function showRow(sel){
 }
 
 function showMyAnnualLeave(res){
+    $("[name='spLeaveDeadLine']").empty();
     var hourToDay = 8;  //工作幾小時算一天
     var spDays = 0;
     var spHours = 0;

@@ -117,7 +117,7 @@ namespace practice_mvc02.Repositories
             return count;
         }
 
-        public int DelApplyLeave(int applyLeaveID){
+        public int DelApplyLeave(int applyLeaveID, int loginID){
             int count = 0;
             var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyLeaveID);
             if(context != null){
@@ -131,7 +131,7 @@ namespace practice_mvc02.Repositories
             return count;
         }
 
-        public int UpdateApplyLeave(LeaveOfficeApply updateApply){
+        public int UpdateApplyLeave(LeaveOfficeApply updateApply){  //暫無使用到
             int count = 0;
             var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == updateApply.ID);
             if(context != null && context.applyStatus == 0){
@@ -145,6 +145,9 @@ namespace practice_mvc02.Repositories
                 context.updateTime = updateApply.updateTime;
                 count = _DbContext.SaveChanges();
             }
+            if(count == 1){
+                //之後有使用到此更新功能 須在這新增更新後的特休刷新處理
+            }
             return count;
         }
 
@@ -153,14 +156,10 @@ namespace practice_mvc02.Repositories
             var leaveStatus = 0;    //0:沒動作 1:加回特休時數 2:減特休時數
             var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyID);
             var leaveName = getApplyLeaveName(context.leaveID);
+
             if(context != null){
                 if(leaveName == specialName){   //申請假別為特休
                     var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
-                    /*if((oldStatus == 0 && newStatus == 1) || (oldStatus == 2 && newStatus == 1)){
-                        leaveStatus = 2;    //減特休時數
-                    }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 1 && newStatus == 0)){
-                        leaveStatus = 1;    //加回特休時數
-                    }*/
                     if((oldStatus == 2 && newStatus == 0) || (oldStatus == 2 && newStatus == 1)){
                         leaveStatus = 2;    //減特休時數
                     }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 0 && newStatus == 2)){
@@ -170,6 +169,7 @@ namespace practice_mvc02.Repositories
                         return null;
                     }
                 }
+   
                 context.applyStatus = newStatus;
                 context.lastOperaAccID = loginID;
                 context.updateTime = definePara.dtNow();

@@ -33,30 +33,42 @@ namespace practice_mvc02.Models
         public int punchCardProcess(PunchCardLog logData, WorkTimeRule thisWorkTime, int action, int employeeID)
         {   
             WorkDateTime wt = workTimeProcess(thisWorkTime);
+            //需new一個出來 用原本的logData會等於context，一旦修改logData之後query後的context也會是修改後的(雖然資料庫沒變)
+            PunchCardLog newLogData;    
             int resultCount = 0; //0:操作異常 1:成功 
             
             if(logData == null) //今日皆未打卡      
             {
-                logData = new PunchCardLog(){
+                newLogData = new PunchCardLog(){
                     accountID = employeeID, departmentID = (int)loginDepartmentID, logDate = wt.sWorkDt.Date,
                     lastOperaAccID = (int)loginID, onlineTime = definePara.dtNow(), createTime = definePara.dtNow()
                 };    
             }
             else   //今日有打過卡 or 電腦生成(跨日才有可能遇到)
             {
-                logData.lastOperaAccID = (int)loginID;
-                logData.updateTime = definePara.dtNow();
+                newLogData = new PunchCardLog(); 
+                newLogData.ID = logData.ID;
+                newLogData.accountID = logData.accountID;
+                newLogData.departmentID = logData.departmentID;
+                newLogData.logDate = logData.logDate;
+                newLogData.onlineTime = logData.onlineTime;
+                newLogData.offlineTime = logData.offlineTime;
+                newLogData.punchStatus = logData.punchStatus;
+                newLogData.createTime = logData.createTime;
 
-                if(logData.onlineTime.Year ==1 && logData.offlineTime.Year ==1){
-                    logData.onlineTime = definePara.dtNow();
+                newLogData.lastOperaAccID = (int)loginID;
+                newLogData.updateTime = definePara.dtNow();
+
+                if(newLogData.onlineTime.Year ==1 && newLogData.offlineTime.Year ==1){
+                    newLogData.onlineTime = definePara.dtNow();
                 }else{
-                    logData.offlineTime = definePara.dtNow();
+                    newLogData.offlineTime = definePara.dtNow();
                 }
             }
-            logData.punchStatus = getStatusCode(wt, logData);
-            resultCount = logData.ID ==0? Repository.AddPunchCardLog(logData):Repository.UpdatePunchCard(logData);
-            if(resultCount == 1 && logData.punchStatus > 1 && logData.punchStatus != psCode.takeLeave){    //一定要新增log成功 不然會沒logID
-                Repository.AddPunchLogWarnAndMessage(logData);
+            newLogData.punchStatus = getStatusCode(wt, newLogData);
+            resultCount = newLogData.ID ==0? Repository.AddPunchCardLog(newLogData, true):Repository.UpdatePunchCard(newLogData, true);
+            if(resultCount == 1 && newLogData.punchStatus > 1 && newLogData.punchStatus != psCode.takeLeave){    //一定要新增log成功 不然會沒logID
+                Repository.AddPunchLogWarnAndMessage(newLogData);
             }
             return resultCount;
         }
@@ -83,7 +95,7 @@ namespace practice_mvc02.Models
             }
 
             processLog.punchStatus = getStatusCode(wt, processLog);
-            int result = action == "update"? Repository.UpdatePunchCard(processLog) : Repository.AddPunchCardLog(processLog);
+            int result = action == "update"? Repository.UpdatePunchCard(processLog, false) : Repository.AddPunchCardLog(processLog, false);
             if(result == 1 && processLog.punchStatus > 1 && processLog.punchStatus != psCode.takeLeave){
                 Repository.AddPunchLogWarnAndMessage(processLog);
             }
@@ -162,7 +174,8 @@ namespace practice_mvc02.Models
                 return;
             }
             log.punchStatus = getStatusCode(wt, log);
-            Repository.UpdatePunchCard(log);
+            log.lastOperaAccID = 0;
+            Repository.UpdatePunchCard(log, true);
             if(log.punchStatus > 1 && log.punchStatus != psCode.takeLeave){
                 Repository.AddPunchLogWarnAndMessage(log);
             }

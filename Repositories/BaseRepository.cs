@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using practice_mvc02.Models;
 using practice_mvc02.Models.dataTable;
 
@@ -9,12 +11,12 @@ namespace practice_mvc02.Repositories
     public class BaseRepository
     {
         protected DBContext _DbContext {get;set;}
-        protected convertToNameFunction toNameFn;
+        protected operateLogFunction toNameFn;
 
         public BaseRepository(DBContext dbContext)
         {
             this._DbContext = dbContext;
-            this.toNameFn = new convertToNameFunction(dbContext);
+            this.toNameFn = new operateLogFunction(dbContext);
         }
 
         public string QueryTimeStamp(int? id){
@@ -96,26 +98,40 @@ namespace practice_mvc02.Repositories
         }
 
         public int UpdateMyDetail(int loginID, MyDetail data){
-            int count = 0;
+            var oDic = new Dictionary<string,string>{};
+            var nDic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=loginID, employeeID=loginID,
+                active="更新", category="員工資料", createTime=definePara.dtNow()
+            };
+            int psCount = 0, agCount = 0;
             if(data.password != null){
                 var context = _DbContext.accounts.FirstOrDefault(b=>b.ID == loginID);
                 if(context != null){
                     context.password = data.password;
                     context.lastOperaAccID = loginID;
                     context.updateTime = definePara.dtNow();
-                    count = _DbContext.SaveChanges() > 0? 1: count;
+                    psCount = _DbContext.SaveChanges();
                 }
             }
             var context2 = _DbContext.employeedetails.FirstOrDefault(b=>b.accountID == loginID);
             if(context2 != null){
+                toNameFn.AddUpEmployeeDetail_convertToDic(ref oDic, context2);
+
                 context2.myAgentID = data.myAgentID;
                 context2.agentEnable = data.agentEnable;
                 context2.lastOperaAccID = loginID;
                 context2.updateTime = definePara.dtNow();
-                count = _DbContext.SaveChanges() > 0? 1: count;
+                agCount = _DbContext.SaveChanges();
                 setPrincipalAgent(loginID, context2.myAgentID, context2.agentEnable);
             }
-            return count;
+            if(psCount ==1 || agCount == 1){        
+                toNameFn.AddUpEmployeeDetail_convertToDic(ref nDic, context2);
+                opLog.content += psCount==0?"" : $"修改了密碼，";
+                opLog.content += toNameFn.AddUpEmployeeDetail_convertTotext(nDic, oDic);
+                saveOperateLog(opLog);   
+            }
+            return (psCount ==1 || agCount == 1)? 1 : 0;
         }
 
         public void setPrincipalAgent(int principalID, int agentID, bool enable){
@@ -127,7 +143,15 @@ namespace practice_mvc02.Repositories
         }
 
         //----------------------------------------------------------------------------------------
-        
+
+        public void saveOperateLog(OperateLog log){
+            /*string docPath = Environment.CurrentDirectory;
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "operateLogs.txt"), true)){
+                outputFile.WriteLineAsync(log.createTime.ToString("yyyy-MM-dd HH:mm:ss") + " " + log.content);
+            }*/
+            _DbContext.operateLogs.Add(log);
+            _DbContext.SaveChanges();
+        }
         
     }
 }

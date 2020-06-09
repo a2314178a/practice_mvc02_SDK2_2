@@ -59,7 +59,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delTimeRule(int timeRuleID){
-            return Repository.DelTimeRule(timeRuleID);
+            return Repository.DelTimeRule(timeRuleID, (int)loginID);
         }
 
         #endregion //timeRule
@@ -78,7 +78,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delGroup(int groupID){
-            return Repository.DelGroup(groupID);
+            return Repository.DelGroup(groupID, (int)loginID);
         }
 
         public int updateGroup(GroupRule updateGroup){
@@ -113,7 +113,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delSpecialDate(int spDateID){
-            return Repository.DelSpecialDate(spDateID);
+            return Repository.DelSpecialDate(spDateID, (int)loginID);
         }
 
         #endregion //specialDate
@@ -138,7 +138,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delLeave(int leaveID){
-            return Repository.DelLeave(leaveID);
+            return Repository.DelLeave(leaveID, (int)loginID);
         }
 
         #endregion //leaveTimeRule
@@ -163,7 +163,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delSpLeaveRule(int ruleID){
-            return Repository.DelSpLeaveRule(ruleID);
+            return Repository.DelSpLeaveRule(ruleID, (int)loginID);
         }
 
         #endregion //spLeaveRule

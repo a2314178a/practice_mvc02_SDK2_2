@@ -84,7 +84,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int delApplyLeave(int applyingID){
-            return Repository.DelApplyLeave(applyingID);
+            return Repository.DelApplyLeave(applyingID, (int)loginID);
         }
 
         public DateTime getLeaveEndTime(LeaveOfficeApply data){

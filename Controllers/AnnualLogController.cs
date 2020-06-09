@@ -50,10 +50,10 @@ namespace practice_mvc02.Controllers
 
         public int addUpAnnualStatus(EmployeeAnnualLeave annualData, AnnualDaysOffset offsetData){
             offsetData.createTime = annualData.updateTime = definePara.dtNow();
-            offsetData.lastOperaAccID = (int)loginID;
+            offsetData.lastOperaAccID = annualData.lastOperaAccID = (int)loginID;
             var res = 0;
             if(aRepository.AddOffsetData(offsetData) == 1){
-                res = aRepository.UpEmployeeAnnualDays(annualData);
+                res = aRepository.UpEmployeeAnnualDays(annualData, offsetData);
             }
             return res;
         }

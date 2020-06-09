@@ -6,6 +6,7 @@ using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
 using practice_mvc02.Models;
 using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace practice_mvc02.Models
 {
@@ -26,7 +27,14 @@ namespace practice_mvc02.Models
         public void Run()
         {
             Console.WriteLine("Start removeXlsxFileJob------"+definePara.dtNow());
-            delFile.start(30);  //刪除幾天前的檔案
+            try{
+                delFile.start(30);  //刪除幾天前的檔案
+            }catch(Exception ex){
+                string docPath = Environment.CurrentDirectory;
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "errorLog.txt"), true)){
+                   outputFile.WriteLineAsync(definePara.dtNow() + "  " + ex.ToString());
+                }
+            }
             Console.WriteLine("Finish removeXlsxFileJob------"+definePara.dtNow());
         }
 

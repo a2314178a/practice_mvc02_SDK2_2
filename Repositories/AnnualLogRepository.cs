@@ -52,14 +52,30 @@ namespace practice_mvc02.Repositories
             return count;
         }
 
-        public int UpEmployeeAnnualDays(EmployeeAnnualLeave data){
+        public int UpEmployeeAnnualDays(EmployeeAnnualLeave data, AnnualDaysOffset offsetData){
+            var oDic = new Dictionary<string,string>{};
+            var nDic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=data.lastOperaAccID, 
+                active="更新", category="特休", createTime=definePara.dtNow()
+            };
             var context = _DbContext.employeeannualleaves.FirstOrDefault(b=>b.ID==data.ID);
             var count = 0;
             if(context != null){
+                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref oDic, context);
+                opLog.employeeID = context.employeeID;
+
                 context.remainHours = data.remainHours;
                 context.deadLine = data.deadLine;
+                context.lastOperaAccID = data.lastOperaAccID;
                 context.updateTime = data.updateTime;
-                _DbContext.SaveChanges();
+                count = _DbContext.SaveChanges();
+            }
+            if(count == 1){
+                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref nDic, context);
+                opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(nDic, oDic);
+                opLog.content += $"，原因:{offsetData.reason}"; //主管調整員工餘額
+                saveOperateLog(opLog);    //紀錄操作紀錄
             }
             return count;
         }

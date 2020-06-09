@@ -31,10 +31,21 @@ namespace practice_mvc02.Repositories
                             b=>b.employeeID==data.employeeID && b.ruleID==data.ruleID && 
                             b.deadLine == data.deadLine
                         );
+            var count = 0;
             if(query == null){
                 data.createTime = definePara.dtNow();
                 _DbContext.employeeannualleaves.Add(data);
-                _DbContext.SaveChanges();
+                count = _DbContext.SaveChanges();
+            }
+            if(count == 1){
+                var dic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    operateID=data.lastOperaAccID,  employeeID=data.employeeID,
+                    active="新增", category="特休", createTime=definePara.dtNow()
+                };
+                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref dic, data);
+                opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(dic);
+                saveOperateLog(opLog);
             }
         }
 
@@ -43,8 +54,17 @@ namespace practice_mvc02.Repositories
 
             var dayToHour = definePara.dayToHour();
             foreach(var tmp in query){
+                var oDic = new Dictionary<string,string>{};
+                var nDic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    employeeID=tmp.employeeID,
+                    active="更新", category="特休", createTime=definePara.dtNow()
+                };
+                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref oDic, tmp);
+
                 tmp.updateTime = definePara.dtNow();
                 if(diffSpecialDays != 0){
+                    
                     tmp.specialDays += diffSpecialDays;
                     tmp.remainHours += diffSpecialDays*dayToHour;
                     tmp.remainHours = tmp.remainHours+diffSpecialDays*dayToHour >=0? tmp.remainHours+diffSpecialDays*dayToHour :0;
@@ -54,6 +74,9 @@ namespace practice_mvc02.Repositories
                     tmp.deadLine = tmp.deadLine.AddMonths(diffBuffDays/30);
                     _DbContext.SaveChanges();
                 }
+                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref nDic, tmp);
+                opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(nDic, oDic);
+                saveOperateLog(opLog);    //紀錄操作紀錄
             }
         }
         
@@ -72,16 +95,40 @@ namespace practice_mvc02.Repositories
         public void DelSomeAnnualLeaveRecord(int[] targetID_Arr){
             var query = _DbContext.employeeannualleaves.Where(b=>targetID_Arr.Contains(b.ruleID));
             if(query.Count()>0){
-                _DbContext.employeeannualleaves.RemoveRange(query);
-                _DbContext.SaveChanges();
+                foreach(var tmp in query.ToList()){
+                    var dic = new Dictionary<string,string>{};
+                    var opLog = new OperateLog(){
+                        employeeID=tmp.employeeID,
+                        active="刪除", category="特休", createTime=definePara.dtNow()
+                    };
+                    toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref dic, tmp);
+
+                    _DbContext.employeeannualleaves.Remove(tmp);
+                    _DbContext.SaveChanges();
+
+                    opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(dic);
+                    saveOperateLog(opLog);    //紀錄操作紀錄
+                }  
             }
         }
 
         public void DelAnnualDaysByEmployeeID(int ID){
             var query = _DbContext.employeeannualleaves.Where(b=>b.employeeID == ID);
             if(query.Count()>0){
-                _DbContext.employeeannualleaves.RemoveRange(query);
-                _DbContext.SaveChanges();
+                foreach(var tmp in query.ToList()){
+                    var dic = new Dictionary<string,string>{};
+                    var opLog = new OperateLog(){
+                        employeeID=tmp.employeeID,
+                        active="刪除", category="特休", createTime=definePara.dtNow()
+                    };
+                    toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref dic, tmp);
+
+                    _DbContext.employeeannualleaves.Remove(tmp);
+                    _DbContext.SaveChanges();
+
+                    opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(dic);
+                    saveOperateLog(opLog);    //紀錄操作紀錄
+                }
             }
         }
 

@@ -151,6 +151,10 @@ function showAddPunchLogRow(employeeID, employeeDepartID){
     $('.btnActive').css('pointer-events', "none"); 
     var addPunchLogRow = $(".template").find("[name='addPunchLogRow']").clone();
     addPunchLogRow.find("td[name='dateTime']").text(myObj.qDateStr);
+    var dt = myObj.dateTimeFormat();
+    addPunchLogRow.find("input[name='newOnlineTime']").val(dt.hmText);
+    addPunchLogRow.find("input[name='newOfflineTime']").val(dt.hmText);
+
     addPunchLogRow.find("a.update_punchLog").remove();
     addPunchLogRow.find("a.create_punchLog").attr("onclick", `createPunchLog(this, ${employeeID}, ${employeeDepartID});`);
     addPunchLogRow.find("a.cancel_punchLog").attr("onclick", `cancelPunchLog(${employeeID});`);
