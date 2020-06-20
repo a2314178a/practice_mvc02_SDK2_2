@@ -171,11 +171,14 @@ namespace practice_mvc02.Repositories
         public void AddPunchLogWarnAndMessage(PunchCardLog log){
             var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == log.ID);
             if(context == null){
-                var query = (from a in _DbContext.departments 
-                        join b in _DbContext.punchcardlogs on a.ID equals b.departmentID
-                        join c in _DbContext.accounts on b.accountID equals c.ID
-                        where b.ID == log.ID
-                        select new{a.principalID, b.accountID, c.userName}).FirstOrDefault();
+                var query = (from a in _DbContext.accounts 
+                            join b in _DbContext.punchcardlogs on a.ID equals b.accountID
+                            join c in _DbContext.departments on b.departmentID equals c.ID into tmp
+                            from d in tmp.DefaultIfEmpty()
+                            where b.ID == log.ID
+                            select new{a.userName, b.accountID, 
+                            principalID=(d==null? 0:d.principalID)
+                            }).FirstOrDefault();
 
                 var warnLog = new PunchLogWarn();
                 warnLog.accountID = log.accountID;
@@ -209,25 +212,43 @@ namespace practice_mvc02.Repositories
             return query;
         }
 
-        public List<Account> GetNeedPunchAcc(string departClass, int type){
+        public List<Account> GetNeedPunchAcc(string departClass, int type){ //type 1:休假 2:上班
             List<Account> query = new List<Account>(){};
             string filter = departClass == "全體"? "": departClass;
 
-            if(type == 2){  //上班
-                query = (from a in _DbContext.accounts
-                         join b in _DbContext.departments on a.departmentID equals b.ID
+            var joinTB = from a in _DbContext.accounts
+                         join b in _DbContext.departments on a.departmentID equals b.ID into tmp
+                         from bb in tmp.DefaultIfEmpty()
                          join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                         where (b.department.Contains(filter) || c.name.Contains(filter))
+                         select new {em=a, 
+                            dp=(bb==null? new Department(){department="未指派"}:bb), wtc=c
+                         };
+                        
+            if(type==2){
+                query = joinTB.Where(b=>b.dp.department.Contains(filter) || b.wtc.name.Contains(filter))
+                            .Select(b=>b.em).ToList();
+            }else if(type==1){
+                query = joinTB.Where(b=>b.dp.department != filter && b.wtc.name != filter)
+                            .Select(b=>b.em).ToList();
+            }
+            
+            /*if(type == 2){  //上班
+                query = (from a in _DbContext.accounts
+                         join b in _DbContext.departments on a.departmentID equals b.ID into tmp
+                         from bb in tmp.DefaultIfEmpty()
+                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                         where (bb.department.Contains(filter) || c.name.Contains(filter))
                          select a
                          ).ToList();
             }else if(type == 1){    
                 query = (from a in _DbContext.accounts
-                         join b in _DbContext.departments on a.departmentID equals b.ID
+                         join b in _DbContext.departments on a.departmentID equals b.ID into tmp
+                         from bb in tmp.DefaultIfEmpty()
                          join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                         where (b.department != filter && c.name != filter)
+                         where (bb.department != filter && c.name != filter)
                          select a
                          ).ToList();
-            }
+            }*/
             return query.ToList();
         }
 

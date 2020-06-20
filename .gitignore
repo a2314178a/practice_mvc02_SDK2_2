@@ -1,2 +1,7 @@
 
 bin/*
+bin
+obj/Debug/*
+obj/Debug
+obj/Release/*
+obj/Release

@@ -52,7 +52,7 @@
 											</select>
 										</td>
 										<td class="detailTitleTd">*身分證字號:</td>
-										<td class="detailMainTd"><input type="text" name="humanID"></td>
+										<td class="detailMainTd"><input type="text" group="detail" name="humanID"></td>
 									</tr>
 									<tr>
 										<td class="detailTitleTd">*生日:</td>
@@ -61,17 +61,17 @@
 										<td class="detailMainTd"><input type="date" group="detail" name="startWorkDate" value=""></td>
 									</tr>
 									<tr>
-										<td class="detailTitleTd">*部門:</td>
+										<td class="detailTitleTd">部門:</td>
 										<td class="detailMainTd">
 											<input type="hidden" id="ruleVal" value="@ViewBag.ruleVal">
 											<select group="detail" name="department">
-												<option value="" >請選擇</option>
+												<option value="未指派" >未指派</option>
 											</select>
 										</td>
-										<td class="detailTitleTd">*職位:</td>
+										<td class="detailTitleTd">職位:</td>
 										<td class="detailMainTd">
 											<select group="detail" name="position">
-												<option value="" >請選擇</option>
+												<option value="0" >未指派</option>
 											</select>
 										</td>
 									</tr>

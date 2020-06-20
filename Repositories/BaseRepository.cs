@@ -30,12 +30,15 @@ namespace practice_mvc02.Repositories
 
         public object GetAccountDetail(int employeeID){
             var detail = (from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID
+                        join b in _DbContext.departments on a.departmentID equals b.ID into deTmp
+                        from bb in deTmp.DefaultIfEmpty()
                         join c in _DbContext.employeedetails on a.ID equals c.accountID 
                         where a.ID == employeeID
                         select new{
                             a.account, a.userName, a.timeRuleID, a.groupID, a.accLV,
-                            departmentID=b.ID, b.department, b.position, 
+                            departmentID=(bb==null? 0:bb.ID), 
+                            department=(bb==null? "未指派":bb.department), 
+                            position=(bb==null? null:bb.position), 
                             c.sex, c.birthday, c.humanID, c.myAgentID, c.agentEnable, c.startWorkDate,
                         }).FirstOrDefault();
             return detail;

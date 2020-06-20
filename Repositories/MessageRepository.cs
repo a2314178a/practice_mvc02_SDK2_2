@@ -21,7 +21,8 @@ namespace practice_mvc02.Repositories
                         where a.receiveID == loginID && a.read <= readStatus && a.rDelete == false
                         orderby a.createTime descending
                         select new{
-                            a.ID, a.messageID, a.createTime, b.title, b.content, d.userName,
+                            a.ID, a.messageID, a.createTime, b.title, b.content, 
+                            userName=(d==null? null:d.userName),
                         };
             return query.ToList();
         }
@@ -72,7 +73,8 @@ namespace practice_mvc02.Repositories
                         from c in tmp.DefaultIfEmpty()
                         orderby a.department
                         select new {
-                            a.department, c.userName, accID=c.ID
+                            a.department, 
+                            userName=(c==null? null:c.userName), accID=(c==null? 0:c.ID)
                         };
             return query.ToList();
         }

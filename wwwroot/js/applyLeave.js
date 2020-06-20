@@ -151,6 +151,10 @@ function addUpApplyLeave(thisBtn, applyingID=0){
     };
     
     var successFn = function(res){
+        if(res == 44){
+            alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!");
+            return;
+        }
         cancelApplyLeave();
     }
     myObj.cudAjaxFn("/ApplyLeave/addUpApplyLeave", data, successFn);

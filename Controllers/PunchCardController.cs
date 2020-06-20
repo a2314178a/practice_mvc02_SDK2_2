@@ -132,7 +132,7 @@ namespace practice_mvc02.Controllers
 
 
         public int forceAddPunchCardLog(PunchCardLog newPunchLog){
-            if( newPunchLog.accountID == 0 || newPunchLog.departmentID == 0 || 
+            if( newPunchLog.accountID == 0 ||  
                (newPunchLog.onlineTime.Year == 1 && newPunchLog.offlineTime.Year == 1) ){
                   return 2; //此打卡紀錄不合法
             }

@@ -25,13 +25,15 @@ namespace practice_mvc02.Repositories
             string departName = fDepart;
             if(crossDepart){
                 var query = from a in _DbContext.accounts
-                            join b in _DbContext.departments on a.departmentID equals b.ID
-                            where a.userName.Contains(fName) && b.department.Contains(fDepart) && 
-                                  b.position.Contains(fPosition) && a.accLV <= loginAccLV 
-                            orderby b.department
+                            join b in _DbContext.departments on a.departmentID equals b.ID into tmp
+                            from c in tmp.DefaultIfEmpty()
+                            where a.userName.Contains(fName) && c.department.Contains(fDepart) && 
+                                  c.position.Contains(fPosition) && a.accLV <= loginAccLV 
+                            orderby c.department
                             select new {
                                 a.ID, a.account, a.userName,
-                                b.department, b.position,  
+                                department=(c==null? null:c.department), 
+                                position=(c==null? null:c.position),  
                             };
                 result = query.ToList();
             }else{
@@ -105,8 +107,7 @@ namespace practice_mvc02.Repositories
                     opLog.content = toNameFn.AddUpEmployee_covertToText(dic);
                     saveOperateLog(opLog);    //紀錄操作紀錄
                 }
-                var depart = _DbContext.departments.FirstOrDefault(b=>b.ID == newEmployee.departmentID);
-                saveEmployeePrincipals(newEmployee, depart, thisManager);   //新增所屬主管
+                saveEmployeePrincipals(newEmployee, thisManager);   //新增所屬主管
             }
             return count;
         }
@@ -153,7 +154,10 @@ namespace practice_mvc02.Repositories
             //employee base data
             if(context != null){
                 toNameFn.AddUpEmployee_covertToDic(ref oDic, context, detail);
-
+                var departIsChange = context.departmentID == updateData.departmentID? false :  true;
+                if(departIsChange){
+                    delPrincipal(ref thisManager, context.departmentID);                    
+                }
                 if(updateData.password != null){
                     context.password = updateData.password;
                 }
@@ -165,14 +169,14 @@ namespace practice_mvc02.Repositories
                 context.lastOperaAccID = updateData.lastOperaAccID;
                 context.updateTime = updateData.updateTime;
                 count = _DbContext.SaveChanges();       //更新帳號
-                if(count ==1 && thisManager[0]==-2){    //thisManager[0]=>-1:負責人無更動 -2:有更動
+
+                if(count ==1 && (thisManager[0]==-2 || departIsChange)){    //thisManager[0]=>-1:負責人無更動 -2:有更動
                     var oldQuery = _DbContext.employeeprincipals.Where(b=>b.employeeID==updateData.ID);
                     toNameFn.GetEmployeePrincipalName(oldQuery.ToList(), ref oDic);
                     _DbContext.RemoveRange(oldQuery);      //刪除舊所屬主管
                     _DbContext.SaveChanges();
 
-                    var depart = _DbContext.departments.FirstOrDefault(b=>b.ID==updateData.departmentID);
-                    saveEmployeePrincipals(updateData, depart, thisManager);       //新增所屬主管
+                    saveEmployeePrincipals(updateData, thisManager);       //新增所屬主管
                     var newQuery = _DbContext.employeeprincipals.Where(b=>b.employeeID==updateData.ID);
                     toNameFn.GetEmployeePrincipalName(newQuery.ToList(), ref nDic);
                 }
@@ -205,27 +209,43 @@ namespace practice_mvc02.Repositories
             return count;
         }
 
-        public void saveEmployeePrincipals(Account account, Department depart, int[] thisManager){
-            var departAgent = (from a in _DbContext.employeedetails
+        public void delPrincipal(ref int[] thisManager, int departID){
+            var depart = _DbContext.departments.FirstOrDefault(b=>b.ID==departID);
+            if(depart != null){
+                thisManager = thisManager.Where(val => val != depart.principalID).ToArray();
+            }                              
+        }
+
+        public void saveEmployeePrincipals(Account account, int[] thisManager){
+            var depart = _DbContext.departments.FirstOrDefault(b=>b.ID==account.departmentID);
+            var departIsNull = depart == null? true : false;
+            depart = depart == null? new Department(){} : depart;
+            if(!departIsNull){
+                var departAgent = (from a in _DbContext.employeedetails
                             join b in _DbContext.departments on a.accountID equals b.principalID
                             where b.ID == depart.ID && a.agentEnable == true
                             select a.myAgentID).FirstOrDefault();
 
-            var downWithUp = new EmployeePrincipal(){
-                employeeID = account.ID,    principalID = depart.principalID,
-                principalAgentID = departAgent,   
-                lastOperaAccID = account.lastOperaAccID,    createTime = definePara.dtNow()
-            };
-            _DbContext.employeeprincipals.Add(downWithUp);  //所屬部門主管一定會新增
-            _DbContext.SaveChanges();
+                var downWithUp = new EmployeePrincipal(){
+                    employeeID = account.ID,    principalID = depart.principalID,
+                    principalAgentID = departAgent,   
+                    lastOperaAccID = account.lastOperaAccID,  createTime = definePara.dtNow()
+                };
+                if(depart.principalID >0){
+                    _DbContext.employeeprincipals.Add(downWithUp);  //所屬部門主管一定會新增
+                    _DbContext.SaveChanges();
+                }
+            }
             foreach(var id in thisManager){
                 if(id >0 && id != depart.principalID){
                     var thisAgent = _DbContext.employeedetails.Where(b=>b.accountID == id && b.agentEnable == true)
                                                             .Select(b=>b.myAgentID).FirstOrDefault();
-                    downWithUp.ID = 0;
-                    downWithUp.principalID = id;
-                    downWithUp.principalAgentID = thisAgent;
-                    _DbContext.employeeprincipals.Add(downWithUp);
+                    var downWithUp02 = new EmployeePrincipal(){
+                        employeeID = account.ID,    principalID = id,
+                        principalAgentID = thisAgent,   
+                        lastOperaAccID = account.lastOperaAccID,    createTime = definePara.dtNow()
+                    };
+                    _DbContext.employeeprincipals.Add(downWithUp02);
                     _DbContext.SaveChanges();
                 }
             }
@@ -246,7 +266,7 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
         
-        public object GetThisAllManager(int employeeID){
+        public dynamic GetThisAllManager(int employeeID){
             var query = from a in _DbContext.employeeprincipals
                         join b in _DbContext.accounts on a.principalID equals b.ID
                         where a.employeeID == employeeID
@@ -298,14 +318,38 @@ namespace practice_mvc02.Repositories
                 category="部門職位", createTime=definePara.dtNow()
             };
             var context = _DbContext.departments.FirstOrDefault(b=>b.ID == id);
-            if(context != null){
+            var principalID = 0;
+            if(context != null)
+            {
                 toNameFn.AddUpDepartPosition_covertToDic(ref dic, context);
 
+                principalID = context.principalID;
                 _DbContext.departments.Remove(context);
                 count = _DbContext.SaveChanges();
-                if(count == 1){
+                if(count == 1)
+                {
                     opLog.content = toNameFn.AddUpDepartPosition_covertToText(dic);
                     saveOperateLog(opLog);    //紀錄操作紀錄
+
+                    var emQuery = _DbContext.accounts.Where(b=>b.departmentID == id).ToList();
+                    if(emQuery.Count >0)
+                    {
+                        foreach(var em in emQuery){
+                            var emDepartPrincipal = _DbContext.employeeprincipals
+                                                .Where(b=>b.employeeID==em.ID && b.principalID==principalID);
+                            _DbContext.RemoveRange(emDepartPrincipal);      //刪除舊所屬主管
+
+                            em.departmentID = 0;
+                            if(_DbContext.SaveChanges() == 1){
+                                var opLog02 = new OperateLog(){
+                                    operateID=0, employeeID=em.ID, active="更新", 
+                                    category="員工資料", createTime=definePara.dtNow()
+                                };
+                                opLog02.content = $"部門職位：{dic["depart"]}{dic["position"]}=>未指派";
+                                saveOperateLog(opLog02);    //紀錄操作紀錄
+                            }
+                        }
+                    }
                 }
             }
             return count;
@@ -321,8 +365,11 @@ namespace practice_mvc02.Repositories
             int count = 0;
             try{
                 var context = _DbContext.departments.FirstOrDefault(b=>b.ID == updateDate.ID);
-                if(context != null){
+                if(context != null)
+                {
                     toNameFn.AddUpDepartPosition_covertToDic(ref oDic, context);
+                    var principalIsChange = context.principalID == updateDate.principalID? false : true;
+                    var oldPrincipalID = context.principalID;
 
                     context.department = updateDate.department;
                     context.position = updateDate.position;
@@ -330,10 +377,39 @@ namespace practice_mvc02.Repositories
                     context.lastOperaAccID = updateDate.lastOperaAccID;
                     context.updateTime = updateDate.updateTime;
                     count = _DbContext.SaveChanges();
-                    if(count == 1){
+                    if(count == 1)
+                    {
                         toNameFn.AddUpDepartPosition_covertToDic(ref nDic, context);
                         opLog.content = toNameFn.AddUpDepartPosition_covertToText(nDic, oDic);
                         saveOperateLog(opLog);    //紀錄操作紀錄
+
+                        if(principalIsChange)   //更動該部門底下員工的負責人
+                        {
+                            var emQuery = _DbContext.accounts.Where(b=>b.departmentID==context.ID).ToList();  //取得底下員工
+                            if(emQuery.Count >0){
+                                foreach(var em in emQuery){
+                                    oDic.Clear(); nDic.Clear();
+                                    var emPrincipal = _DbContext.employeeprincipals.Where(b=>b.employeeID==em.ID);
+                                    var thisManager = emPrincipal.Where(b=>b.principalID != oldPrincipalID)
+                                                                    .Select(b=>b.principalID).ToArray();
+
+                                    toNameFn.GetEmployeePrincipalName(emPrincipal.ToList(), ref oDic);
+
+                                    _DbContext.RemoveRange(emPrincipal);      //刪除舊所屬主管
+                                    _DbContext.SaveChanges();
+                                    saveEmployeePrincipals(em, thisManager);
+
+                                    var newEmPri = _DbContext.employeeprincipals.Where(b=>b.employeeID==em.ID);
+                                    toNameFn.GetEmployeePrincipalName(newEmPri.ToList(), ref nDic);
+                                    var opLog02 = new OperateLog(){
+                                        operateID=0, employeeID=em.ID, active="更新", 
+                                        category="員工資料", createTime=definePara.dtNow()
+                                    };
+                                    opLog02.content = $"負責人:{oDic["principal"]} => {nDic["principal"]}";
+                                    saveOperateLog(opLog02);    //紀錄操作紀錄
+                                }
+                            }
+                        }
                     }
                 }
             }catch(Exception e){
@@ -363,7 +439,8 @@ namespace practice_mvc02.Repositories
                         from c in tmp.DefaultIfEmpty()
                         orderby a.department
                         select new {
-                            a.ID, a.department, a.position, accID=a.principalID, c.userName, 
+                            a.ID, a.department, a.position, accID=a.principalID, 
+                            userName=(c==null? null:c.userName), 
                         };
             result = query.ToList();
             return result;

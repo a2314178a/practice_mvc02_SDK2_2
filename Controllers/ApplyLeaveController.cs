@@ -58,6 +58,11 @@ namespace practice_mvc02.Controllers
         }
 
         public int addUpApplyLeave(LeaveOfficeApply data){
+            var hasPrincipal = Repository.ChkHasPrincipal((int)loginID);
+            if(!hasPrincipal){
+                return 44;
+            }
+
             data.endTime = getLeaveEndTime(data);
             data.accountID = data.lastOperaAccID = (int)loginID;
 
@@ -87,7 +92,7 @@ namespace practice_mvc02.Controllers
             return Repository.DelApplyLeave(applyingID, (int)loginID);
         }
 
-        public DateTime getLeaveEndTime(LeaveOfficeApply data){
+        public DateTime getLeaveEndTime(LeaveOfficeApply data){ //計算請假結束時間
 
             var eTime = data.startTime;
             var workTime = RepositoryPunch.GetThisWorkTime((int)loginID);

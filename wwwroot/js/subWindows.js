@@ -6,9 +6,14 @@ $(document).ready(function() {
     init();
 
     $("select[name='department']").on("change", function(){
-        $("select[name='position']").empty().append(new Option("請選擇", ""));
-        var departSel = $("select[name='department']").val();
-        if(departSel == ""){  
+        if($(this).val()=="未指派"){
+            $("select[name='position']").empty().append(new Option("未指派", "0"));
+        }else{
+            $("select[name='position']").empty().append(new Option("請選擇", ""));
+        }
+        
+        var departSel = $(this).val();
+        if(departSel == "未指派"){  
             return;
         }
         setAllPosition(departSel);
@@ -85,7 +90,12 @@ function setPrincipal(res){
 }
 
 function setAllPosition(departSel){
-    $("select[name='position']").empty().append(new Option("請選擇", ""));
+    if(departSel=="未指派"){
+        $("select[name='position']").empty().append(new Option("未指派", 0));
+        return;
+    }else{
+        $("select[name='position']").empty().append(new Option("請選擇", ""));
+    }
     var positionSelList = $("select[name='position']");
     myObj.departPosition.forEach(function(value){
         if(value.department == departSel)

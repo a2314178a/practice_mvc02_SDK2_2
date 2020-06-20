@@ -51,6 +51,15 @@ namespace practice_mvc02.Repositories
 
        #region  LeaveOffice
 
+       public bool ChkHasPrincipal(int emID){
+            var query = (from a in _DbContext.employeeprincipals
+                        join b in _DbContext.accounts on a.principalID equals b.ID
+                        where a.employeeID == emID
+                        select b).FirstOrDefault();
+                        
+           return query==null? false : true;
+       }
+
         public object GetMyApplyLeave(int loginID, int page, DateTime sDate, DateTime eDate){
             var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
             var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過
@@ -97,7 +106,7 @@ namespace practice_mvc02.Repositories
                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID into tmp
                         from d in tmp.DefaultIfEmpty()
                         where a.ID == loginID
-                        select new{b.department, d.name}).FirstOrDefault();
+                        select new{b.department, name=(d==null? null:d.name)}).FirstOrDefault();
             return query != null? ($"全體,{query.department},{query.name}") : "全體";
         }
 

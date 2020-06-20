@@ -25,13 +25,17 @@ namespace practice_mvc02.Models
 
         public void AddUpEmployee_covertToDic(ref Dictionary<string, string> Dic, Account baseData, EmployeeDetail detailData){
             var query = (from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID
+                        join b in _DbContext.departments on a.departmentID equals b.ID into deTmp
+                        from bb in deTmp.DefaultIfEmpty()
                         join c in _DbContext.grouprules on a.groupID equals c.ID
                         join d in _DbContext.worktimerules on a.timeRuleID equals d.ID into tmp
                         from e in tmp.DefaultIfEmpty()
                         where a.ID == baseData.ID
                         select new {
-                            b.department, b.position, c.groupName, e.name
+                            department=(bb==null? "未指派" : bb.department),
+                            position=(bb==null? " " : bb.position),
+                            c.groupName, 
+                            name=(e==null? "不受限" : e.name) 
                         }).FirstOrDefault();     
             
             Dic.Add("account", baseData.account);
@@ -41,7 +45,7 @@ namespace practice_mvc02.Models
             Dic.Add("departName", query.department);
             Dic.Add("position", query.position);
             Dic.Add("groupName", query.groupName);
-            Dic.Add("timeRuleName", query.name==null? "不受限": query.name);
+            Dic.Add("timeRuleName", query.name);
             Dic.Add("sex", detailData.sex==0? "女": detailData.sex==1? "男":"其他");
             Dic.Add("birthday", detailData.birthday.ToString("yyyy-MM-dd"));
             Dic.Add("humanID", detailData.humanID);

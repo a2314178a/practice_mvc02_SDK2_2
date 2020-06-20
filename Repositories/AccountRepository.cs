@@ -18,11 +18,12 @@ namespace practice_mvc02.Repositories
             //var query = _DbContext.accounts.FirstOrDefault(b=>b.account == account && b.password == password);  
             var baseQuery = (from a in _DbContext.accounts
                        join b in _DbContext.grouprules on a.groupID equals b.ID
-                       join c in _DbContext.departments on a.departmentID equals c.ID
+                       join c in _DbContext.departments on a.departmentID equals c.ID into tmp
+                       from cc in tmp.DefaultIfEmpty()
                        where a.account == account && a.password == password
                        select new{
                            a.ID, a.userName, a.departmentID, a.accLV, a.groupID,
-                           b.ruleParameter, c.principalID
+                           b.ruleParameter, principalID=(cc==null? 0 : cc.principalID)
                        }).FirstOrDefault();
 
             if(baseQuery == null){
