@@ -61,7 +61,7 @@ namespace practice_mvc02.Controllers
         public IActionResult getEmployeeLog(int targetID, string page){
             
             object accDetail = Repository.GetAccountDetail(targetID);
-            var employeeAccLV = accDetail.GetType().GetProperty("accLV").GetValue(accDetail);
+            //var employeeAccLV = accDetail.GetType().GetProperty("accLV").GetValue(accDetail);
             var employeeName = accDetail.GetType().GetProperty("userName").GetValue(accDetail);
             var employeeDepartID = accDetail.GetType().GetProperty("departmentID").GetValue(accDetail);
             ViewData["loginName"] = loginName;

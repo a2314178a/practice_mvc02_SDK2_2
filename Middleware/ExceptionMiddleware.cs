@@ -28,7 +28,7 @@ namespace practice_mvc02.Middleware
             {
                 string docPath = Environment.CurrentDirectory;
                 using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "errorLog.txt"), true)){
-                   await outputFile.WriteLineAsync(definePara.dtNow() + "  " + ex.ToString());
+                   await outputFile.WriteLineAsync(definePara.dtNow() + "  " + ex.ToString() + "\r\n");
                 }
                 context.Response.StatusCode = 500;
                 //context.Response.Redirect("/Home/Error");

@@ -693,15 +693,16 @@ namespace practice_mvc02.Models
         }
 
         private string getPunchLogStatusToText(int status){ //打卡狀態轉文字
-            var text = "";
+            var text = " "; //避免下面的text[text.Length-1]出錯
             text = (status & psCode.lateIn)>0 ? text+="遲到/" : text;
             text = (status & psCode.earlyOut)>0 ? text+="早退/" : text;
             text = (status & psCode.overtime)>0 ? text+="加班/" : text;
             text = (status & psCode.hadLost)>0 ? text+="缺卡/" : text;
             text = (status & psCode.takeLeave)>0 ? text+="請假/" : text;
             text = (status & psCode.noWork)>0 ? text+="曠職/" : text;
-            text = (status & psCode.normal)>0 && text=="" ? text="正常" : text;
+            text = (status & psCode.normal)>0 && text==" " ? text="正常" : text;
             text = text[text.Length-1]=='/'? text.Substring(0, text.Length-1) : text;
+            text = text.Trim();
             return text;
         }
   

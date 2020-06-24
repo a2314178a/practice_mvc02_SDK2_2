@@ -85,6 +85,7 @@ function getDepartment(){
         res.forEach(function(value){
             $("#selDepart").append(new Option(value, value));
         });
+        $("#selDepart").append(new Option("未指派", "未指派"));
     };
     myObj.rAjaxFn("get", "/ExportXlsx/getDepartment", null, successFn);
 }

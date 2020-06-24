@@ -32,14 +32,20 @@ namespace practice_mvc02.Repositories
             var detail = (from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID into deTmp
                         from bb in deTmp.DefaultIfEmpty()
-                        join c in _DbContext.employeedetails on a.ID equals c.accountID 
+                        join c in _DbContext.employeedetails on a.ID equals c.accountID into tailTmp
+                        from cc in tailTmp.DefaultIfEmpty()
                         where a.ID == employeeID
                         select new{
                             a.account, a.userName, a.timeRuleID, a.groupID, a.accLV,
                             departmentID=(bb==null? 0:bb.ID), 
                             department=(bb==null? "未指派":bb.department), 
                             position=(bb==null? null:bb.position), 
-                            c.sex, c.birthday, c.humanID, c.myAgentID, c.agentEnable, c.startWorkDate,
+                            sex=(cc==null? 0:cc.sex),
+                            birthday=(cc==null? definePara.dtNow().ToString("yyyy-MM-dd"):cc.birthday.ToString("yyyy-MM-dd")),
+                            humanID=(cc==null? null:cc.humanID),
+                            myAgentID=(cc==null? 0:cc.myAgentID),
+                            agentEnable=(cc==null? false:cc.agentEnable),
+                            startWorkDate=(cc==null? definePara.dtNow().ToString("yyyy-MM-dd"):cc.startWorkDate.ToString("yyyy-MM-dd")),
                         }).FirstOrDefault();
             return detail;
         }
@@ -128,10 +134,12 @@ namespace practice_mvc02.Repositories
                 agCount = _DbContext.SaveChanges();
                 setPrincipalAgent(loginID, context2.myAgentID, context2.agentEnable);
             }
-            if(psCount ==1 || agCount == 1){        
-                toNameFn.AddUpEmployeeDetail_convertToDic(ref nDic, context2);
+            if(psCount ==1 || agCount == 1){    
+                if(agCount == 1){
+                    toNameFn.AddUpEmployeeDetail_convertToDic(ref nDic, context2);
+                }
                 opLog.content += psCount==0?"" : $"修改了密碼，";
-                opLog.content += toNameFn.AddUpEmployeeDetail_convertTotext(nDic, oDic);
+                opLog.content += (agCount == 1? toNameFn.AddUpEmployeeDetail_convertTotext(nDic, oDic) : "");
                 saveOperateLog(opLog);   
             }
             return (psCount ==1 || agCount == 1)? 1 : 0;

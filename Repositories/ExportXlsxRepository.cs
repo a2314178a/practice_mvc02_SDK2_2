@@ -26,27 +26,51 @@ namespace practice_mvc02.Repositories
         }
         
         public List<exportXlsxData> GetNormalDetail_Month(exportPunchLogXlsxPara qPara){
-            var depart = qPara.departName == "所有部門"? "" : qPara.departName;
-            var query = from a in _DbContext.accounts
+            var query = new List<exportXlsxData>();
+            if(qPara.departName == "未指派"){
+                query = (from a in _DbContext.accounts
+                        join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
+                        where a.departmentID == 0 && a.accLV != definePara.getDIMALV()
+                        select new exportXlsxData{
+                            accID=a.ID, name=a.userName, workClass=b.name, 
+                            department="未指派", position=""
+                        }).ToList();
+            }
+            else if(qPara.departName != "所有部門"){
+                query = (from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID
                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                        where b.department.Contains(depart)
+                        where b.department.Contains(qPara.departName)
                         select new exportXlsxData{
                             accID=a.ID, name=a.userName, workClass=c.name, 
                             department=b.department, position=b.position
-                        };
+                        }).ToList();
+            }
+            else{
+                query = (from a in _DbContext.accounts
+                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                        from bb in noDepart.DefaultIfEmpty()
+                        join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                        select new exportXlsxData{
+                            accID=a.ID, name=a.userName, workClass=c.name, 
+                            department=(bb==null? "未指派":bb.department),
+                            position=(bb==null? "":bb.position)
+                        }).ToList();
+            }
             return query.ToList();
         }
 
         public exportXlsxData GetNormalDetail_Day(exportPunchLogXlsxPara qPara){
             var query = from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID
+                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                        from bb in noDepart.DefaultIfEmpty()
                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
                         where a.ID == qPara.accID
                         select new exportXlsxData{
                             accID=a.ID, name=a.userName, workClass=c.name,
                             startTime=c.startTime, endTime=c.endTime, 
-                            department=b.department, position=b.position
+                            department=(bb==null? "未指派":bb.department),
+                            position=(bb==null? "":bb.position)
                         };
             return query.FirstOrDefault();
         }
@@ -83,6 +107,11 @@ namespace practice_mvc02.Repositories
         }
 
         public object GetDepartmentEmployee(string depart){
+            if(depart == "未指派"){
+                var noDepart = _DbContext.accounts.Where(b=>b.departmentID == 0 && b.accLV != definePara.getDIMALV())
+                                                    .Select(b=> new{b.ID, b.userName}).ToList();
+                return noDepart;
+            }
             var query = from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID
                         where b.department == depart

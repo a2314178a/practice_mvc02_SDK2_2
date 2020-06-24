@@ -216,13 +216,13 @@ namespace practice_mvc02.Repositories
             List<Account> query = new List<Account>(){};
             string filter = departClass == "全體"? "": departClass;
 
-            var joinTB = from a in _DbContext.accounts
+            var joinTB = (from a in _DbContext.accounts
                          join b in _DbContext.departments on a.departmentID equals b.ID into tmp
                          from bb in tmp.DefaultIfEmpty()
                          join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
                          select new {em=a, 
-                            dp=(bb==null? new Department(){department="未指派"}:bb), wtc=c
-                         };
+                            dp=(bb==null? new Department{department="未指派"}:bb), wtc=c
+                         }).ToList();
                         
             if(type==2){
                 query = joinTB.Where(b=>b.dp.department.Contains(filter) || b.wtc.name.Contains(filter))
@@ -249,7 +249,7 @@ namespace practice_mvc02.Repositories
                          select a
                          ).ToList();
             }*/
-            return query.ToList();
+            return query;
         }
 
         public PunchCardLog GetWorkDatePunchLog(int accID, DateTime targetDate){
@@ -282,7 +282,9 @@ namespace practice_mvc02.Repositories
 
         public List<PunchCardLog> GetAllPunchLogWithWarn(int day){
             var dtRange = definePara.dtNow().Date.AddDays(-1*day);
-            var query = _DbContext.punchcardlogs.Where(b=> b.punchStatus != 0x01 && b.logDate >= dtRange);                                           
+            var query = _DbContext.punchcardlogs.Where(b=> b.logDate >= dtRange &&
+                                (b.punchStatus != 0x01 || (b.punchStatus == 0x01 && b.offlineTime.Year ==1)));
+                                                           //上班打卡正常 但 下班沒打卡                      
             return query.ToList();
         }
 
