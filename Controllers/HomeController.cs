@@ -29,6 +29,7 @@ namespace practice_mvc02.Controllers
 
         public IActionResult Index()
         {           
+            initTable();
             if(loginFn.isLoginInfo(loginID, loginGroupID)){
                 return selectPage();
             }else{
@@ -107,6 +108,10 @@ namespace practice_mvc02.Controllers
 
         public dynamic getObjectValue(string key, object obj){
             return obj.GetType().GetProperty(key).GetValue(obj);
+        }
+
+        public void initTable(){
+            Repository.initLeaveNames();
         }
         
 

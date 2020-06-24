@@ -77,7 +77,8 @@ namespace practice_mvc02.Repositories
         }
 
         public object GetLeaveOption(){
-            var query = _DbContext.leavenames.Select(b=>new{b.ID, b.leaveName, b.timeUnit});
+            var query = _DbContext.leavenames.Where(b=>b.enable==true)
+                                            .Select(b=>new{b.ID, b.leaveName, b.timeUnit});
             return query.ToList();
         }
 

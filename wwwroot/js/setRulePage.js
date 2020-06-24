@@ -419,6 +419,9 @@ function refreshLeaveRuleList(res){
     $("#leaveList").empty();
     var leaveName = ["公差", "特休", "事假", "病假", "公假", "調休", "喪假", "婚假", "產假", "陪產假", "其他"];
     res.forEach(function(value){
+        if(!value.enable){
+            return;
+        }
         var row = $(".template").find("[name='leaveRow']").clone();
         row.find("[name='name']").text(value.leaveName);
         leaveName = leaveName.filter(function(val, key){return val != value.leaveName});

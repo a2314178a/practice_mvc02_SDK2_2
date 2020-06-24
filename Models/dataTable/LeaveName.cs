@@ -10,6 +10,7 @@ namespace practice_mvc02.Models.dataTable
         public string leaveName {get; set;}
         public int timeUnit {get; set;}
         public int lastOperaAccID {get; set;}
+        public bool enable {get; set;}
         public DateTime createTime {get; set;}
         public DateTime updateTime {get; set;}
     }

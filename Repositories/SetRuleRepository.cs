@@ -296,17 +296,18 @@ namespace practice_mvc02.Repositories
 
         public object GetAllLeaveRule(){
             var query = _DbContext.leavenames.Select(b=>new{
-                b.ID, b.leaveName, b.timeUnit
+                b.ID, b.leaveName, b.timeUnit, b.enable
             });
             return query.ToList();
         }
 
         public int AddLeave(LeaveName data){
             int count = 0;
-            var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName==data.leaveName);
-            if(query == null){
+            var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName==data.leaveName && b.enable == false);
+            if(query != null){
                 try{
-                    _DbContext.leavenames.Add(data);
+                    query.enable = true;
+                    query.timeUnit = data.timeUnit;
                     count = _DbContext.SaveChanges();
                 }catch(Exception e){
                     count = ((MySqlException)e.InnerException).Number;
@@ -337,8 +338,7 @@ namespace practice_mvc02.Repositories
             var context = _DbContext.leavenames.FirstOrDefault(b=>b.ID == leaveID);
             if(context != null){
                 toNameFn.AddUpLeave_convertToDic(ref dic, context);
-
-                _DbContext.leavenames.Remove(context);
+                context.enable = false;
                 count = _DbContext.SaveChanges();
             }
             if(count == 1){
