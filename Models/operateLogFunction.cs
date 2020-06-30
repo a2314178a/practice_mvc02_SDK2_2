@@ -36,16 +36,19 @@ namespace practice_mvc02.Models
                             position=(bb==null? " " : bb.position),
                             c.groupName, 
                             name=(e==null? "不受限" : e.name) 
-                        }).FirstOrDefault();     
-            
+                        }).FirstOrDefault();
+            if(detailData == null){
+                detailData = new EmployeeDetail();
+            }
+
             Dic.Add("account", baseData.account);
             Dic.Add("password", baseData.password);
             Dic.Add("userName", baseData.userName);
             Dic.Add("accLV", baseData.accLV.ToString());
-            Dic.Add("departName", query.department);
-            Dic.Add("position", query.position);
-            Dic.Add("groupName", query.groupName);
-            Dic.Add("timeRuleName", query.name);
+            Dic.Add("departName", query==null? "" : query.department);
+            Dic.Add("position", query==null? "" : query.position);
+            Dic.Add("groupName", query==null? "" : query.groupName);
+            Dic.Add("timeRuleName", query==null? "" : query.name);
             Dic.Add("sex", detailData.sex==0? "女": detailData.sex==1? "男":"其他");
             Dic.Add("birthday", detailData.birthday.ToString("yyyy-MM-dd"));
             Dic.Add("humanID", detailData.humanID);
@@ -98,6 +101,9 @@ namespace practice_mvc02.Models
         }
         
         public void AddUpDepartPosition_covertToDic(ref Dictionary<string, string> Dic, Department newData){
+            if(newData == null){
+                newData = new Department();
+            }
             Dic.Add("depart", newData.department);
             Dic.Add("position", newData.position);
             Dic.Add("principalID", newData.principalID.ToString()); //記ID 因為姓名有可能一樣
@@ -119,6 +125,9 @@ namespace practice_mvc02.Models
         }
  
         public void IsAgreeApplyLeave_convertToDic(ref Dictionary<string, string> Dic, LeaveOfficeApply leave){
+            if(leave == null){
+                leave = new LeaveOfficeApply();
+            }
             Dic.Add("applyStatus", leave.applyStatus==0? "待審核" : leave.applyStatus==1? "通過" : "未通過");
             Dic.Add("applyDate", leave.createTime.ToString("yyyy-MM-dd HH:mm"));
         }
@@ -135,6 +144,10 @@ namespace practice_mvc02.Models
 
         public void AddUpApplyLeave_convertToDic(ref Dictionary<string, string> Dic, LeaveOfficeApply data){
             var query = _DbContext.leavenames.FirstOrDefault(b=>b.ID==data.leaveID);
+            if(query == null){
+                query = new LeaveName();
+            }
+            data = (data==null? new LeaveOfficeApply() : data);
             Dic.Add("note", data.note==null? "無" : data.note);
             Dic.Add("sDate", data.startTime.ToString("yyyy-MM-dd HH:mm"));
             Dic.Add("eDate", data.endTime.ToString("yyyy-MM-dd HH:mm"));
@@ -161,6 +174,7 @@ namespace practice_mvc02.Models
         public void AddUpPunchCardLog_convertToDic(ref Dictionary<string, string> Dic, PunchCardLog data){
             var code = new punchStatusCode();
             var status = " ";
+            data = (data==null? new PunchCardLog() : data);
             status = (data.punchStatus & code.lateIn)>0 ? status+="遲到/" : status;
             status = (data.punchStatus & code.earlyOut)>0 ? status+="早退/" : status;
             status = (data.punchStatus & code.overtime)>0 ? status+="加班/" : status;
@@ -192,11 +206,12 @@ namespace practice_mvc02.Models
         #region setRule
 
         public void AddUpTimeRule_convertToDic(ref Dictionary<string, string> Dic, WorkTimeRule data){
-                Dic.Add("ruleName", data.name);
-                Dic.Add("sWorkTime", data.startTime.ToString(@"hh\:mm"));
-                Dic.Add("eWorkTime", data.endTime.ToString(@"hh\:mm"));
-                Dic.Add("sRestTime", data.sRestTime.ToString(@"hh\:mm"));
-                Dic.Add("eRestTime", data.eRestTime.ToString(@"hh\:mm"));
+            data = (data==null? new WorkTimeRule() : data);
+            Dic.Add("ruleName", data.name);
+            Dic.Add("sWorkTime", data.startTime.ToString(@"hh\:mm"));
+            Dic.Add("eWorkTime", data.endTime.ToString(@"hh\:mm"));
+            Dic.Add("sRestTime", data.sRestTime.ToString(@"hh\:mm"));
+            Dic.Add("eRestTime", data.eRestTime.ToString(@"hh\:mm"));
         }
 
         public string AddUpTimeRule_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
@@ -219,10 +234,11 @@ namespace practice_mvc02.Models
         }
 
         public void AddUpSpecialTime_convertToDic(ref Dictionary<string, string> Dic, SpecialDate data){
-                Dic.Add("date", data.date.ToString("yyyy-MM-dd"));
-                Dic.Add("departClass", data.departClass);
-                Dic.Add("status", data.status==1 ? "休假" : "上班");
-                Dic.Add("note", data.note==null ? "無" : data.note);
+            data = (data==null? new SpecialDate() : data);
+            Dic.Add("date", data.date.ToString("yyyy-MM-dd"));
+            Dic.Add("departClass", data.departClass);
+            Dic.Add("status", data.status==1 ? "休假" : "上班");
+            Dic.Add("note", data.note==null ? "無" : data.note);
         }
 
         public string AddUpSpecialTime_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
@@ -238,6 +254,7 @@ namespace practice_mvc02.Models
         }
 
         public void AddUpLeave_convertToDic(ref Dictionary<string, string> Dic, LeaveName data){
+            data = (data==null? new LeaveName() : data);
             Dic.Add("leaveName", data.leaveName);
             Dic.Add("timeUnit", (data.timeUnit==1? "全天":data.timeUnit==2? "半天":"小時"));
         }
@@ -253,6 +270,7 @@ namespace practice_mvc02.Models
         }
 
         public void AddUpSpLeave_convertToDic(ref Dictionary<string, string> Dic, AnnualLeaveRule data){
+            data = (data==null? new AnnualLeaveRule() : data);
             Dic.Add("seniority", data.seniority==0.5 ? "6個月" : (data.seniority.ToString()+"年"));
             Dic.Add("spDays", data.specialDays.ToString());
             Dic.Add("buffDays", data.buffDays.ToString());
@@ -271,6 +289,7 @@ namespace practice_mvc02.Models
 
         public void AddUpGroup_covertToDic(ref Dictionary<string, string> Dic, GroupRule data){
             var code =  new groupRuleCode();     
+            data = (data==null? new GroupRule() : data);
             Dic.Add("groupName", data.groupName);
             Dic.Add("rulePara", data.ruleParameter.ToString());
             Dic.Add("baseFn", (data.ruleParameter & code.baseActive)>0 ? "啟用" : "停用");  //打卡/紀錄/請假/外出
@@ -312,6 +331,7 @@ namespace practice_mvc02.Models
                         select new{
                             b.seniority
                         }).FirstOrDefault();
+            data = (data==null? new EmployeeAnnualLeave() : data);
 
             Dic.Add("seniority", query.seniority==0.5? "6個月" : $"{query.seniority}年");
             Dic.Add("spDays", data.specialDays.ToString());
@@ -336,6 +356,7 @@ namespace practice_mvc02.Models
         }
 
         public void AddUpEmployeeDetail_convertToDic(ref Dictionary<string, string> Dic, EmployeeDetail data){
+            data = (data==null? new EmployeeDetail() : data);
             var oldAgName = GetNameByID(data.myAgentID);
             Dic.Add("agName", oldAgName==null? "無" : oldAgName);
             Dic.Add("agEnable", data.agentEnable? "啟用" : "停用");      
@@ -358,8 +379,8 @@ namespace practice_mvc02.Models
                         select new{
                             b.title, b.content
                         }).FirstOrDefault();
-            Dic.Add("title", query.title);
-            Dic.Add("content", query.content);
+            Dic.Add("title", query==null? "" : query.title);
+            Dic.Add("content", query==null? "" : query.content);
         }
 
         public string SendMessage_convertToText(Dictionary<string, string> nDic){

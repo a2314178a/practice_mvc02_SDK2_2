@@ -19,11 +19,14 @@ namespace practice_mvc02.Controllers
     public class EmployeeDetailController : BaseController
     {
         public MasterRepository Repository { get; }
+        public AnnualLogRepository aRepository { get; }
         public loginFunction loginFn {get;}
 
-        public EmployeeDetailController(MasterRepository repository, IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
+        public EmployeeDetailController(MasterRepository repository, AnnualLogRepository repository02,
+                                        IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
         {
             this.Repository = repository;
+            this.aRepository = repository02;
             this.loginFn = new loginFunction(repository);
         }
 
@@ -45,7 +48,8 @@ namespace practice_mvc02.Controllers
         public object getMyDetail(){
             var myDetail = Repository.GetAccountDetail((int)loginID);
             var myAnnualLeave = Repository.GetMyAnnualLeave((int)loginID);
-            return new{myDetail, myAnnualLeave};
+            var annualLeaveUnit = aRepository.GetAnnualLeaveTimeUnit();
+            return new{myDetail, myAnnualLeave, annualLeaveUnit};
         }
 
         public object getSelOption(){

@@ -25,7 +25,7 @@ namespace practice_mvc02.Controllers
             this.Repository = repository;
         }
 
-        public IActionResult Index(string page)
+        public IActionResult Index(string page="new")
         {           
             return selectPage(page);
             //return RedirectToAction("logOut", "Home"); //轉址到特定Controller的ACTION名字
@@ -36,10 +36,10 @@ namespace practice_mvc02.Controllers
             ViewData["loginName"] = loginName;
             ViewBag.Auth = "Y";
             switch(page){
+                case "new": ViewBag.Page = "new";break;
                 case "all": ViewBag.Page = "all";break;
                 case "write": ViewBag.Page = "write";break;
                 case "backup": ViewBag.Page = "backup";break;
-                default : ViewBag.Page = "new"; break;
             }
             return View("MessagePage");  
         }
@@ -57,12 +57,12 @@ namespace practice_mvc02.Controllers
             return Repository.GetSendMessage((int)loginID);
         }
 
-        public int ignoreMessage(int relatedID){
-            return Repository.IgnoreMessage(relatedID, (int)loginID);
+        public int setHadReadMsg(int[] msgID){
+            return Repository.SetHadReadMsg(msgID, (int)loginID);
         }
 
-        public int delMessage(int relatedID, string sel){
-            return Repository.DelMessage(relatedID, sel ,(int)loginID);
+        public int delMessage(int[] msgID, string sel){
+            return Repository.DelMessage(msgID, sel ,(int)loginID);
         }
         #endregion //Message
 

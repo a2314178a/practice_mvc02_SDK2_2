@@ -31,7 +31,7 @@ function init(){
 function getFilterOption(){
     var successFn = function(res){
         res.department.forEach(function(value){
-            $("#filterDepart").append(new Option(value, value));
+            $("#filterDepart").append(new Option(value.department, value.department));
         });
         res.position.forEach(function(value){
             $("#filterPosition").append(new Option(value, value));

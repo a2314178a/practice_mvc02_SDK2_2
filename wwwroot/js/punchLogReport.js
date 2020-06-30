@@ -81,11 +81,21 @@ function setQueryDate(sel){
 }
 
 function getDepartment(){
+    var seeAll = ($("#searchFilterDiv").data("all"));
+    var seeDepartEm = ($("#searchFilterDiv").data("depart"));
     var successFn = function(res){
-        res.forEach(function(value){
-            $("#selDepart").append(new Option(value, value));
+        if(res.length >1){
+            $("#selDepart").append(new Option("所有部門", "所有部門")); 
+        }
+        res.forEach(function(value){  
+            $("#selDepart").append(new Option(value.department, value.department));
         });
-        $("#selDepart").append(new Option("未指派", "未指派"));
+        if(seeAll == 1){
+            $("#selDepart").append(new Option("未指派", "未指派"));
+        }
+        if(($("#selDepart").find("option")).length == 1){
+            getDepartmentEmployee($("#selDepart").val());
+        }
     };
     myObj.rAjaxFn("get", "/ExportXlsx/getDepartment", null, successFn);
 }

@@ -51,7 +51,8 @@ namespace practice_mvc02.Controllers
             string sFileName = $"{Guid.NewGuid()}.xlsx";
 
             FileInfo file = new FileInfo(Path.Combine(fileFolderPath, sFileName));
-                   
+            exportPara.crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            exportPara.loginID = (int)loginID;
             var tableData = xlsxFn.createXlsxPunchLog(file, exportPara);
             if(tableData != null){
                 _session.SetString("punchLogXlsxFile", Path.Combine(subFolder, sFileName)); //若下載是從根目錄開始算
@@ -66,11 +67,13 @@ namespace practice_mvc02.Controllers
         }
 
         public object getDepartment(){
-            return Repository.GetDepartment();
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            return Repository.GetDepartment((int)loginID, crossDepart);
         }
 
         public object getDepartmentEmployee(string depart){
-            return Repository.GetDepartmentEmployee(depart);
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            return Repository.GetDepartmentEmployee(depart, (int)loginID, crossDepart);
         }
     }
 }

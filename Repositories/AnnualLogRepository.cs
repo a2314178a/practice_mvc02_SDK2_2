@@ -14,6 +14,15 @@ namespace practice_mvc02.Repositories
             
         }
 
+        public int GetAnnualLeaveTimeUnit(){
+            var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName == definePara.annualName());                
+            if(query != null){
+                return query.timeUnit;
+            }else{
+                return 3;
+            }
+        }
+
         public object GetAnnualLog(int id, DateTime sDate, DateTime eDate){
             var query = (from a in _DbContext.leaveofficeapplys
                         join b in _DbContext.leavenames on a.leaveID equals b.ID

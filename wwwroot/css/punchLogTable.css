@@ -73,7 +73,7 @@
   font-size: 20px;
 }
 #annualDaysTable input[name='editRemainDays']{
-  width: 50px;
+  width: 70px;
 }
 #annualDaysTable input[name='editDeadLine']{
   width: 180px;

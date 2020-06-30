@@ -34,18 +34,21 @@ namespace practice_mvc02.Controllers
         }
 
         public object getDepartment(){
-            return eRepository.GetDepartment();
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            return eRepository.GetDepartment((int)loginID, crossDepart);
         }
 
         public object getDepartmentEmployee(string depart){
-            return eRepository.GetDepartmentEmployee(depart);
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            return eRepository.GetDepartmentEmployee(depart, (int)loginID, crossDepart);
         }
 
         public object getAnnualLog(int selID, DateTime sDate, DateTime eDate){
+            var annualLeaveUnit = aRepository.GetAnnualLeaveTimeUnit();
             var log = aRepository.GetAnnualLog(selID, sDate, eDate.AddDays(1));
             var offset = aRepository.GetOffsetLog(selID, sDate, eDate.AddDays(1));
             var day = mRepository.GetMyAnnualLeave(selID);
-            return new{log, day, offset};
+            return new{log, day, offset, annualLeaveUnit};
         }
 
         public int addUpAnnualStatus(EmployeeAnnualLeave annualData, AnnualDaysOffset offsetData){

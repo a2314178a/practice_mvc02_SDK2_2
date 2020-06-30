@@ -19,10 +19,12 @@
                         <ul class="nav nav-tabs justify-content-end" group="table">                         
                             <span style="width:30px;"></span>
                             <li class="nav-item">
-                                <a class='nav-link @(@ViewBag.Page=="new"?"active":"")' href="#" name="newMessage" onclick="showMessagePage('new');">最新訊息</a>
+                                <a class='nav-link @(@ViewBag.Page=="new"?"active":"")' href="#" name="newMessage" onclick="showMessagePage('new');">
+                                    最新訊息<span id="newCount"></span></a>
                             </li>
                             <li class="nav-item">
-                                <a class='nav-link @(@ViewBag.Page=="all"?"active":"")' href="#" name="allMessage" onclick="showMessagePage('all');">全部訊息</a>
+                                <a class='nav-link @(@ViewBag.Page=="all"?"active":"")' href="#" name="allMessage" onclick="showMessagePage('all');">
+                                    全部訊息<span id="allCount"></span></a>
                             </li>
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="write"?"active":"")' href="#" name="writeMessage" onclick="showMessagePage('write');">寫訊息</a>
@@ -39,14 +41,26 @@
                                 <table class="table table-hover table-bordered message_table">
                                     <thead class="thead-dark" >
                                         <tr>
-                                            <th scope="col" style="width:15%">時間</th>
-                                            <th scope="col" style="width:35%">標題</th>
+                                            <th scope="col" style="width:20%">時間</th>
+                                            <th scope="col" style="width:40%">標題</th>
                                             @if(ViewBag.Page != "backup"){
-                                            <th scope="col" style="width:35%">寄件人</th>
+                                            <th scope="col" style="width:25%">寄件人</th>
                                             }else{
-                                            <th scope="col" style="width:35%">收件人</th>
+                                            <th scope="col" style="width:25%">收件人</th>
                                             }  
-                                            <th scope="col" style="width:15%">管理動作</th>         
+                                            <th scope="col" style="width:15%">
+                                                <input id="selAllChkBox" type="checkbox">
+                                                <select id="msgProcess">
+                                                    <option value="">處理動作</option>
+                                                    @if(ViewBag.Page == "new"){
+                                                    <option value="read">已讀</option>
+                                                    }
+                                                    <option value="del">刪除</option>
+                                                </select> 
+                                            @* <a href="javascript:void(0);" class="btn btn-sm btn-primary btnActive" onclick="setHadRead();">已讀</a>
+                                                <span style="margin:10px;"></span>
+                                                <a href="javascript:void(0);" class="btn btn-sm btn-danger btnActive" onclick="delMsg();">刪除</a> *@         
+                                            </th>         
                                         </tr>
                                     </thead> 
                                     <tbody id="messageList">
@@ -98,19 +112,20 @@
             @if(ViewBag.Page == "new" || ViewBag.Page == "all" || ViewBag.Page == "backup")
             {
                 <tr name="receiveMsgRow">
-                    <td scope="col" name="dateTime" style="width:15%"></td>
-                    <td scope="col" name="title" style="width:35%"><a href="javascript:void(0);"></a></td>
+                    <td scope="col" name="dateTime" style="width:20%"></td>
+                    <td scope="col" name="title" style="width:40%"><a href="javascript:void(0);"></a></td>
                     @if(ViewBag.Page != "backup"){
-                    <td scope="col" name="sendName" style="width:35%"></td>
+                    <td scope="col" name="sendName" style="width:25%"></td>
                     }else{
-                    <td scope="col" name="receiveName" style="width:35%"></td>
+                    <td scope="col" name="receiveName" style="width:25%"></td>
                     }
                     <td scope="col" style="width:15%">
-                        @if(ViewBag.Page == "new"){
+                        <input type="checkbox" name="msgChkBox">
+                        @* @if(ViewBag.Page == "new"){
                         <a href="javascript:void(0);" class="btn btn-danger ignore_message btnActive" >忽略訊息</a>
                         }else{
                         <a href="javascript:void(0);" class="btn btn-danger del_message btnActive" >刪除訊息</a>
-                        }
+                        } *@
                     </td> 
                 </tr>
                 <tr name="msgContentRow"><td scope="col" colspan="4" name="content" data-id=""></td></tr>

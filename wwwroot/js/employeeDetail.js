@@ -36,7 +36,7 @@ function getMyDetail(){
     var getAccInfoSuccessFn = function(res){
         if(res.myDetail != null)
             refreshMyDetail(res.myDetail);
-        showMyAnnualLeave(res.myAnnualLeave);
+        showMyAnnualLeave(res);
     };
     myObj.rAjaxFn("get", "/EmployeeDetail/getMyDetail", null, getAccInfoSuccessFn);
 }
@@ -78,27 +78,26 @@ function showRow(sel){
 
 function showMyAnnualLeave(res){
     $("[name='spLeaveDeadLine']").empty();
-    var hourToDay = 8;  //工作幾小時算一天
-    var spDays = 0;
-    var spHours = 0;
-    res.forEach((value)=>{
-        let remainDays = parseInt((value.remainHours)/hourToDay);
-        let remainHours = (value.remainHours)%hourToDay;
-        let dlDt = myObj.dateTimeFormat(value.deadLine);
-        let deadLine = `${remainDays} 天`+ (remainHours>0? `又 ${remainHours} 小時於 `:"於 ") + `${dlDt.ymdText} 到期`;
-        /*if(remainDays == 0 && remainHours == 0){
-            return;     //期限還沒到但已沒有特休餘額 不顯示該列
-        }*/
+    var unit = res.annualLeaveUnit;
+    var hourToDay = myObj.workHoursToDay;  //工作幾小時算一天
+    var sumSpDays = 0;
+    var sumSpHours = 0;
+    res.myAnnualLeave.forEach((value)=>{
+        var dlDt = myObj.dateTimeFormat(value.deadLine);
+        if(unit == 1 || unit == 2){
+            var remainDays = unit==1?parseInt((value.remainHours)/hourToDay) : parseFloat((value.remainHours)/hourToDay);
+            var deadLine = `${remainDays} 天於 ${dlDt.ymdText} 到期`;
+            sumSpDays += remainDays;
+        }else{
+            var remainHours = value.remainHours;
+            var deadLine = `${remainHours} 小時於 ${dlDt.ymdText} 到期`;
+            sumSpHours += remainHours;
+        }
         $("[name='spLeaveDeadLine']").append(`<div>${deadLine}</div>`);
-        spDays += remainDays;
-        spHours += remainHours;
     });
-    if(spHours >= hourToDay){
-        spDays +=1;
-        spHours -= hourToDay;
-    }
-    var spText = `${spDays} 天` + (spHours >0? `又 ${spHours} 小時` : "");
-    $("[name='mySpLeave']").text(spText); 
+
+    var sumSpText = (unit==1||unit==2? `${sumSpDays} 天` : `${sumSpHours} 小時`);
+    $("[name='mySpLeave']").text(sumSpText); 
 }
 
 

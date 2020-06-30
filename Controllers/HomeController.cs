@@ -29,7 +29,6 @@ namespace practice_mvc02.Controllers
 
         public IActionResult Index()
         {           
-            initTable();
             if(loginFn.isLoginInfo(loginID, loginGroupID)){
                 return selectPage();
             }else{
@@ -64,6 +63,10 @@ namespace practice_mvc02.Controllers
                         ruleVal = (ruleVal | ruleCode.editPunchLog);
                     }
                     _session.SetInt32("ruleVal", ruleVal);
+                    
+                    if(_session.GetInt32("loginAccLV") == definePara.getDIMALV()){
+                        initTable();
+                    }
                     return 1;   
                 }
                 else{

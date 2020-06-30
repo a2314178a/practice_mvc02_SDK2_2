@@ -21,7 +21,8 @@ namespace practice_mvc02.Repositories
                         where a.receiveID == loginID && a.read <= readStatus && a.rDelete == false
                         orderby a.createTime descending
                         select new{
-                            a.ID, a.messageID, a.createTime, b.title, b.content, 
+                            a.ID, a.messageID, a.read, a.createTime, 
+                            b.title, b.content, 
                             userName=(d==null? null:d.userName),
                         };
             return query.ToList();
@@ -30,39 +31,53 @@ namespace practice_mvc02.Repositories
         public object GetSendMessage(int loginID){
             var query = from a in _DbContext.msgsendreceive
                         join b in _DbContext.message on a.messageID equals b.ID
-                        join c in _DbContext.accounts on a.receiveID equals c.ID
+                        join c in _DbContext.accounts on a.receiveID equals c.ID into tmp
+                        from d in tmp.DefaultIfEmpty()
                         where a.sendID == loginID && a.sDelete == false
                         orderby a.createTime descending
                         select new{
-                            a.ID, a.messageID, a.createTime, b.title, b.content, c.userName,
+                            a.ID, a.messageID, a.createTime, 
+                            b.title, b.content,
+                            userName=(d==null? null:d.userName),
                         };
             return query.ToList();
         }
 
-        public int IgnoreMessage(int relatedID, int loginID){
+        public int SetHadReadMsg(int[] msgID, int loginID){
             int count = 0;
-            var context = _DbContext.msgsendreceive.FirstOrDefault(b=>b.ID==relatedID);
-            if(context != null){
-                context.read = 1;
-                context.lastOperaAccID = loginID;
-                context.updateTime = definePara.dtNow();
+            var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
+            foreach(var msg in context){
+                msg.read = 1;
+                msg.lastOperaAccID = loginID;
+                msg.updateTime = definePara.dtNow();
                 count = _DbContext.SaveChanges();
             }
             return count;
         }
 
-        public int DelMessage(int relatedID, string sel, int loginID){
+        public int DelMessage(int[] msgID, string sel, int loginID){
             int count = 0;
-            var context = _DbContext.msgsendreceive.FirstOrDefault(b=>b.ID==relatedID);
-            if(context != null){
+            var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
+            foreach(var msg in context){
                 if(sel=="rDel"){
-                    context.rDelete = true;
+                    msg.rDelete = true;
+                    msg.lastOperaAccID = loginID;
+                    msg.updateTime = definePara.dtNow();
+                    count = _DbContext.SaveChanges();
                 }else if(sel=="sDel"){
-                    context.sDelete = true;
+                    var sameSend = _DbContext.msgsendreceive
+                                    .Where(b=>b.messageID==msg.messageID && b.sendID==loginID).ToList();
+                    foreach(var tmp in sameSend){
+                        tmp.sDelete = true;
+                        tmp.lastOperaAccID = loginID;
+                        tmp.updateTime = definePara.dtNow();
+                    }
+                    count = _DbContext.SaveChanges();
                 }
-                context.lastOperaAccID = loginID;
-                context.updateTime = definePara.dtNow();
-                count = _DbContext.SaveChanges();
+                var allDel = _DbContext.msgsendreceive.Where(b=>b.rDelete && b.sDelete).ToList();
+                _DbContext.msgsendreceive.RemoveRange(allDel);
+                _DbContext.SaveChanges();
+                
             }
             return count;
         }

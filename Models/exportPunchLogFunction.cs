@@ -78,22 +78,37 @@ namespace practice_mvc02.Models
 
         private void setSomeCellsWidth(){
             if(qPara.accID == 0){
-                ws.Column(dCol["workDays"]).Width = 16;
-                ws.Column(dCol["restDays"]).Width = 16;
-                ws.Column(dCol["sumWorkMinute"]).Width = 16;
-                ws.Column(dCol["lateCount"]).Width = 16;
-                ws.Column(dCol["sumLateMinute"]).Width = 16;
-                ws.Column(dCol["earlyCount"]).Width = 16;
-                ws.Column(dCol["sumEarlyMinute"]).Width = 16;
-                ws.Column(dCol["onNoPunchCount"]).Width = 16;
-                ws.Column(dCol["offNoPunchCount"]).Width = 16;
-                ws.Column(dCol["allNoPunchCount"]).Width = 16;
+                if(dCol.ContainsKey("workDays"))
+                    ws.Column(dCol["workDays"]).Width = 16;
+                if(dCol.ContainsKey("restDays"))
+                    ws.Column(dCol["restDays"]).Width = 16;
+                if(dCol.ContainsKey("sumWorkMinute"))
+                    ws.Column(dCol["sumWorkMinute"]).Width = 16;
+                if(dCol.ContainsKey("lateCount"))
+                    ws.Column(dCol["lateCount"]).Width = 16;
+                if(dCol.ContainsKey("sumLateMinute"))
+                    ws.Column(dCol["sumLateMinute"]).Width = 16;
+                if(dCol.ContainsKey("earlyCount"))
+                    ws.Column(dCol["earlyCount"]).Width = 16;
+                if(dCol.ContainsKey("sumEarlyMinute"))
+                    ws.Column(dCol["sumEarlyMinute"]).Width = 16;
+                if(dCol.ContainsKey("onNoPunchCount"))
+                    ws.Column(dCol["onNoPunchCount"]).Width = 16;
+                if(dCol.ContainsKey("offNoPunchCount"))
+                    ws.Column(dCol["offNoPunchCount"]).Width = 16;
+                if(dCol.ContainsKey("allNoPunchCount"))
+                    ws.Column(dCol["allNoPunchCount"]).Width = 16;
             }else{
-                ws.Column(dCol["date"]).Width = 18;
-                ws.Column(dCol["onlineTime"]).Width = 16;
-                ws.Column(dCol["offlineTime"]).Width = 16;
-                ws.Column(dCol["punchStatus"]).Width = 16;
-                ws.Column(dCol["sumWorkMinute"]).Width = 16;
+                if(dCol.ContainsKey("date"))
+                    ws.Column(dCol["date"]).Width = 18;
+                if(dCol.ContainsKey("onlineTime"))
+                    ws.Column(dCol["onlineTime"]).Width = 16;
+                if(dCol.ContainsKey("offlineTime"))
+                    ws.Column(dCol["offlineTime"]).Width = 16;
+                if(dCol.ContainsKey("punchStatus"))
+                    ws.Column(dCol["punchStatus"]).Width = 16;
+                if(dCol.ContainsKey("sumWorkMinute"))
+                    ws.Column(dCol["sumWorkMinute"]).Width = 16;
             }
         }
 
@@ -119,7 +134,7 @@ namespace practice_mvc02.Models
 
                 objectList.Add("leaveStartIndex", colCount);   //leave start col index
                 foreach(var leave in title_leaveName){     //新增請假名稱
-                    dCol.Add(leave.Value, colCount++);
+                    dCol.Add(leave.Value, colCount++);      //key type = int 
                 }
 
                 objectList.Add("dayStartIndex", colCount);    //day start col index
@@ -171,131 +186,158 @@ namespace practice_mvc02.Models
             $"{qPara.sDate.Year}年{qPara.sDate.Month}月{qPara.sDate.Day}日 - {qPara.eDate.Year}年{qPara.eDate.Month}月{qPara.eDate.Day}日 打卡紀錄"; 
             ws.Cells[ 1,1 , 2,lastColumnIndex ].Merge = true;
             ws.Cells[ 1,1 , 2,lastColumnIndex ].Style.HorizontalAlignment = ExcelHorizontalAlignment.Left;
-            
-            ws.Cells[ rowIndex, dCol["name"] ].Value = "姓名"; 
-            ws.Cells[ rowIndex,dCol["name"] , rowIndex+1,dCol["name"]].Merge = true;
-            titleData.Add(dCol["name"].ToString(), "姓名");
-
-            ws.Cells[ rowIndex, dCol["workClass"] ].Value = "班別";
-            ws.Cells[ rowIndex,dCol["workClass"] , rowIndex+1,dCol["workClass"]].Merge = true;
-            titleData.Add(dCol["workClass"].ToString(), "班別");
-
-            ws.Cells[ rowIndex, dCol["department"] ].Value = "部門";   
-            ws.Cells[ rowIndex,dCol["department"] , rowIndex+1,dCol["department"]].Merge = true;
-            titleData.Add(dCol["department"].ToString(), "部門");
-
-            ws.Cells[ rowIndex, dCol["position"] ].Value = "職位";
-            ws.Cells[ rowIndex,dCol["position"] , rowIndex+1,dCol["position"]].Merge = true;
-            titleData.Add(dCol["position"].ToString(), "職位");
+            if(dCol.ContainsKey("name")){
+                ws.Cells[ rowIndex, dCol["name"] ].Value = "姓名"; 
+                ws.Cells[ rowIndex,dCol["name"] , rowIndex+1,dCol["name"]].Merge = true;
+                titleData.Add(dCol["name"].ToString(), "姓名");
+            }
+            if(dCol.ContainsKey("workClass")){
+                ws.Cells[ rowIndex, dCol["workClass"] ].Value = "班別";
+                ws.Cells[ rowIndex,dCol["workClass"] , rowIndex+1,dCol["workClass"]].Merge = true;
+                titleData.Add(dCol["workClass"].ToString(), "班別");
+            }
+            if(dCol.ContainsKey("department")){
+                ws.Cells[ rowIndex, dCol["department"] ].Value = "部門";   
+                ws.Cells[ rowIndex,dCol["department"] , rowIndex+1,dCol["department"]].Merge = true;
+                titleData.Add(dCol["department"].ToString(), "部門");
+            }
+            if(dCol.ContainsKey("position")){
+                ws.Cells[ rowIndex, dCol["position"] ].Value = "職位";
+                ws.Cells[ rowIndex,dCol["position"] , rowIndex+1,dCol["position"]].Merge = true;
+                titleData.Add(dCol["position"].ToString(), "職位");
+            }
 
             if(type==1){    //月報表
-                ws.Cells[ rowIndex, dCol["workDays"] ].Value = "出勤天數";    
-                ws.Cells[ rowIndex,dCol["workDays"] , rowIndex+1,dCol["workDays"]].Merge = true;
-                titleData.Add(dCol["workDays"].ToString(), "出勤天數");
-
-                ws.Cells[ rowIndex, dCol["restDays"] ].Value = "休息天數";
-                ws.Cells[ rowIndex,dCol["restDays"] , rowIndex+1,dCol["restDays"]].Merge = true;
-                titleData.Add(dCol["restDays"].ToString(), "休息天數");
-                
-                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = "工作時長\n(分鐘)";
-                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Style.WrapText = true;  
-                ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
-                titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");
-
-                ws.Cells[ rowIndex, dCol["lateCount"] ].Value = "遲到次數"; 
-                ws.Cells[ rowIndex,dCol["lateCount"] , rowIndex+1,dCol["lateCount"]].Merge = true;
-                titleData.Add(dCol["lateCount"].ToString(), "遲到次數");
-
-                ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Value = "遲到時長\n(分鐘)"; 
-                ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["sumLateMinute"] , rowIndex+1,dCol["sumLateMinute"]].Merge = true;
-                titleData.Add(dCol["sumLateMinute"].ToString(), "遲到時長\n(分鐘)");
-                
-                ws.Cells[ rowIndex, dCol["earlyCount"] ].Value = "早退次數"; 
-                ws.Cells[ rowIndex,dCol["earlyCount"] , rowIndex+1,dCol["earlyCount"]].Merge = true;
-                titleData.Add(dCol["earlyCount"].ToString(), "早退次數");
-
-                ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Value = "早退時長\n(分鐘)";
-                ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["sumEarlyMinute"] , rowIndex+1,dCol["sumEarlyMinute"]].Merge = true;
-                titleData.Add(dCol["sumEarlyMinute"].ToString(), "早退時長\n(分鐘)");
-
-                ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Value = "上班\n缺卡次數"; 
-                ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Style.WrapText = true;   
-                ws.Cells[ rowIndex,dCol["onNoPunchCount"] , rowIndex+1,dCol["onNoPunchCount"]].Merge = true;
-                titleData.Add(dCol["onNoPunchCount"].ToString(), "上班\n缺卡次數");
-
-                ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Value = "下班\n缺卡次數";
-                ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["offNoPunchCount"] , rowIndex+1,dCol["offNoPunchCount"]].Merge = true;
-                titleData.Add(dCol["offNoPunchCount"].ToString(), "下班\n缺卡次數");
-
-                ws.Cells[ rowIndex, dCol["allNoPunchCount"] ].Value = "曠職天數";
-                ws.Cells[ rowIndex,dCol["allNoPunchCount"] , rowIndex+1,dCol["allNoPunchCount"]].Merge = true;
-                titleData.Add(dCol["allNoPunchCount"].ToString(), "曠職天數");
+                if(dCol.ContainsKey("workDays")){
+                    ws.Cells[ rowIndex, dCol["workDays"] ].Value = "出勤天數";    
+                    ws.Cells[ rowIndex,dCol["workDays"] , rowIndex+1,dCol["workDays"]].Merge = true;
+                    titleData.Add(dCol["workDays"].ToString(), "出勤天數");
+                }
+                if(dCol.ContainsKey("restDays")){
+                    ws.Cells[ rowIndex, dCol["restDays"] ].Value = "休息天數";
+                    ws.Cells[ rowIndex,dCol["restDays"] , rowIndex+1,dCol["restDays"]].Merge = true;
+                    titleData.Add(dCol["restDays"].ToString(), "休息天數");
+                }
+                if(dCol.ContainsKey("sumWorkMinute")){
+                    ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = "工作時長\n(分鐘)";
+                    ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Style.WrapText = true;  
+                    ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
+                    titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");
+                }
+                if(dCol.ContainsKey("lateCount")){
+                    ws.Cells[ rowIndex, dCol["lateCount"] ].Value = "遲到次數"; 
+                    ws.Cells[ rowIndex,dCol["lateCount"] , rowIndex+1,dCol["lateCount"]].Merge = true;
+                    titleData.Add(dCol["lateCount"].ToString(), "遲到次數");
+                }
+                if(dCol.ContainsKey("sumLateMinute")){
+                    ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Value = "遲到時長\n(分鐘)"; 
+                    ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["sumLateMinute"] , rowIndex+1,dCol["sumLateMinute"]].Merge = true;
+                    titleData.Add(dCol["sumLateMinute"].ToString(), "遲到時長\n(分鐘)");
+                }
+                if(dCol.ContainsKey("earlyCount")){
+                    ws.Cells[ rowIndex, dCol["earlyCount"] ].Value = "早退次數"; 
+                    ws.Cells[ rowIndex,dCol["earlyCount"] , rowIndex+1,dCol["earlyCount"]].Merge = true;
+                    titleData.Add(dCol["earlyCount"].ToString(), "早退次數");
+                }
+                if(dCol.ContainsKey("sumEarlyMinute")){
+                    ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Value = "早退時長\n(分鐘)";
+                    ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["sumEarlyMinute"] , rowIndex+1,dCol["sumEarlyMinute"]].Merge = true;
+                    titleData.Add(dCol["sumEarlyMinute"].ToString(), "早退時長\n(分鐘)");
+                }
+                if(dCol.ContainsKey("onNoPunchCount")){
+                    ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Value = "上班\n缺卡次數"; 
+                    ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Style.WrapText = true;   
+                    ws.Cells[ rowIndex,dCol["onNoPunchCount"] , rowIndex+1,dCol["onNoPunchCount"]].Merge = true;
+                    titleData.Add(dCol["onNoPunchCount"].ToString(), "上班\n缺卡次數");
+                }
+                if(dCol.ContainsKey("offNoPunchCount")){
+                    ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Value = "下班\n缺卡次數";
+                    ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["offNoPunchCount"] , rowIndex+1,dCol["offNoPunchCount"]].Merge = true;
+                    titleData.Add(dCol["offNoPunchCount"].ToString(), "下班\n缺卡次數");
+                }
+                if(dCol.ContainsKey("allNoPunchCount")){
+                    ws.Cells[ rowIndex, dCol["allNoPunchCount"] ].Value = "曠職天數";
+                    ws.Cells[ rowIndex,dCol["allNoPunchCount"] , rowIndex+1,dCol["allNoPunchCount"]].Merge = true;
+                    titleData.Add(dCol["allNoPunchCount"].ToString(), "曠職天數");
+                }
 
                 var once = false;
-                foreach(var leave in title_leaveName){
-                    if(!once){
-                        ws.Cells[ rowIndex, dCol[leave.Value] ].Value = "請假相關";
-                        ws.Cells[ rowIndex,dCol[leave.Value] , rowIndex,dCol[leave.Value]+title_leaveName.Count-1].Merge = true;
-                        once = true;
+                foreach(var leave in title_leaveName){  //設定標頭 第一列為請假相關 第二列為細項(特休病假事假...)
+                    if(dCol.ContainsKey(leave.Value)){
+                        if(!once){
+                            ws.Cells[ rowIndex, dCol[leave.Value] ].Value = "請假相關";
+                            ws.Cells[ rowIndex,dCol[leave.Value] , rowIndex,dCol[leave.Value]+title_leaveName.Count-1].Merge = true;
+                            once = true;
+                        }
+                        ws.Cells[ rowIndex+1, dCol[leave.Value] ].Value = leave.Value;
+                        titleData.Add(dCol[leave.Value].ToString(), leave.Value);
+                        tmpList_leave.Add(leave.Value);
                     }
-                    ws.Cells[ rowIndex+1, dCol[leave.Value] ].Value = leave.Value;
-                    titleData.Add(dCol[leave.Value].ToString(), leave.Value);
-                    tmpList_leave.Add(leave.Value);
                 }
 
                 var sDay = qPara.sDate;
                 var eDay = qPara.eDate;
                 while(sDay <= eDay){
-                    if(sDay == qPara.sDate){
-                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "打卡結果";
-                        ws.Cells[ rowIndex,dCol[sDay.ToString("M/d")], rowIndex,dCol[eDay.ToString("M/d")]].Merge = true;
+                    if(dCol.ContainsKey(sDay.ToString("M/d"))){
+                        if(sDay == qPara.sDate){
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "打卡結果";
+                            ws.Cells[ rowIndex,dCol[sDay.ToString("M/d")], rowIndex,dCol[eDay.ToString("M/d")]].Merge = true;
+                        }
+                        ws.Cells[ rowIndex+1, dCol[sDay.ToString("M/d")] ].Value = sDay.ToString("M/d");
+                        titleData.Add(dCol[sDay.ToString("M/d")].ToString(), sDay.ToString("M/d"));
+                        sDay=sDay.AddDays(1);
                     }
-                    ws.Cells[ rowIndex+1, dCol[sDay.ToString("M/d")] ].Value = sDay.ToString("M/d");
-                    titleData.Add(dCol[sDay.ToString("M/d")].ToString(), sDay.ToString("M/d"));
-                    sDay=sDay.AddDays(1);
                 }       
             }
             else{    //日報表
-                ws.Cells[ rowIndex, dCol["date"] ].Value = "日期"; 
-                ws.Cells[ rowIndex,dCol["date"] , rowIndex+1,dCol["date"]].Merge = true;
-                titleData.Add(dCol["date"].ToString(), "日期");
-
-                ws.Cells[ rowIndex, dCol["workTime"] ].Value = "上班時間"; 
-                ws.Cells[ rowIndex,dCol["workTime"] , rowIndex+1,dCol["workTime"]].Merge = true;
-                titleData.Add(dCol["workTime"].ToString(), "上班時間");
-
-                ws.Cells[ rowIndex, dCol["onlineTime"] ].Value = "上班\n打卡時間"; 
-                ws.Cells[ rowIndex, dCol["onlineTime"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["onlineTime"] , rowIndex+1,dCol["onlineTime"]].Merge = true;
-                titleData.Add(dCol["onlineTime"].ToString(), "上班\n打卡時間");
-
-                ws.Cells[ rowIndex, dCol["offlineTime"] ].Value = "下班\n打卡時間"; 
-                ws.Cells[ rowIndex, dCol["offlineTime"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["offlineTime"] , rowIndex+1,dCol["offlineTime"]].Merge = true;
-                titleData.Add(dCol["offlineTime"].ToString(), "下班\n打卡時間");
-
-                ws.Cells[ rowIndex, dCol["punchStatus"] ].Value = "打卡結果"; 
-                ws.Cells[ rowIndex,dCol["punchStatus"] , rowIndex+1,dCol["punchStatus"]].Merge = true;
-                titleData.Add(dCol["punchStatus"].ToString(), "打卡結果");
-
-                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = "工作時長\n(分鐘)"; 
-                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Style.WrapText = true;
-                ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
-                titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");  
-
+                if(dCol.ContainsKey("date")){
+                    ws.Cells[ rowIndex, dCol["date"] ].Value = "日期"; 
+                    ws.Cells[ rowIndex,dCol["date"] , rowIndex+1,dCol["date"]].Merge = true;
+                    titleData.Add(dCol["date"].ToString(), "日期");
+                }
+                if(dCol.ContainsKey("workTime")){
+                    ws.Cells[ rowIndex, dCol["workTime"] ].Value = "上班時間"; 
+                    ws.Cells[ rowIndex,dCol["workTime"] , rowIndex+1,dCol["workTime"]].Merge = true;
+                    titleData.Add(dCol["workTime"].ToString(), "上班時間");
+                }
+                if(dCol.ContainsKey("onlineTime")){
+                    ws.Cells[ rowIndex, dCol["onlineTime"] ].Value = "上班\n打卡時間"; 
+                    ws.Cells[ rowIndex, dCol["onlineTime"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["onlineTime"] , rowIndex+1,dCol["onlineTime"]].Merge = true;
+                    titleData.Add(dCol["onlineTime"].ToString(), "上班\n打卡時間");
+                }
+                if(dCol.ContainsKey("offlineTime")){
+                    ws.Cells[ rowIndex, dCol["offlineTime"] ].Value = "下班\n打卡時間"; 
+                    ws.Cells[ rowIndex, dCol["offlineTime"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["offlineTime"] , rowIndex+1,dCol["offlineTime"]].Merge = true;
+                    titleData.Add(dCol["offlineTime"].ToString(), "下班\n打卡時間");
+                }
+                if(dCol.ContainsKey("punchStatus")){
+                    ws.Cells[ rowIndex, dCol["punchStatus"] ].Value = "打卡結果"; 
+                    ws.Cells[ rowIndex,dCol["punchStatus"] , rowIndex+1,dCol["punchStatus"]].Merge = true;
+                    titleData.Add(dCol["punchStatus"].ToString(), "打卡結果");
+                }
+                if(dCol.ContainsKey("sumWorkMinute")){
+                    ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = "工作時長\n(分鐘)"; 
+                    ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Style.WrapText = true;
+                    ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
+                    titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");  
+                }
                 var once = false;
                 foreach(var leave in title_leaveName){
-                    if(!once){
-                        ws.Cells[ rowIndex, dCol[leave.Value] ].Value = "請假相關";
-                        ws.Cells[ rowIndex,dCol[leave.Value] , rowIndex,dCol[leave.Value]+title_leaveName.Count-1].Merge = true;
-                        once = true;
+                    if(dCol.ContainsKey(leave.Value)){
+                        if(!once){
+                            ws.Cells[ rowIndex, dCol[leave.Value] ].Value = "請假相關";
+                            ws.Cells[ rowIndex,dCol[leave.Value] , rowIndex,dCol[leave.Value]+title_leaveName.Count-1].Merge = true;
+                            once = true;
+                        }
+                        ws.Cells[ rowIndex+1, dCol[leave.Value] ].Value = leave.Value;
+                        titleData.Add(dCol[leave.Value].ToString(), leave.Value);
+                        tmpList_leave.Add(leave.Value);
                     }
-                    ws.Cells[ rowIndex+1, dCol[leave.Value] ].Value = leave.Value;
-                    titleData.Add(dCol[leave.Value].ToString(), leave.Value);
-                    tmpList_leave.Add(leave.Value);
                 }
             }
             
@@ -317,17 +359,24 @@ namespace practice_mvc02.Models
         private void setRowData_month(List<exportXlsxData> normalData){ //寫入每個人基本與打卡資料
             foreach(var tmp in normalData){
                 detailData = new Dictionary<string, object>(){};    //給前端用的
-                ws.Cells[ rowIndex, dCol["name"] ].Value = tmp.name;
-                ws.Cells[ rowIndex, dCol["workClass"] ].Value = tmp.workClass;
-                ws.Cells[ rowIndex, dCol["department"] ].Value = tmp.department;
-                ws.Cells[ rowIndex, dCol["position"] ].Value = tmp.position;
 
-                detailData.Add(dCol["name"].ToString(), tmp.name);
-                detailData.Add(dCol["workClass"].ToString(), tmp.workClass);
-                detailData.Add(dCol["department"].ToString(), tmp.department);
-                detailData.Add(dCol["position"].ToString(), tmp.position);
+                if(dCol.ContainsKey("name")){
+                    ws.Cells[ rowIndex, dCol["name"] ].Value = tmp.name;
+                    detailData.Add(dCol["name"].ToString(), tmp.name);
+                }  
+                if(dCol.ContainsKey("workClass")){
+                    ws.Cells[ rowIndex, dCol["workClass"] ].Value = tmp.workClass;
+                    detailData.Add(dCol["workClass"].ToString(), tmp.workClass);
+                }  
+                if(dCol.ContainsKey("department")){
+                    ws.Cells[ rowIndex, dCol["department"] ].Value = tmp.department;
+                    detailData.Add(dCol["department"].ToString(), tmp.department);
+                }   
+                if(dCol.ContainsKey("position")){
+                    ws.Cells[ rowIndex, dCol["position"] ].Value = tmp.position;
+                    detailData.Add(dCol["position"].ToString(), tmp.position);
+                }
                 setPunchLogData_month(tmp.accID); //計算打卡資料
-
                 detailDataList.Add(detailData);
                 rowIndex++;
             }
@@ -407,6 +456,9 @@ namespace practice_mvc02.Models
             var thisApplyLeave = Repository.GetApplyLeaveLogs(qPara, id);
             foreach(var log in thisApplyLeave){
                 var leaveVal = 0.0;
+                if(!title_leaveName.ContainsKey(log.leaveID)){
+                    continue;
+                }
                 var str = title_leaveName[log.leaveID];
                 var leftC = str.IndexOf('(');
                 var rightC = str.IndexOf(')');
@@ -464,7 +516,7 @@ namespace practice_mvc02.Models
                     }
                 }
 
-                if(!leaveCellsVal.ContainsKey(title_leaveName[log.leaveID])){
+                if(!leaveCellsVal.ContainsKey(title_leaveName[log.leaveID])){   //累加該對應假名的值
                     leaveCellsVal.Add(title_leaveName[log.leaveID], leaveVal);
                 }else{
                     leaveCellsVal[title_leaveName[log.leaveID]] += leaveVal;
@@ -478,55 +530,87 @@ namespace practice_mvc02.Models
         }
 
         private void setCellsValue_month(logDataCalUse ct, Dictionary<string, string> logStatus, Dictionary<string, double> leaves){
-            ws.Cells[ rowIndex, dCol["workDays"] ].Value = ct.workDays;
-            ws.Cells[ rowIndex, dCol["restDays"] ].Value = ct.restDays;
-            ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute;
-            ws.Cells[ rowIndex, dCol["lateCount"] ].Value = ct.lateCount;
-            ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Value = ct.sumLateMinute;
-            ws.Cells[ rowIndex, dCol["earlyCount"] ].Value = ct.earlyCount;
-            ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Value = ct.sumEarlyMinute;
-            ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Value = ct.onNoPunchCount;
-            ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Value = ct.offNoPunchCount;
-            ws.Cells[ rowIndex, dCol["allNoPunchCount"] ].Value = ct.allNoPunchCount;
-
-            detailData.Add(dCol["workDays"].ToString(), ct.workDays);
-            detailData.Add(dCol["restDays"].ToString(), ct.restDays);
-            detailData.Add(dCol["sumWorkMinute"].ToString(), ct.sumWorkMinute);
-            detailData.Add(dCol["lateCount"].ToString(), ct.lateCount);
-            detailData.Add(dCol["sumLateMinute"].ToString(), ct.sumLateMinute);
-            detailData.Add(dCol["earlyCount"].ToString(), ct.earlyCount);
-            detailData.Add(dCol["sumEarlyMinute"].ToString(), ct.sumEarlyMinute);
-            detailData.Add(dCol["onNoPunchCount"].ToString(), ct.onNoPunchCount);
-            detailData.Add(dCol["offNoPunchCount"].ToString(), ct.offNoPunchCount);
-            detailData.Add(dCol["allNoPunchCount"].ToString(), ct.allNoPunchCount);
-
+            if(dCol.ContainsKey("workDays")){
+                ws.Cells[ rowIndex, dCol["workDays"] ].Value = ct.workDays;
+                detailData.Add(dCol["workDays"].ToString(), ct.workDays);
+            }
+                
+            if(dCol.ContainsKey("restDays")){
+                ws.Cells[ rowIndex, dCol["restDays"] ].Value = ct.restDays;
+                detailData.Add(dCol["restDays"].ToString(), ct.restDays);
+            }
+                
+            if(dCol.ContainsKey("sumWorkMinute")){
+                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute;
+                detailData.Add(dCol["sumWorkMinute"].ToString(), ct.sumWorkMinute);
+            }
+                
+            if(dCol.ContainsKey("lateCount")){
+                ws.Cells[ rowIndex, dCol["lateCount"] ].Value = ct.lateCount;
+                detailData.Add(dCol["lateCount"].ToString(), ct.lateCount);
+            }
+                
+            if(dCol.ContainsKey("sumLateMinute")){
+                ws.Cells[ rowIndex, dCol["sumLateMinute"] ].Value = ct.sumLateMinute;
+                detailData.Add(dCol["sumLateMinute"].ToString(), ct.sumLateMinute);
+            }
+                
+            if(dCol.ContainsKey("earlyCount")){
+                ws.Cells[ rowIndex, dCol["earlyCount"] ].Value = ct.earlyCount;
+                detailData.Add(dCol["earlyCount"].ToString(), ct.earlyCount);
+            }
+                
+            if(dCol.ContainsKey("sumEarlyMinute")){
+                ws.Cells[ rowIndex, dCol["sumEarlyMinute"] ].Value = ct.sumEarlyMinute;
+                detailData.Add(dCol["sumEarlyMinute"].ToString(), ct.sumEarlyMinute);
+            }
+                
+            if(dCol.ContainsKey("onNoPunchCount")){
+                ws.Cells[ rowIndex, dCol["onNoPunchCount"] ].Value = ct.onNoPunchCount;
+                detailData.Add(dCol["onNoPunchCount"].ToString(), ct.onNoPunchCount);
+            }
+                
+            if(dCol.ContainsKey("offNoPunchCount")){
+                ws.Cells[ rowIndex, dCol["offNoPunchCount"] ].Value = ct.offNoPunchCount;
+                detailData.Add(dCol["offNoPunchCount"].ToString(), ct.offNoPunchCount);
+            }
+                
+            if(dCol.ContainsKey("allNoPunchCount")){
+                ws.Cells[ rowIndex, dCol["allNoPunchCount"] ].Value = ct.allNoPunchCount;
+                detailData.Add(dCol["allNoPunchCount"].ToString(), ct.allNoPunchCount);
+            }
+                
             foreach(var leave in leaves){
-                ws.Cells[ rowIndex, dCol[leave.Key] ].Value = leave.Value;
-                detailData.Add(dCol[leave.Key].ToString(), leave.Value);
+                if(dCol.ContainsKey(leave.Key)){
+                    ws.Cells[ rowIndex, dCol[leave.Key] ].Value = leave.Value;
+                    detailData.Add(dCol[leave.Key].ToString(), leave.Value);
+                }
             }
 
             var sDay = qPara.sDate;
             var eDay = qPara.eDate;
             while(sDay <= eDay){
-                if(logStatus.ContainsKey(sDay.ToString("M/d"))){
-                    var status = logStatus[sDay.ToString("M/d")];
-                    ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = status;
-                    detailData.Add(dCol[sDay.ToString("M/d")].ToString(), status);
+                if(dCol.ContainsKey(sDay.ToString("M/d"))){
+                    if(logStatus.ContainsKey(sDay.ToString("M/d"))){
+                        var status = logStatus[sDay.ToString("M/d")];
+                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = status;
+                        detailData.Add(dCol[sDay.ToString("M/d")].ToString(), status);
 
-                    if(status != "正常"){
-                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        if(status == "請假"){  
-                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
-                        }else{
-                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
+                        if(status != "正常"){
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            if(status == "請假"){  
+                                ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
+                            }else{
+                                ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
+                            }
                         }
-                    }
-                }else{
-                    if(sDay < definePara.dtNow().Date){
-                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "休息";
-                        detailData.Add(dCol[sDay.ToString("M/d")].ToString(), "休息");
-                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(240,240,240));
+                    }else{
+                        if(sDay < definePara.dtNow().Date){
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Value = "休息";
+                            detailData.Add(dCol[sDay.ToString("M/d")].ToString(), "休息");
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(240,240,240));
+                        }
                     }
                 }
                 sDay = sDay.AddDays(1);
@@ -558,49 +642,62 @@ namespace practice_mvc02.Models
                 detailData = new Dictionary<string, object>(){};   //給前端用的
                 var sDateText = sDate.ToString("yyyy-MM-dd") + week[Convert.ToInt16(sDate.DayOfWeek.ToString("d"))];
                 var isRest = (sDate >= definePara.dtNow().Date)? false: true;
-                ws.Cells[ rowIndex, dCol["name"] ].Value = normalData.name;
-                ws.Cells[ rowIndex, dCol["workClass"] ].Value = normalData.workClass;
-                ws.Cells[ rowIndex, dCol["department"] ].Value = normalData.department;
-                ws.Cells[ rowIndex, dCol["position"] ].Value = normalData.position;
-                ws.Cells[ rowIndex, dCol["date"] ].Value = sDateText;
-                ws.Cells[ rowIndex, dCol["date"] ].Style.WrapText = true;
 
-                detailData.Add(dCol["name"].ToString(), normalData.name);
-                detailData.Add(dCol["workClass"].ToString(), normalData.workClass);
-                detailData.Add(dCol["department"].ToString(), normalData.department);
-                detailData.Add(dCol["position"].ToString(), normalData.position);
-                detailData.Add(dCol["date"].ToString(), sDateText);
+                if(dCol.ContainsKey("name")){
+                    ws.Cells[ rowIndex, dCol["name"] ].Value = normalData.name;
+                    detailData.Add(dCol["name"].ToString(), normalData.name);
+                }
+                if(dCol.ContainsKey("workClass")){
+                    ws.Cells[ rowIndex, dCol["workClass"] ].Value = normalData.workClass;
+                    detailData.Add(dCol["workClass"].ToString(), normalData.workClass);
+                }
+                if(dCol.ContainsKey("department")){
+                    ws.Cells[ rowIndex, dCol["department"] ].Value = normalData.department;
+                    detailData.Add(dCol["department"].ToString(), normalData.department);
+                }
+                if(dCol.ContainsKey("position")){
+                    ws.Cells[ rowIndex, dCol["position"] ].Value = normalData.position;
+                    detailData.Add(dCol["position"].ToString(), normalData.position);
+                }
+                if(dCol.ContainsKey("date")){
+                    ws.Cells[ rowIndex, dCol["date"] ].Value = sDateText;
+                    ws.Cells[ rowIndex, dCol["date"] ].Style.WrapText = true;
+                    detailData.Add(dCol["date"].ToString(), sDateText);
+                }
 
                 foreach(var log in punchLogs){
                     if(log.logDate == sDate){
-                        ws.Cells[ rowIndex, dCol["workTime"] ].Value = workTime;
-                        detailData.Add(dCol["workTime"].ToString(), workTime);
-
-                        if(log.onlineTime.Year >1){
+                        if(dCol.ContainsKey("workTime")){
+                            ws.Cells[ rowIndex, dCol["workTime"] ].Value = workTime;
+                            detailData.Add(dCol["workTime"].ToString(), workTime);
+                        }
+                        if(log.onlineTime.Year >1 && dCol.ContainsKey("onlineTime")){
                             ws.Cells[ rowIndex, dCol["onlineTime"] ].Value = log.onlineTime.TimeOfDay.ToString(@"hh\:mm\:ss");
                             detailData.Add(dCol["onlineTime"].ToString(), log.onlineTime.TimeOfDay.ToString(@"hh\:mm\:ss"));
                         }
-                        if(log.offlineTime.Year >1){
+                        if(log.offlineTime.Year >1 && dCol.ContainsKey("offlineTime")){
                             ws.Cells[ rowIndex, dCol["offlineTime"] ].Value = log.offlineTime.TimeOfDay.ToString(@"hh\:mm\:ss");
                             detailData.Add(dCol["offlineTime"].ToString(), log.offlineTime.TimeOfDay.ToString(@"hh\:mm\:ss"));
                         }
                         var status = getPunchLogStatusToText(log.punchStatus);
-                        ws.Cells[ rowIndex, dCol["punchStatus"] ].Value = status;
-                        detailData.Add(dCol["punchStatus"].ToString(), status);
-
-                        if(status != "正常"){
-                            ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            if(status == "請假"){  
-                                ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
-                            }else{
-                                ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
+                        if(dCol.ContainsKey("punchStatus")){
+                            ws.Cells[ rowIndex, dCol["punchStatus"] ].Value = status;
+                            detailData.Add(dCol["punchStatus"].ToString(), status);
+                        
+                            if(status != "正常"){
+                                ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                                if(status == "請假"){  
+                                    ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
+                                }else{
+                                    ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
+                                }
                             }
                         }
                         setPunchLogData_day(normalData.accID, log, thisApplyLeave);
                         isRest = false;
                     }
                 }
-                if(isRest){
+                if(isRest && dCol.ContainsKey("workTime")){
                     ws.Cells[ rowIndex, dCol["workTime"] ].Value = "例假日";
                     detailData.Add(dCol["workTime"].ToString(), "例假日");
                 }
@@ -635,8 +732,10 @@ namespace practice_mvc02.Models
                     }
                 }
             }
-            ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : "";
-            detailData.Add(dCol["sumWorkMinute"].ToString(), (ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : ""));
+            if(dCol.ContainsKey("sumWorkMinute")){
+                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : "";
+                detailData.Add(dCol["sumWorkMinute"].ToString(), (ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : ""));
+            }
          
             foreach(var leave in leaves){   //計算請假時間
                 var leaveVal = 0.0;
@@ -652,6 +751,10 @@ namespace practice_mvc02.Models
                     }else{
                         leaveVal = ((leave.endTime - leave.startTime).TotalMinutes);
                         leaveVal = leaveVal > (ct.workNoRestMinute)*0.5? leaveVal - ct.restMinute : leaveVal;
+                    }
+
+                    if(!title_leaveName.ContainsKey(leave.leaveID)){
+                        continue;
                     }
                     var leaveName = title_leaveName[leave.leaveID];
                     var leftC = leaveName.IndexOf('(');
@@ -730,6 +833,8 @@ namespace practice_mvc02.Models
         public DateTime eDate {get; set;}
         public string departName {get; set;}
         public int accID {get; set;}
+        public bool crossDepart {get; set;}
+        public int loginID {get; set;}
     }
 
     public class exportXlsxData{

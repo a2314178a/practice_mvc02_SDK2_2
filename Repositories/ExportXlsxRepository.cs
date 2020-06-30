@@ -27,37 +27,96 @@ namespace practice_mvc02.Repositories
         
         public List<exportXlsxData> GetNormalDetail_Month(exportPunchLogXlsxPara qPara){
             var query = new List<exportXlsxData>();
-            if(qPara.departName == "未指派"){
-                query = (from a in _DbContext.accounts
-                        join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
-                        where a.departmentID == 0 && a.accLV != definePara.getDIMALV()
-                        select new exportXlsxData{
-                            accID=a.ID, name=a.userName, workClass=b.name, 
-                            department="未指派", position=""
-                        }).ToList();
+
+            if(!qPara.crossDepart)
+            {
+                var baseQu = (from a in _DbContext.accounts
+                            join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                            join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                            where b.principalID == qPara.loginID
+                            select new {a, b, c}).ToList();
+                if(qPara.departName == "未指派"){
+                    query = baseQu.Where(d=>d.a.departmentID==0)
+                                    .Select(d=>new exportXlsxData{
+                                        accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
+                                        department="未指派", position=""
+                                    }).ToList();
+                }
+                else if(qPara.departName != "所有部門"){
+                    query = (from d in baseQu
+                            join e in _DbContext.departments on d.a.departmentID equals e.ID
+                            where (e.department.Contains(qPara.departName))
+                            select new exportXlsxData{
+                                accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
+                                department=e.department, position=e.position
+                            }).Union(
+                                from a in _DbContext.accounts
+                                join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                                from bb in noDepart.DefaultIfEmpty()
+                                join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                                where a.ID == qPara.loginID && bb.department.Contains(qPara.departName)
+                                select new exportXlsxData{
+                                    accID=a.ID, name=a.userName, workClass=c.name, 
+                                    department=(bb==null? "未指派":bb.department),
+                                    position=(bb==null? "":bb.position)
+                                }
+                            ).ToList();
+                }else{
+                    query = (from d in baseQu
+                            join e in _DbContext.departments on d.a.departmentID equals e.ID into depart
+                            from f in depart.DefaultIfEmpty()
+                            select new exportXlsxData{
+                                accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
+                                department=(f==null? "未指派":f.department), 
+                                position=(f==null? "":f.position)
+                            }).Union(
+                                from a in _DbContext.accounts
+                                join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                                from bb in noDepart.DefaultIfEmpty()
+                                join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                                where a.ID == qPara.loginID
+                                select new exportXlsxData{
+                                    accID=a.ID, name=a.userName, workClass=c.name, 
+                                    department=(bb==null? "未指派":bb.department),
+                                    position=(bb==null? "":bb.position)
+                                }
+                            ).OrderBy(b=>b.department).ToList();
+                }
             }
-            else if(qPara.departName != "所有部門"){
-                query = (from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID
-                        join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                        where b.department.Contains(qPara.departName)
-                        select new exportXlsxData{
-                            accID=a.ID, name=a.userName, workClass=c.name, 
-                            department=b.department, position=b.position
-                        }).ToList();
+            else
+            {
+                if(qPara.departName == "未指派"){
+                    query = (from a in _DbContext.accounts
+                            join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
+                            where a.departmentID == 0 && a.accLV != definePara.getDIMALV()
+                            select new exportXlsxData{
+                                accID=a.ID, name=a.userName, workClass=b.name, 
+                                department="未指派", position=""
+                            }).ToList();
+                }
+                else if(qPara.departName != "所有部門"){
+                    query = (from a in _DbContext.accounts
+                            join b in _DbContext.departments on a.departmentID equals b.ID
+                            join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                            where b.department.Contains(qPara.departName)
+                            select new exportXlsxData{
+                                accID=a.ID, name=a.userName, workClass=c.name, 
+                                department=b.department, position=b.position
+                            }).ToList();
+                }
+                else{
+                    query = (from a in _DbContext.accounts
+                            join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                            from bb in noDepart.DefaultIfEmpty()
+                            join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
+                            select new exportXlsxData{
+                                accID=a.ID, name=a.userName, workClass=c.name, 
+                                department=(bb==null? "未指派":bb.department),
+                                position=(bb==null? "":bb.position)
+                            }).ToList();
+                }
             }
-            else{
-                query = (from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
-                        from bb in noDepart.DefaultIfEmpty()
-                        join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                        select new exportXlsxData{
-                            accID=a.ID, name=a.userName, workClass=c.name, 
-                            department=(bb==null? "未指派":bb.department),
-                            position=(bb==null? "":bb.position)
-                        }).ToList();
-            }
-            return query.ToList();
+            return query;
         }
 
         public exportXlsxData GetNormalDetail_Day(exportPunchLogXlsxPara qPara){
@@ -101,24 +160,65 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
-        public object GetDepartment(){
-            var query = _DbContext.departments.Select(b=>b.department).Distinct();
-            return query.ToList();
+        public object GetDepartment(int loginID, bool cross){
+            object query = new List<string>();
+            if(!cross){
+                query = (from a in _DbContext.accounts
+                        join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                        join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
+                        from d in noDepart.DefaultIfEmpty()
+                        where b.principalID == loginID 
+                        select new{
+                            department=(d==null? "未指派" : d.department)
+                        }).Distinct().ToList();
+            }else{
+                query = _DbContext.departments.Select(b=>new {department=b.department}).Distinct().ToList();
+            }
+            return query;
         }
 
-        public object GetDepartmentEmployee(string depart){
-            if(depart == "未指派"){
-                var noDepart = _DbContext.accounts.Where(b=>b.departmentID == 0 && b.accLV != definePara.getDIMALV())
-                                                    .Select(b=> new{b.ID, b.userName}).ToList();
-                return noDepart;
+        public object GetDepartmentEmployee(string depart, int loginID, bool cross){
+            
+            if(!cross)
+            {
+                if(depart == "未指派"){
+                    var noDepart = (from a in _DbContext.accounts
+                                join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                                where b.principalID == loginID && a.departmentID == 0 && a.accLV != definePara.getDIMALV()
+                                select new{ a.ID, a.userName }).ToList();
+                    return noDepart;
+                }
+                var query = (from a in _DbContext.accounts
+                            join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                            join c in _DbContext.departments on a.departmentID equals c.ID
+                            where c.department == depart && b.principalID == loginID
+                            select new {
+                                a.ID, a.userName
+                            }).Union(
+                                from a in _DbContext.accounts
+                                join b in _DbContext.departments on a.departmentID equals b.ID
+                                where a.ID == loginID && b.department == depart
+                                select new {
+                                    a.ID, a.userName
+                                }
+                            );
+                return query.ToList();
             }
-            var query = from a in _DbContext.accounts
+            else
+            {
+                if(depart == "未指派"){
+                    var noDepart = _DbContext.accounts.Where(b=>b.departmentID == 0 && b.accLV != definePara.getDIMALV())
+                                                        .Select(b=> new{b.ID, b.userName}).ToList();
+                    return noDepart;
+                }
+                var query = from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID
                         where b.department == depart
                         select new{
                             a.ID, a.userName
                         };
-            return query.ToList();
+                return query.ToList();
+            }
         }
     }
 }

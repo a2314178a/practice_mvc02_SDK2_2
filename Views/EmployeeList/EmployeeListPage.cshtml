@@ -25,15 +25,12 @@
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="list"?"active":"")' href="#" name="employee" onclick="showEmployeePage('list');">員工列表</a>
                             </li>
-                            @if(ViewBag.loginAccLV >=4)
-                            {
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="report"?"active":"")' href="#" name="punchReport" onclick="showEmployeePage('report');">員工打卡報表</a>
                             </li>
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="annual"?"active":"")' href="#" name="annualDays" onclick="showEmployeePage('annual');">員工年假明細</a>
                             </li>
-                            }
                         </ul>
                         @if(ViewBag.Page == "list")
                         {
@@ -84,11 +81,11 @@
                                 }
                             </div> 
                         }
-                        else if(ViewBag.Page == "report" && ViewBag.loginAccLV >=4)
+                        else if(ViewBag.Page == "report")
                         {
                             <div id="punchReportDiv">
                                 
-                                <div id="searchFilterDiv">
+                                <div id="searchFilterDiv" data-all="@ViewBag.seeAllEm" data-depart="@ViewBag.seeDepartEm">
                                     
                                     <table>
                                         <tr>
@@ -114,12 +111,10 @@
                                             <td class="selDepartment">
                                                 <span>部門: 
                                                     <select id="selDepart">
-                                                        <option value="所有部門">所有部門</option>
                                                     </select>
                                                 </span>
                                                 <span id="selEmployeeSpan" style="display:none">人員: 
                                                     <select id="selEmployee">
-                                                        <option value="0">所有人員</option>
                                                     </select>
                                                 </span>
                                                 <input type="button" value="產生" onclick="processReport();">
@@ -138,13 +133,12 @@
 
                             </div>
                         }
-                        else if(ViewBag.Page == "annual" && ViewBag.loginAccLV >=4)
+                        else if(ViewBag.Page == "annual")
                         {
-                            <div name="searchDiv" style="text-align:center;">
+                            <div id="searchFilterDiv" style="text-align:center;" data-all="@ViewBag.seeAllEm" data-depart="@ViewBag.seeDepartEm">
                                 <span>時間範圍:<input type="date" id="startDate">~<input type="date" id="endDate"></span>
                                 <span>部門:
                                     <select id="selDepart">
-                                        <option value="">請選擇</option>
                                     </select>
                                 </span>
                                 <span>人員:
@@ -174,7 +168,11 @@
                                             <th>特休天數</th>
                                             <th>剩餘天數</th>
                                             <th>特休期限</th>
+                                            @if(ViewBag.canEmployeeEdit){
                                             <th>調整</th>
+                                            }else{
+                                            <th>備註</th>
+                                            }
                                         </tr>
                                     </tfoot>
                                 </table>
@@ -223,7 +221,9 @@
                         <td scope="col" name="remainDays"></td>
                         <td scope="col" name="deadLine"></td>
                         <td scope="col" name="update">
+                            @if(ViewBag.canEmployeeEdit){
                             <a href="javascript:void(0);" class="btn btn-primary edit_spDays btnActive" >編輯</a>
+                            }
                         </td>
                     </tr>
                     <tr name="addUpAnnualStatusRow">
@@ -240,8 +240,8 @@
                             <a href="javascript:void(0);" class="btn btn-primary addUp_spDays" >更新</a>
                         </td> *@
                         <td scope="col" colspan="2">
-                            剩餘天數調整為: 
-                            <input type="text" name="editRemainDays" oninput="value=value.replace(/[^\d]/g,'')">天
+                            剩餘特休調整為: 
+                            <input type="number" name="editRemainDays">
                             <span name="remainHours"></span>
                         </td>
                         <td scope="col">

@@ -36,6 +36,8 @@ namespace practice_mvc02.Controllers
         public IActionResult selectPage(string page){
             ViewBag.ruleVal = ruleVal;
             ViewBag.canEmployeeEdit = (ruleVal & ruleCode.employeeEdit) > 0 ? true : false;
+            ViewBag.seeAllEm = (ruleVal & ruleCode.allEmployeeList) > 0 ? 1 : 0;
+            ViewBag.seeDepartEm = (ruleVal & ruleCode.departEmployeeList) > 0 ? 1 : 0;
             ViewData["loginName"] = loginName;
             ViewBag.Auth = "Y";
             ViewBag.ID = (int)loginID;
@@ -55,8 +57,9 @@ namespace practice_mvc02.Controllers
         }
 
         public object getFilterOption(){
-            object departOption = Repository.GetDepartOption();
-            object positionOption = Repository.GetPositionOption();
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            object departOption = Repository.GetDepartOption((int)loginID, crossDepart);
+            object positionOption = Repository.GetPositionOption((int)loginID, crossDepart);
             return new{department = departOption, position = positionOption};
         }
 

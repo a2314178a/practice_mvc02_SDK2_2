@@ -115,7 +115,7 @@ namespace practice_mvc02.Controllers
                 if(eTime.Hour == wdt.sRestDt.Hour && eTime.Minute == wdt.sRestDt.Minute){
                     eTime = eTime.AddMinutes(restLengthMinute);
                 }
-                if(eTime.Hour == wdt.eWorkDt.Hour && eTime.Hour ==  wdt.eWorkDt.Hour){
+                if(eTime.Hour == wdt.eWorkDt.Hour && eTime.Minute ==  wdt.eWorkDt.Minute){
                     eTime = eTime.AddDays(1).AddMinutes(-workLengthMinute);
                     var flag = true;
                     do{
