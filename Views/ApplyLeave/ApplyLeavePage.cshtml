@@ -118,10 +118,14 @@
                             @* <input type='date' name="newEndDate" style='zoom:80%'><br/>
                             <input type='time' name="newEndTime" style='zoom:80%' step="1800"><br/> *@
                             <input type="text" name="newTimeLength" style="width:75px;">
+                            <select name="newHalfSel">
+                                <option value="1">上半天</option>
+                                <option value="2">下半天</option>
+                            </select>
                             <select name="newTimeUnit">
-                                <option value="1">天</option>
+                                @* <option value="1">天</option>
                                 <option value="2">半天</option>
-                                <option value="3">小時</option>
+                                <option value="3">小時</option> *@
                             </select>
                         </td>
                         <td scope="col" width="15%">

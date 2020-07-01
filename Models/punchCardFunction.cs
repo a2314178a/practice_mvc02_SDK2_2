@@ -210,12 +210,12 @@ namespace practice_mvc02.Models
                 statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
             }
             else if(processLog.onlineTime.Year > 1 && processLog.offlineTime.Year > 1){
-                statusCode = processLog.onlineTime > wt.sWorkDt? (statusCode | psCode.lateIn) : statusCode;
+                statusCode = processLog.onlineTime > (wt.sWorkDt.AddSeconds(59))? (statusCode | psCode.lateIn) : statusCode;
                 statusCode = processLog.offlineTime < wt.eWorkDt? (statusCode | psCode.earlyOut) : statusCode;
             }
             else{
                 if(processLog.onlineTime.Year > 1){ //只有填上班
-                    statusCode = processLog.onlineTime >wt.sWorkDt? (statusCode | psCode.lateIn) : statusCode;
+                    statusCode = processLog.onlineTime > (wt.sWorkDt.AddSeconds(59))? (statusCode | psCode.lateIn) : statusCode;
                     statusCode = definePara.dtNow() >= wt.ePunchDT ? (statusCode | psCode.hadLost) : statusCode; //打不到下班卡了
                 }
                 else{   //只有填下班

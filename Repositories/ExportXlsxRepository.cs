@@ -161,20 +161,29 @@ namespace practice_mvc02.Repositories
         }
 
         public object GetDepartment(int loginID, bool cross){
-            object query = new List<string>();
+            object result = new List<string>();
             if(!cross){
-                query = (from a in _DbContext.accounts
+                var query = (from a in _DbContext.accounts
                         join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                         join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
                         from d in noDepart.DefaultIfEmpty()
                         where b.principalID == loginID 
                         select new{
                             department=(d==null? "未指派" : d.department)
-                        }).Distinct().ToList();
+                        });
+                var myself = (from a in _DbContext.accounts
+                            join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                            from c in noDepart.DefaultIfEmpty()
+                            where a.ID == loginID
+                            select new{
+                                department=(c==null? "未指派" : c.department)
+                            });
+                result = query.Union(myself).Distinct().OrderBy(b=>b.department).ToList();
+                
             }else{
-                query = _DbContext.departments.Select(b=>new {department=b.department}).Distinct().ToList();
+                result = _DbContext.departments.Select(b=>new {department=b.department}).Distinct().ToList();
             }
-            return query;
+            return result;
         }
 
         public object GetDepartmentEmployee(string depart, int loginID, bool cross){

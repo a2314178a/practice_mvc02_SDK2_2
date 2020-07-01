@@ -276,28 +276,33 @@ namespace practice_mvc02.Repositories
         }
 
         public object GetDepartOption(int loginID, bool cross){
-            object query = new List<string>(){};
+            object result = new List<string>(){};
             if(!cross){
-                var em = (from a in _DbContext.accounts
-                        join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
-                        where b.principalID == loginID
-                        select a).ToList();
-
-                query = (from a in em
-                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
-                        from c in noDepart.DefaultIfEmpty()
-                        select new{
-                            department=(c==null? "未指派":c.department)
-                        }).Distinct().ToList();
+                var query = (from a in _DbContext.accounts
+                            join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                            join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
+                            from d in noDepart.DefaultIfEmpty()
+                            where b.principalID == loginID
+                            select new{
+                                department=(d==null? "未指派":d.department)
+                            });
+                var myself = (from a in _DbContext.accounts
+                            join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                            from c in noDepart.DefaultIfEmpty()
+                            where a.ID == loginID
+                            select new{
+                                department=(c==null? "未指派" : c.department)
+                            });
+                result = query.Union(myself).Distinct().OrderBy(b=>b.department).ToList();
             }else{
-                query = (from a in _DbContext.accounts
+                result = (from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
                         from c in noDepart.DefaultIfEmpty()
                         select new{
                             department=(c==null? "未指派":c.department)
                         }).Distinct().ToList();
             }
-            return query;
+            return result;
         }
 
         public object GetPositionOption(int loginID, bool cross){

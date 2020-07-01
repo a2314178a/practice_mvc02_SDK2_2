@@ -38,7 +38,7 @@ namespace practice_mvc02.Controllers
             switch(page){
                 case "new": ViewBag.Page = "new";break;
                 case "all": ViewBag.Page = "all";break;
-                case "write": ViewBag.Page = "write";break;
+                //case "write": ViewBag.Page = "write";break;
                 case "backup": ViewBag.Page = "backup";break;
             }
             return View("MessagePage");  

@@ -18,25 +18,35 @@ $(document).ready(function() {
             $(unitOption).append(new Option("半天", 2));
             $(unitOption).append(new Option("小時", 3));
         }
+        $("#applyLeaveList select[name='newTimeUnit']").change();
     });
 
     $("#applyLeaveList").on("change", "select[name='newTimeUnit']", function(){
         var selUnit = $(this).val();
         var inputVal = $("#applyLeaveList").find("input[name='newTimeLength']").val();
         var useRule = myObj.leaveOption[$("#applyLeaveList").find("select[name='newApplyType']").val()];
-        if(useRule == 1 || (selUnit != 1)){
+        if(selUnit == 1 || selUnit == 2){
+            $("#applyLeaveList").find("input[name='newStartTime']").hide();
+        }else if(selUnit == 3){
+            $("#applyLeaveList").find("input[name='newStartTime']").show();
+        }
+        if(selUnit == 2){
+            $("#applyLeaveList").find("input[name='newTimeLength']").hide();
+            $("#applyLeaveList").find("select[name='newHalfSel']").show();
+        }else{
+            $("#applyLeaveList").find("input[name='newTimeLength']").show();
+            $("#applyLeaveList").find("select[name='newHalfSel']").hide();
+        }
+
+        if(useRule == 1 || (selUnit != 1)){    
             $("#applyLeaveList").find("input[name='newTimeLength']").val(isNaN(parseInt(inputVal))? "":parseInt(inputVal));
         }
     });
 
-    $("#applyLeaveList").on("focus", "input[name='newTimeLength']", function(){
-        var selUnit = $("#applyLeaveList").find("select[name='newTimeUnit']").val();
-        var useRule = myObj.leaveOption[$("#applyLeaveList").find("select[name='newApplyType']").val()];
-        if(useRule == 1 || selUnit !=1){
-            $(this).attr("oninput", "value=value.replace(/[^\\d]/g,'')");   //只能整數
-        }else{
-            $(this).attr("oninput", "value=value.replace(/[^\\d.]/g,'');");  //可以有小數
-        }
+    $("#applyLeaveList").on("input", "input[name='newTimeLength']", function(){
+        var val = $(this).val();
+        val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉，除了數字
+        $(this).val(val);
     });
 
 });//.ready function
@@ -126,11 +136,13 @@ function showAddApplyLeaveRow(){
     var addApplyLeaveRow = $(".template").find("[name='addApplyLeaveRow']").clone();
     var dt = myObj.dateTimeFormat();
     addApplyLeaveRow.find("input[type='date']").val(dt.ymdHtml);
-    addApplyLeaveRow.find("input[type='time']").val(dt.hour + ":00");
+    addApplyLeaveRow.find("input[type='time']").val(dt.hour + ":00").hide();    //預設單位為天 所以隱藏
+    addApplyLeaveRow.find("select[name='newHalfSel']").hide();
     addApplyLeaveRow.find("a.up_applyLeave").remove();
     addApplyLeaveRow.find("a.add_applyLeave").attr("onclick", "addUpApplyLeave(this);");
     addApplyLeaveRow.find("a.cel_applyLeave").attr("onclick", "cancelApplyLeave();");
     $('#applyLeaveList').append(addApplyLeaveRow);
+    $("#applyLeaveList select[name='newApplyType']").change();
 }
 
 function addUpApplyLeave(thisBtn, applyingID=0){
@@ -151,9 +163,11 @@ function addUpApplyLeave(thisBtn, applyingID=0){
     };
     
     var successFn = function(res){
-        if(res == 44){
-            alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!");
-            return;
+        if(res == "notEnough"){
+            alert("剩餘的特休時數不足"); return;
+        }
+        else if(res == "noPrincipal"){
+            alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!"); return;
         }
         cancelApplyLeave();
     }
@@ -214,13 +228,15 @@ function getApplyLeaveTime(thisRow){
     var startTime = (sDate + "T" + sTime);
     
     var applyTypeVal = thisRow.find("[name='newApplyType']").val();
-    var useRule = myObj.leaveOption[applyTypeVal];
+    //var useRule = myObj.leaveOption[applyTypeVal];
     var selUnit = thisRow.find("[name='newTimeUnit']").val();
-    var inputVal = thisRow.find("input[name='newTimeLength']").val();
+    if(selUnit ==2){
+        var inputVal = thisRow.find("select[name='newHalfSel']").val();
+    }else{
+        var inputVal = thisRow.find("input[name='newTimeLength']").val();
+    }
 
-    if(inputVal=="" || isNaN(parseInt(inputVal)) || inputVal[0]=="." || inputVal % 0.5 !=0 || isNaN((new Date(startTime)).valueOf())){
-        return null;
-    }else if((useRule == 1 || selUnit !=1) && inputVal % 1 != 0){  //只能輸入整數
+    if(inputVal=="" || isNaN(parseInt(inputVal)) || inputVal % 0.5 !=0 || isNaN((new Date(startTime)).valueOf())){
         return null;
     }
     return {applyTypeVal, startTime, inputVal, selUnit};

@@ -132,6 +132,12 @@ function setHadRead(){
         $("#msgProcess").find("option[value='']").prop("selected", true);
         return;
     }
+
+    var msg = "您確定要把訊息設為已讀嗎？\n\n請確認！";
+    if(confirm(msg)==false){ 
+        $("#msgProcess").find("option[value='']").prop("selected", true);
+        return;
+    }
     var successFn = function(res){
         getReceiveMessage(0);
     };
