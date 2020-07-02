@@ -27,8 +27,8 @@ namespace practice_mvc02.Repositories
             {
                 if(fDepart == "未指派" && fPosition == ""){
                     var query = from a in _DbContext.accounts
-                                where a.departmentID == 0 && a.userName.Contains(fName) 
-                                        && a.accLV < definePara.getDIMALV()
+                                where (a.departmentID == 0 && a.userName.Contains(fName)) &&
+                                    (a.accLV < definePara.getDIMALV() || loginAccLV == definePara.getDIMALV())
                                 select new{
                                     a.ID, a.account, a.userName, department="", position=""
                                 };
@@ -40,8 +40,9 @@ namespace practice_mvc02.Repositories
                     var query = from a in _DbContext.accounts
                                 join b in _DbContext.departments on a.departmentID equals b.ID into tmp
                                 from c in tmp.DefaultIfEmpty()
-                                where a.userName.Contains(fName) && c.department.Contains(fDepart) && 
-                                    c.position.Contains(fPosition) && a.accLV <= loginAccLV 
+                                where (a.userName.Contains(fName) && c.department.Contains(fDepart) && 
+                                    c.position.Contains(fPosition)) &&
+                                    (loginAccLV == definePara.getDIMALV() || a.accLV < definePara.getDIMALV())
                                 orderby c.department
                                 select new {
                                     a.ID, a.account, a.userName,
@@ -57,7 +58,8 @@ namespace practice_mvc02.Repositories
                     var query = from a in _DbContext.accounts
                                 join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                                 where a.departmentID == 0 && a.userName.Contains(fName) &&
-                                      b.principalID == loginID && a.accLV < definePara.getDIMALV()
+                                      (b.principalID == loginID || b.principalAgentID == loginID)
+                                      && a.accLV < definePara.getDIMALV()
                                 select new{
                                     a.ID, a.account, a.userName, department="", position=""
                                 };
@@ -66,11 +68,12 @@ namespace practice_mvc02.Repositories
                 }else if(fDepart == "未指派" && fPosition != ""){
                     result = new List<object>(){};
                 }else{
-                    var query = (from a in _DbContext.accounts
+                    var query = ((from a in _DbContext.accounts
                                 join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
                                 from bb in noDepart.DefaultIfEmpty()
                                 join c in _DbContext.employeeprincipals on a.ID equals c.employeeID
-                                where c.principalID == loginID && a.userName.Contains(fName) && 
+                                where (c.principalID == loginID || c.principalAgentID == loginID) 
+                                    && a.userName.Contains(fName) && 
                                     bb.department.Contains(fDepart) && bb.position.Contains(fPosition)                                  
                                 select new {
                                     a.ID, a.account, a.userName,
@@ -85,7 +88,7 @@ namespace practice_mvc02.Repositories
                                         a.ID, a.account, a.userName,
                                         department=b.department, position=b.position,  
                                     }
-                                ).OrderBy(b=>b.department);
+                                ));
                     result = query.ToList();
                 }
             } 
@@ -282,7 +285,7 @@ namespace practice_mvc02.Repositories
                             join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                             join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
                             from d in noDepart.DefaultIfEmpty()
-                            where b.principalID == loginID
+                            where b.principalID == loginID || b.principalAgentID == loginID
                             select new{
                                 department=(d==null? "未指派":d.department)
                             });
@@ -293,7 +296,7 @@ namespace practice_mvc02.Repositories
                             select new{
                                 department=(c==null? "未指派" : c.department)
                             });
-                result = query.Union(myself).Distinct().OrderBy(b=>b.department).ToList();
+                result = (query.Union(myself)).ToList();
             }else{
                 result = (from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
@@ -305,22 +308,43 @@ namespace practice_mvc02.Repositories
             return result;
         }
 
+        public object GetDepartPosition(int loginID, bool cross){
+            object query = new List<string>(){};
+            if(!cross){
+                query = (from a in _DbContext.accounts
+                        join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
+                        join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
+                        from d in noDepart.DefaultIfEmpty()
+                        where b.principalID == loginID || b.principalAgentID == loginID || a.ID == loginID
+                        select new{
+                            department=(d==null? "未指派":d.department),
+                            position=(d==null? null:d.position)
+                        }).Distinct().ToList();
+            }else{
+                query = (from a in _DbContext.accounts
+                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                        from c in noDepart.DefaultIfEmpty()
+                        select new{
+                            department=(c==null? "未指派":c.department),
+                            position=(c==null? null:c.position)
+                        }).Distinct().ToList();
+            }
+            return query;
+        }
+
         public object GetPositionOption(int loginID, bool cross){
             object query = new List<string>(){};
             if(!cross){
-                var em = (from a in _DbContext.accounts
+                query = ((from a in _DbContext.accounts
                         join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
-                        where b.principalID == loginID
-                        select a).ToList();
-
-                query = (from a in em
-                        join b in _DbContext.departments on a.departmentID equals b.ID 
-                        select b.position).Union(
+                        join c in _DbContext.departments on a.departmentID equals c.ID
+                        where b.principalID == loginID || b.principalAgentID == loginID
+                        select c.position).Union(
                             from a in _DbContext.accounts
                             join b in _DbContext.departments on a.departmentID equals b.ID
-                            where a.ID == loginID 
+                            where a.ID == loginID
                             select b.position
-                        ).Distinct().ToList();
+                        )).ToList();
             }else{
                 query = _DbContext.departments.Select(b=>b.position).Distinct().ToList();
             }

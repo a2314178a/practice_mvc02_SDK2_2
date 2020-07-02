@@ -30,10 +30,19 @@ function init(){
 //#region  employee List
 function getFilterOption(){
     var successFn = function(res){
-        res.department.forEach(function(value){
-            $("#filterDepart").append(new Option(value.department, value.department));
+        var depart=[];
+        var position=[];
+        res.forEach(value=>{
+            depart.push(value.department);
+            position.push(value.position);
         });
-        res.position.forEach(function(value){
+        depart = depart.filter((value, key, arr)=>arr.indexOf(value)===key)
+        position = position.filter((value, key, arr)=>arr.indexOf(value)===key && value != null)
+
+        depart.forEach(function(value){
+            $("#filterDepart").append(new Option(value, value));
+        });
+        position.forEach(function(value){
             $("#filterPosition").append(new Option(value, value));
         });
     };

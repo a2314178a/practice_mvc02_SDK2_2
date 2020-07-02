@@ -169,6 +169,9 @@ function addUpApplyLeave(thisBtn, applyingID=0){
         else if(res == "noPrincipal"){
             alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!"); return;
         }
+        else if(res == "overEndWorkTime"){
+            alert("注意! 請假時長不得超過下班時間");
+        }
         cancelApplyLeave();
     }
     myObj.cudAjaxFn("/ApplyLeave/addUpApplyLeave", data, successFn);

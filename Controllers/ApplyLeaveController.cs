@@ -67,16 +67,18 @@ namespace practice_mvc02.Controllers
             };
 
             var hasPrincipal = Repository.ChkHasPrincipal((int)loginID);
-            if(!hasPrincipal){
+            if(!hasPrincipal){  //沒有代理人不可請假
                 return "noPrincipal";
             }
 
             applyData.endTime = getLeaveEndTime(applyData);
             applyData.accountID = applyData.lastOperaAccID = (int)loginID;
-
+            var isOverEndWorkTime = (applyData.note == "note_overEndWorkTime"? true : false);
+            applyData.note = data.note; //須改回原本的note
+            
             var leaveName = Repository.getApplyLeaveName(applyData.leaveID);
             if(leaveName == definePara.annualName()){
-                if(!Repository.chkEmployeeAnnualLeave(applyData)){
+                if(!Repository.chkEmployeeAnnualLeave(applyData)){  //特休不足不可請假
                     return "notEnough";
                 }
             }
@@ -91,6 +93,10 @@ namespace practice_mvc02.Controllers
             }else{
                 applyData.updateTime = definePara.dtNow();
                 result = Repository.UpdateApplyLeave(applyData);
+            }
+            
+            if(isOverEndWorkTime && applyData.unit ==3 && result ==1){
+                return "overEndWorkTime";
             }
             return result;
         }
@@ -126,20 +132,33 @@ namespace practice_mvc02.Controllers
                         }
                     }
                 }
+                data.unitVal = 1;   //須改為1 一個半天
             }else{  //天
                 data.startTime = wdt.sWorkDt.AddDays(offsetDay);
                 totalMin = (workLengthMinute - restLengthMinute)*data.unitVal;
             }
+
             var eTime = data.startTime;
             var iTmp = 1;
-            for(; iTmp<=totalMin; iTmp++){
+            var restLen_unit3 = 0; 
+            var add_restLen_flag = false;
+            for(; iTmp<=totalMin; iTmp++)
+            {
                 if(eTime.Hour == wdt.sRestDt.Hour && eTime.Minute == wdt.sRestDt.Minute){
-                    //if(data.unit != 3){
+                    if(data.unit != 3){
                         eTime = eTime.AddMinutes(restLengthMinute); //跳過休息時間
-                    //}else{  //小時
-                    //    var restHour = restLengthMinute/60;
-                    //}
+                    }else{  //小時
+                        add_restLen_flag = true;
+                    }
                 }
+                if(add_restLen_flag){
+                    restLen_unit3++;
+                    if(restLen_unit3 > restLengthMinute){
+                        restLen_unit3 = (int)restLengthMinute;
+                        add_restLen_flag = false;
+                    }
+                }
+
                 if(eTime.Hour == wdt.eWorkDt.Hour && eTime.Minute ==  wdt.eWorkDt.Minute){
                     //若接下來時間超過下班時間 跳到隔天的上班時間繼續加
                     eTime = eTime.AddDays(1).AddMinutes(-workLengthMinute); 
@@ -162,16 +181,21 @@ namespace practice_mvc02.Controllers
                     }while(flag); 
                 }
                 eTime = eTime.AddMinutes(1);
-                if(eTime.Hour==wdt.eWorkDt.Hour && eTime.Minute==wdt.eWorkDt.Minute){
+                if(eTime.Hour==wdt.eWorkDt.Hour && eTime.Minute==wdt.eWorkDt.Minute && data.unit==3){
                     break;
                 }
+            }//for(; iTmp<=totalMin; iTmp++)
+
+            if(data.unit==3){   //小時不用忽略休息時間 
+                if(iTmp < totalMin){   //若超過下班時間 以下班時間為底 
+                    var hour = iTmp/60;
+                    hour = iTmp%60 >0? (++hour) : hour; 
+                    data.unitVal = hour;    //unitVal為實際請假時數(開始時間到下班時間)
+                    data.note = "note_overEndWorkTime"; //用此判斷是否有超過下班時間
+                }
+                data.unitVal -= (int)(restLen_unit3/60);   //不過若有經過休息時間，unitVal需扣掉 
             }
 
-            if(data.unit==3 && iTmp <= totalMin){
-                var hour = iTmp/60;
-                hour = iTmp%60 >0? (++hour) : hour; 
-                data.unitVal = hour;
-            }
             return eTime;
         }
 

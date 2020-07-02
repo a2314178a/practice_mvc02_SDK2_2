@@ -103,11 +103,15 @@ namespace practice_mvc02.Repositories
 
         public string GetMyDepartClass(int loginID){
             var query = (from a in _DbContext.accounts
-                        join b in _DbContext.departments on a.departmentID equals b.ID
+                        join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
+                        from bb in noDepart.DefaultIfEmpty()
                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID into tmp
                         from d in tmp.DefaultIfEmpty()
                         where a.ID == loginID
-                        select new{b.department, name=(d==null? null:d.name)}).FirstOrDefault();
+                        select new{
+                            department=(bb==null? "未指派":bb.department), 
+                            name=(d==null? null:d.name)
+                        }).FirstOrDefault();
             return query != null? ($"全體,{query.department},{query.name}") : "全體";
         }
 

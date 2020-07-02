@@ -33,7 +33,7 @@ namespace practice_mvc02.Repositories
                 var baseQu = (from a in _DbContext.accounts
                             join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                             join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                            where b.principalID == qPara.loginID
+                            where b.principalID == qPara.loginID || b.principalAgentID == qPara.loginID
                             select new {a, b, c}).ToList();
                 if(qPara.departName == "未指派"){
                     query = baseQu.Where(d=>d.a.departmentID==0)
@@ -62,7 +62,7 @@ namespace practice_mvc02.Repositories
                                 }
                             ).ToList();
                 }else{
-                    query = (from d in baseQu
+                    query = ((from d in baseQu
                             join e in _DbContext.departments on d.a.departmentID equals e.ID into depart
                             from f in depart.DefaultIfEmpty()
                             select new exportXlsxData{
@@ -80,7 +80,7 @@ namespace practice_mvc02.Repositories
                                     department=(bb==null? "未指派":bb.department),
                                     position=(bb==null? "":bb.position)
                                 }
-                            ).OrderBy(b=>b.department).ToList();
+                            )).ToList();
                 }
             }
             else
@@ -167,7 +167,7 @@ namespace practice_mvc02.Repositories
                         join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                         join c in _DbContext.departments on a.departmentID equals c.ID into noDepart
                         from d in noDepart.DefaultIfEmpty()
-                        where b.principalID == loginID 
+                        where b.principalID == loginID || b.principalAgentID == loginID
                         select new{
                             department=(d==null? "未指派" : d.department)
                         });
@@ -178,7 +178,7 @@ namespace practice_mvc02.Repositories
                             select new{
                                 department=(c==null? "未指派" : c.department)
                             });
-                result = query.Union(myself).Distinct().OrderBy(b=>b.department).ToList();
+                result = (query.Union(myself)).ToList();
                 
             }else{
                 result = _DbContext.departments.Select(b=>new {department=b.department}).Distinct().ToList();
@@ -193,14 +193,16 @@ namespace practice_mvc02.Repositories
                 if(depart == "未指派"){
                     var noDepart = (from a in _DbContext.accounts
                                 join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
-                                where b.principalID == loginID && a.departmentID == 0 && a.accLV != definePara.getDIMALV()
+                                where (b.principalID == loginID || b.principalAgentID == loginID) 
+                                        && a.departmentID == 0 && a.accLV != definePara.getDIMALV()
                                 select new{ a.ID, a.userName }).ToList();
                     return noDepart;
                 }
                 var query = (from a in _DbContext.accounts
                             join b in _DbContext.employeeprincipals on a.ID equals b.employeeID
                             join c in _DbContext.departments on a.departmentID equals c.ID
-                            where c.department == depart && b.principalID == loginID
+                            where c.department == depart && 
+                                (b.principalID == loginID || b.principalAgentID == loginID)
                             select new {
                                 a.ID, a.userName
                             }).Union(

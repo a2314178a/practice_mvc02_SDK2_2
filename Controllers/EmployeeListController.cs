@@ -58,9 +58,7 @@ namespace practice_mvc02.Controllers
 
         public object getFilterOption(){
             var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
-            object departOption = Repository.GetDepartOption((int)loginID, crossDepart);
-            object positionOption = Repository.GetPositionOption((int)loginID, crossDepart);
-            return new{department = departOption, position = positionOption};
+            return Repository.GetDepartPosition((int)loginID, crossDepart);
         }
 
         public object getAccountDetail(int employeeID){
