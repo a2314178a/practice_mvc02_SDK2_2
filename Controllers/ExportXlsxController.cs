@@ -56,6 +56,7 @@ namespace practice_mvc02.Controllers
             var tableData = xlsxFn.createXlsxPunchLog(file, exportPara);
             if(tableData != null){
                 _session.SetString("punchLogXlsxFile", Path.Combine(subFolder, sFileName)); //若下載是從根目錄開始算
+				_session.SetInt32("hasPunchXlsxFile", 1);
             }
             return tableData;
         }
@@ -75,5 +76,13 @@ namespace practice_mvc02.Controllers
             var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
             return Repository.GetDepartmentEmployee(depart, (int)loginID, crossDepart);
         }
+		
+		public IActionResult delPunchXlsxReport(){
+            var removeXlsx = new RemoveXlsxFile(_hostingEnvironment);
+            removeXlsx.start(0);
+            _session.SetInt32("hasPunchXlsxFile", 0);
+            return RedirectToAction("logOut", "Home");
+        }
+		
     }
 }

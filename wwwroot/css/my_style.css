@@ -1,6 +1,6 @@
 ﻿
 .allAccount_table, .allDepartment_table, .punchLog_table, 
-.allTimeRule_table, .allGroup_table, .specialDate_table,
+.allGroup_table, .specialDate_table,
 .timeTotal_table, .annualLeave_table{
   text-align:center;
   margin-left:auto; 
@@ -8,7 +8,8 @@
   font-size:30px;
   word-break:break-all;
 }
-.punchLogWarn_table, .applyLeave_table, .message_table, .leave_table, .myDetail{
+.punchLogWarn_table, .applyLeave_table, .message_table,
+ .leave_table, .myDetail, .allTimeRule_table{
   text-align:center;
   margin-left:auto; 
   margin-right:auto;

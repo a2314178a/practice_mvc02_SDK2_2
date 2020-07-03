@@ -9,6 +9,12 @@ $(document).ready(function() {
         $(".add_timeRule").show();
         $('.btnActive').css('pointer-events', "");
     });
+
+    $("#timeRuleDiv").on("input", "input[name='newElasticityMin']", function(){
+        var val = $(this).val();
+        val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉，除了數字
+        $(this).val(val);
+    });
 });//.ready function
 
 function showSetRulePage(page){
@@ -63,6 +69,7 @@ function refreshTimeRuleList(res){
         row.find("[name='name']").text(value.name);
         row.find("[name='startTime']").text(value.startTime);
         row.find("[name='endTime']").text(value.endTime);
+        row.find("[name='elasticityMin']").text(value.elasticityMin + "分鐘");
         row.find("[name='sRestTime']").text(value.sRestTime);
         row.find("[name='eRestTime']").text(value.eRestTime);
         row.find(".edit_timeRule").attr("onclick", `editTimeRule(this, ${value.id});`);
@@ -90,13 +97,19 @@ function addUpTimeRule(thisBtn, ID=0){
     var endTime = thisRow.find("[name='newEndTime']").val();
     var sRestTime = thisRow.find("[name='newSRestTime']").val();
     var eRestTime = thisRow.find("[name='newERestTime']").val();
+    var elasticityMin = thisRow.find("[name='newElasticityMin']").val();
 
-    if(name == "" || startTime =="" || endTime == "" || sRestTime == "" || eRestTime == ""){
-        alert("欄位不可為空");
+    if(elasticityMin >60 || isNaN(parseInt(elasticityMin))){
+        alert("彈性時間不合法或者超過60分鐘");
+        return;
+    }
+    if(startTime =="" || endTime == "" || sRestTime == "" || 
+        eRestTime == "" || name == "" || elasticityMin=="" ){
+        alert("欄位值不能為空");
         return;
     }
     var data = {
-        ID, name, startTime, endTime, sRestTime, eRestTime   
+        ID, name, startTime, endTime, sRestTime, eRestTime, elasticityMin 
     };
 
     var successFn = function(res){
@@ -128,11 +141,14 @@ function editTimeRule(thisBtn, timeRuleID){
     var thisEndTime = thisRow.find("[name='endTime']").text();
     var thisSRestTime = thisRow.find("[name='sRestTime']").text();
     var thisERestTime = thisRow.find("[name='eRestTime']").text();
+    var thisElasticityMin = thisRow.find("[name='elasticityMin']").text();
+    thisElasticityMin = parseInt(thisElasticityMin);
 
     var updateRuleRow = $(".template").find("[name='addTimeRuleRow']").clone();
     updateRuleRow.find("input[name='newName']").val(thisName);
     updateRuleRow.find("input[name='newStartTime']").val(thisStartTime);
     updateRuleRow.find("input[name='newEndTime']").val(thisEndTime);
+    updateRuleRow.find("input[name='newElasticityMin']").val(thisElasticityMin);
     updateRuleRow.find("input[name='newSRestTime']").val(thisSRestTime);
     updateRuleRow.find("input[name='newERestTime']").val(thisERestTime);
     updateRuleRow.find("a.create_timeRule").remove();

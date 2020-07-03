@@ -88,6 +88,7 @@ namespace practice_mvc02.Repositories
                     context.endTime = updateData.endTime;
                     context.sRestTime = updateData.sRestTime;
                     context.eRestTime = updateData.eRestTime;
+                    context.elasticityMin = updateData.elasticityMin;
                     context.lastOperaAccID = updateData.lastOperaAccID;
                     context.updateTime = updateData.updateTime;
                     count = _DbContext.SaveChanges();

@@ -5,6 +5,7 @@ namespace practice_mvc02.Models
     {
         public DateTime sWorkDt {get; set;}  //online work dateTime
         public DateTime eWorkDt {get; set;}   //offline work dateTime
+        public int elasticityMin {get; set;}    //彈性時間
         public DateTime sPunchDT {get; set;}  //可打卡時間
         public DateTime ePunchDT {get; set;}
         public DateTime sRestDt {get; set;} //開始休息時間

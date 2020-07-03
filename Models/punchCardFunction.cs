@@ -135,6 +135,7 @@ namespace practice_mvc02.Models
                 wt.eWorkDt = wt.eWorkDt <= wt.sWorkDt ? wt.eWorkDt.AddDays(1) : wt.eWorkDt;  
                 wt.sPunchDT = wt.sWorkDt.AddHours(lessStHour);
                 wt.ePunchDT = wt.eWorkDt.AddHours(addEtHour);
+                wt.elasticityMin = thisWorkTime.elasticityMin;
                 if(customLog == null){
                     if(definePara.dtNow() >= wt.ePunchDT){
                         wt.sPunchDT = wt.sPunchDT.AddDays(1);
@@ -187,6 +188,7 @@ namespace practice_mvc02.Models
             if(wt.workAllTime){
                 return psCode.normal;
             }
+            var elasticityMin = wt.elasticityMin;
             List<LeaveOfficeApply> thisLeave = new List<LeaveOfficeApply>();
             if(leave == null){
                 thisLeave = Repository.GetThisTakeLeave(processLog.accountID, wt.sWorkDt, wt.eWorkDt);
@@ -210,12 +212,16 @@ namespace practice_mvc02.Models
                 statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
             }
             else if(processLog.onlineTime.Year > 1 && processLog.offlineTime.Year > 1){
-                statusCode = processLog.onlineTime > (wt.sWorkDt.AddSeconds(59))? (statusCode | psCode.lateIn) : statusCode;
-                statusCode = processLog.offlineTime < wt.eWorkDt? (statusCode | psCode.earlyOut) : statusCode;
+                var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin).AddSeconds(59);
+                statusCode = processLog.onlineTime > newStartWt? (statusCode | psCode.lateIn) : statusCode;
+                var timeLen = (int)((processLog.onlineTime - wt.sWorkDt).TotalMinutes);
+                timeLen = (timeLen < 0 || timeLen >elasticityMin)? 0: timeLen; 
+                statusCode = processLog.offlineTime< wt.eWorkDt.AddMinutes(timeLen)? (statusCode | psCode.earlyOut):statusCode;
             }
             else{
                 if(processLog.onlineTime.Year > 1){ //只有填上班
-                    statusCode = processLog.onlineTime > (wt.sWorkDt.AddSeconds(59))? (statusCode | psCode.lateIn) : statusCode;
+                    var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin).AddSeconds(59);
+                    statusCode = processLog.onlineTime > newStartWt? (statusCode | psCode.lateIn) : statusCode;
                     statusCode = definePara.dtNow() >= wt.ePunchDT ? (statusCode | psCode.hadLost) : statusCode; //打不到下班卡了
                 }
                 else{   //只有填下班

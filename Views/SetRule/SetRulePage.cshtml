@@ -44,6 +44,7 @@
                                             <th scope="col">班別名稱</th>
                                             <th scope="col">上班時間</th>
                                             <th scope="col">下班時間</th>
+                                            <th scope="col">彈性時間</th>
                                             <th scope="col">開始休息時間</th> 
                                             <th scope="col">結束休息時間</th>
                                             <th scope="col">管理動作</th>
@@ -142,9 +143,10 @@
                         <td scope="col" name="name"></td>
                         <td scope="col" name="startTime"></td>
                         <td scope="col" name="endTime"></td>
+                        <td scope="col" name="elasticityMin"></td>
                         <td scope="col" name="sRestTime"></td>
                         <td scope="col" name="eRestTime"></td>
-                        <td scope="col" width="20%">
+                        <td scope="col">
                             <a href="javascript:void(0);" class="btn btn-primary edit_timeRule btnActive" >編輯</a>
                             <a href="javascript:void(0);" class="btn btn-danger del_timeRule btnActive" >刪除</a>
                         </td>
@@ -159,6 +161,9 @@
                         <td scope="col" name="endTime">
                             <input type='time' name="newEndTime" style='zoom:75%'>
                         </td>
+                        <td scope="col" name="elasticityMin">
+                            <input type='number' min="0" max="60" name="newElasticityMin" style="width:75px" value="0">
+                        </td>
                         <td scope="col" name="sRestTime"> 
                             <input type='time' name="newSRestTime" style='zoom:75%'>
                         </td>
@@ -166,7 +171,7 @@
                             <input type='time' name="newERestTime" style='zoom:75%'>
                         </td>
 
-                        <td scope="col" width="20%">
+                        <td scope="col">
                             <a href="javascript:void(0);" class="btn btn-primary create_timeRule" >新增</a>
                             <a href="javascript:void(0);" class="btn btn-primary update_timeRule" >更新</a>
                             <a href="javascript:void(0);" class="btn btn-danger cancel_timeRule" >取消</a>

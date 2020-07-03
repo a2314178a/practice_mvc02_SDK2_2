@@ -212,6 +212,7 @@ namespace practice_mvc02.Models
             Dic.Add("eWorkTime", data.endTime.ToString(@"hh\:mm"));
             Dic.Add("sRestTime", data.sRestTime.ToString(@"hh\:mm"));
             Dic.Add("eRestTime", data.eRestTime.ToString(@"hh\:mm"));
+            Dic.Add("elasticityMin", data.elasticityMin.ToString());
         }
 
         public string AddUpTimeRule_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
@@ -230,6 +231,7 @@ namespace practice_mvc02.Models
             }else{
                 txt += $"休息時間:{nDic["sRestTime"]}~{nDic["eRestTime"]}，";
             }
+            txt += "彈性時間:"+ (nDic["elasticityMin"]==oDic["elasticityMin"]? $"{nDic["elasticityMin"]}，" : $"{oDic["elasticityMin"]}=>{nDic["elasticityMin"]}，");
             return txt.Substring(0,txt.Length - 1);
         }
 

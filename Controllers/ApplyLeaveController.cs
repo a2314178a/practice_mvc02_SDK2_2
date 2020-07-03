@@ -172,10 +172,12 @@ namespace practice_mvc02.Controllers
                                 flag = false;
                             }
                         }else{  //1:休假 2:上班     
-                            if(spDate.status == 1 && Array.IndexOf(myDepartClass, spDate.departClass) >-1){ 
-                                eTime = eTime.AddDays(1);
-                            }else{
+                            if((spDate.status == 2 && Array.IndexOf(myDepartClass, spDate.departClass) >-1) ||
+                                (spDate.status == 1 && Array.IndexOf(myDepartClass, spDate.departClass) == -1)
+                                ){ 
                                 flag = false;
+                            }else{
+                                eTime = eTime.AddDays(1);
                             }
                         }
                     }while(flag); 

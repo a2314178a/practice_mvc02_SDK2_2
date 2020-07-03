@@ -23,7 +23,7 @@ namespace practice_mvc02.Models
         // Begin 起始時間；Interval執行時間間隔，單位是毫秒，建議使用以下格式，ex:3小時(1000 * 3600 * 3)；
         //SkipWhileExecuting是否等待上一個執行完成，true為等待；
         //[Invoke(Begin = "2016-11-29 22:10", Interval = 1000 * 3600*3, SkipWhileExecuting =true)]
-        [Invoke(Begin = "2020-02-21 16:04", Interval = 1000*3600*24, SkipWhileExecuting =true, IsEnabled = true)] //1000*3600*24
+        [Invoke(Begin = "2020-02-21 16:04", Interval = 1000*3600*24, SkipWhileExecuting =true, IsEnabled = false)] //1000*3600*24
         public void Run()
         {
             Console.WriteLine("Start removeXlsxFileJob------"+definePara.dtNow());

@@ -103,6 +103,11 @@ namespace practice_mvc02.Controllers
         }
 
         public IActionResult logOut(){ 
+            if((ruleVal & ruleCode.departEmployeeList) >0 || (ruleVal & ruleCode.allEmployeeList) >0){
+                if((_session.GetInt32("hasPunchXlsxFile")) == 1){   //有產生打卡報表Xlsx
+                    return RedirectToAction("delPunchXlsxReport", "ExportXlsx");    //刪除Xlsx
+                }
+            }
             ViewBag.Auth = "N";
             _session.Clear();
             return View("Index");
