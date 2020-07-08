@@ -141,7 +141,12 @@
 
         @section Scripts{
             <script src="~/js/baseJS.js" type="text/javascript"></script>	 
-            <script src="~/js/message.js" type="text/javascript"></script>
+            <script src="~/js/messagePage/messagePage.js" type="text/javascript"></script>
+            @if(ViewBag.Page == "new" || ViewBag.Page == "all" || ViewBag.Page == "backup"){
+                <script src="~/js/messagePage/getMessage.js" type="text/javascript"></script>
+            }else if(ViewBag.Page == "write"){
+                <script src="~/js/messagePage/writeMessage.js" type="text/javascript"></script>
+            }
         }	 
 	</body>
 </html>

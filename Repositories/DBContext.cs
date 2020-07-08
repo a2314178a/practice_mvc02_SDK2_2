@@ -95,7 +95,8 @@ namespace practice_mvc02.Repositories
 
             modelBuilder.Entity<WorkTimeRule>(entity=>{
                 entity.Property(b=>b.name).HasColumnType("varchar(255)");
-                entity.HasIndex(b=> new{b.startTime, b.endTime}).IsUnique();
+				entity.Property(b=>b.type).HasColumnType("int(1)");
+                //entity.HasIndex(b=> new{b.startTime, b.endTime}).IsUnique();
             });    
 
             modelBuilder.Entity<workTimeTotal>(entity=>{

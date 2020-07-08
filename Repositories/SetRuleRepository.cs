@@ -27,6 +27,11 @@ namespace practice_mvc02.Repositories
             result = query.ToList();
             return result;
         }*/
+        public bool chkSameWorkTime(WorkTimeRule newRule){
+            var query = _DbContext.worktimerules.FirstOrDefault(
+                b=>b.startTime==newRule.startTime && b.endTime==newRule.endTime);
+            return (query == null || query.ID == newRule.ID)? false : true;
+        }
 
         public int AddTimeRule(WorkTimeRule newRule){
             int count = 0;
@@ -64,6 +69,13 @@ namespace practice_mvc02.Repositories
                 count = _DbContext.SaveChanges();
             }
             if(count ==1){
+                var query = _DbContext.accounts.Where(b=>b.timeRuleID == id).ToList();
+                foreach(var tmp in query){
+                    tmp.timeRuleID = 0;
+                    tmp.lastOperaAccID  = 0;
+                    tmp.updateTime = definePara.dtNow();
+                    _DbContext.SaveChanges();
+                }
                 opLog.content = toNameFn.AddUpTimeRule_convertToText(dic);
                 saveOperateLog(opLog);    //紀錄操作紀錄
             }
@@ -84,6 +96,7 @@ namespace practice_mvc02.Repositories
                     toNameFn.AddUpTimeRule_convertToDic(ref oDic, context);
 
                     context.name = updateData.name;
+                    context.type = updateData.type;
                     context.startTime = updateData.startTime;
                     context.endTime = updateData.endTime;
                     context.sRestTime = updateData.sRestTime;

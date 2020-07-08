@@ -47,15 +47,21 @@ namespace practice_mvc02.Controllers
            return Repository.GetAllTimeRule();
        }
 
-        public int addUpTimeRule(WorkTimeRule data){
+        public dynamic addUpTimeRule(WorkTimeRule data){
+            bool hasSame = Repository.chkSameWorkTime(data);
+            var result = 0;
             data.lastOperaAccID = (int)loginID;
             if(data.ID==0){
                 data.createTime = definePara.dtNow();
-                return Repository.AddTimeRule(data);
+                result = Repository.AddTimeRule(data);
             }else{
                 data.updateTime = definePara.dtNow();
-                return Repository.UpdateTimeRule(data);
+                result = Repository.UpdateTimeRule(data);
             }
+            if(hasSame && result == 1){
+                return "same";
+            }
+            return result;
         }
 
         public int delTimeRule(int timeRuleID){

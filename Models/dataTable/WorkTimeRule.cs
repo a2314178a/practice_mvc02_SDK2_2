@@ -9,6 +9,8 @@ namespace practice_mvc02.Models.dataTable
         [Key]
         public int ID {get;set;}
         public string name {get; set;}
+        public byte type {get; set;}
+
         [Column(TypeName="time")]
         public TimeSpan startTime {get; set;}
         [Column(TypeName="time")]

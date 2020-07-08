@@ -13,10 +13,15 @@
   text-align:center;
   margin-left:auto; 
   margin-right:auto;
-  font-size:24px;
+  font-size:22px;
   word-break:break-all;
 }
 
+.template, .newRestType, .noDisplay{
+  display:none;
+}
+
+/*-----employeeDetail-----*/
 .employeeDetail .detailTitleTd{
   font-size: 18px;
 
@@ -25,6 +30,7 @@
   font-size: 18px;
 }
 
+/*-----setRule leave-----*/
 #leaveTimeDiv, #annualLeaveDiv{
   margin: auto;
   width: 60%;
@@ -33,6 +39,7 @@
   width: 33%;
 }
 
+/*-----applyLeave-----*/
 .applyLeave_table > tbody > tr > td{
   padding: 12px 6px;
 }
@@ -46,18 +53,14 @@ td{
   margin: 3px;
 }
 
+/*-----setRule group-----*/
 #groupList td[name='groupAuthority']{
   text-align:left !important;
 }
 
-.template, .newRestType, .noDisplay{
-  display:none;
-}
-
-#rePunchBtn{
-  display: none;
-  position: relative;
-  left: 5px;
+/*-----setRule timeRule-----*/
+.allTimeRule_table td{
+  padding: 6px 2px;
 }
 
 
@@ -85,6 +88,7 @@ select, input, ul[group='table']{
   margin: 5px;
 }
 
+/*-----messagePage-----*/
 #messagePage input[type="checkbox"]{
   width: 20px; 
   height: 20px; 
@@ -92,11 +96,9 @@ select, input, ul[group='table']{
 #writeMsgDiv{
   text-align: center;
 }
-
 .message_table #msgProcess{
   font-size: 16px;
 }
-
 .writeMsg_table{
   text-align:center;
   margin-left:auto; 
@@ -105,24 +107,20 @@ select, input, ul[group='table']{
   word-break:break-all;
   max-width: 700px;
 }
-
 .writeMsg_table .msgTitle{
   padding: 6px ;
   width: 100px !important;
 }
-
 .writeMsg_table #msgTitle{
   width: 550px;
   height: 50px;
 }
-
 .writeMsg_table #content{
   width: 550px;
   height: 500px;
 }
 
-
-
+/*-----punchLogPage-----*/
 .calendar_table{
   width: 60%;
   text-align:center;
@@ -164,7 +162,7 @@ select, input, ul[group='table']{
   background: linear-gradient(45deg,#F006,#00F6);
 }
 
-
+/*-----edit employee-----*/
 #thisManagerDiv{
   display:inline-block; 
   vertical-align:middle;
@@ -180,7 +178,7 @@ select, input, ul[group='table']{
   margin:auto 40px;
 }
 
-
+/*-----employee annualLeave edit-----*/
 .annualLeave_table th,.annualLeave_table td{
   width: 25%;
 }

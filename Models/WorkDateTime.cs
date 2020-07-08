@@ -3,6 +3,7 @@ namespace practice_mvc02.Models
 {
     public class WorkDateTime
     {
+        public byte type {get; set;}
         public DateTime sWorkDt {get; set;}  //online work dateTime
         public DateTime eWorkDt {get; set;}   //offline work dateTime
         public int elasticityMin {get; set;}    //彈性時間

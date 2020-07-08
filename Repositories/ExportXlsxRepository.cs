@@ -38,82 +38,67 @@ namespace practice_mvc02.Repositories
                 if(qPara.departName == "未指派"){
                     query = baseQu.Where(d=>d.a.departmentID==0)
                                     .Select(d=>new exportXlsxData{
-                                        accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
+                                        accID=d.a.ID, name=d.a.userName, 
+                                        workClass=(d.c.name+ (d.c.type==1? "(排休制)":"(固定制)")),
                                         department="未指派", position=""
                                     }).ToList();
-                }
-                else if(qPara.departName != "所有部門"){
-                    query = (from d in baseQu
-                            join e in _DbContext.departments on d.a.departmentID equals e.ID
-                            where (e.department.Contains(qPara.departName))
-                            select new exportXlsxData{
-                                accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
-                                department=e.department, position=e.position
-                            }).Union(
-                                from a in _DbContext.accounts
-                                join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
-                                from bb in noDepart.DefaultIfEmpty()
-                                join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                                where a.ID == qPara.loginID && bb.department.Contains(qPara.departName)
-                                select new exportXlsxData{
-                                    accID=a.ID, name=a.userName, workClass=c.name, 
-                                    department=(bb==null? "未指派":bb.department),
-                                    position=(bb==null? "":bb.position)
-                                }
-                            ).ToList();
-                }else{
-                    query = ((from d in baseQu
-                            join e in _DbContext.departments on d.a.departmentID equals e.ID into depart
-                            from f in depart.DefaultIfEmpty()
-                            select new exportXlsxData{
-                                accID=d.a.ID, name=d.a.userName, workClass=d.c.name,
-                                department=(f==null? "未指派":f.department), 
-                                position=(f==null? "":f.position)
-                            }).Union(
-                                from a in _DbContext.accounts
+                }else{  //XX部門  所有部門
+                    var myData = (from a in _DbContext.accounts
                                 join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
                                 from bb in noDepart.DefaultIfEmpty()
                                 join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
                                 where a.ID == qPara.loginID
-                                select new exportXlsxData{
-                                    accID=a.ID, name=a.userName, workClass=c.name, 
-                                    department=(bb==null? "未指派":bb.department),
-                                    position=(bb==null? "":bb.position)
-                                }
-                            )).ToList();
+                                select new {
+                                    acc=a, depart=bb, wt=c
+                                }).ToList();
+
+                    if(qPara.departName != "所有部門"){
+                        var tmp = (from d in baseQu
+                            join e in _DbContext.departments on d.a.departmentID equals e.ID
+                            where (e.department.Contains(qPara.departName))
+                            select new{acc=d.a, depart=e, wt=d.c}).ToList();
+                        myData = myData.Where(k=>k.depart.department.Contains(qPara.departName)).Union(tmp).ToList();
+                    }else{
+                        var tmp = (from d in baseQu
+                                join e in _DbContext.departments on d.a.departmentID equals e.ID into depart
+                                from f in depart.DefaultIfEmpty()
+                                select new {acc=d.a, depart=f, wt=d.c}).ToList();
+                        myData = myData.Union(tmp).ToList();                
+                    }
+                    query = myData.Select(k=>new exportXlsxData{
+                                accID=k.acc.ID, name=k.acc.userName, 
+                                workClass=(k.wt.name+ (k.wt.type==1? "(排休制)":"(固定制)")),
+                                department=(k.depart==null? "未指派":k.depart.department), 
+                                position=(k.depart==null? "":k.depart.position)
+                    }).ToList(); 
                 }
             }
-            else
+            else    //所有部門
             {
                 if(qPara.departName == "未指派"){
                     query = (from a in _DbContext.accounts
                             join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
                             where a.departmentID == 0 && a.accLV != definePara.getDIMALV()
                             select new exportXlsxData{
-                                accID=a.ID, name=a.userName, workClass=b.name, 
+                                accID=a.ID, name=a.userName, 
+                                workClass=(b.name + (b.type==1? "(排休制)":"(固定制)")), 
                                 department="未指派", position=""
                             }).ToList();
-                }
-                else if(qPara.departName != "所有部門"){
-                    query = (from a in _DbContext.accounts
-                            join b in _DbContext.departments on a.departmentID equals b.ID
-                            join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                            where b.department.Contains(qPara.departName)
-                            select new exportXlsxData{
-                                accID=a.ID, name=a.userName, workClass=c.name, 
-                                department=b.department, position=b.position
-                            }).ToList();
-                }
-                else{
-                    query = (from a in _DbContext.accounts
+                }else{
+                    var tmp = (from a in _DbContext.accounts
                             join b in _DbContext.departments on a.departmentID equals b.ID into noDepart
                             from bb in noDepart.DefaultIfEmpty()
                             join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
-                            select new exportXlsxData{
-                                accID=a.ID, name=a.userName, workClass=c.name, 
-                                department=(bb==null? "未指派":bb.department),
-                                position=(bb==null? "":bb.position)
-                            }).ToList();
+                            select new { acc=a, depart=bb, wt=c}).ToList();
+                    if(qPara.departName != "所有部門"){
+                        tmp = tmp.Where(k=>k.depart != null && k.depart.department.Contains(qPara.departName)).ToList();
+                    }
+                    query = tmp.Select(k=>new exportXlsxData{
+                        accID=k.acc.ID, name=k.acc.userName, 
+                        workClass=(k.wt.name + (k.wt.type==1? "(排休制)":"(固定制)")), 
+                        department=(k.depart==null? "未指派":k.depart.department),
+                        position=(k.depart==null? "":k.depart.position)
+                    }).ToList();
                 }
             }
             return query;
@@ -126,7 +111,8 @@ namespace practice_mvc02.Repositories
                         join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
                         where a.ID == qPara.accID
                         select new exportXlsxData{
-                            accID=a.ID, name=a.userName, workClass=c.name,
+                            accID=a.ID, name=a.userName, 
+                            workClass=(c.name + (c.type==1? "(排休制)":"(固定制)")),
                             startTime=c.startTime, endTime=c.endTime, 
                             department=(bb==null? "未指派":bb.department),
                             position=(bb==null? "":bb.position)

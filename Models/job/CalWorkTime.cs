@@ -24,7 +24,7 @@ namespace practice_mvc02.Models
         }    
 
         private void calEmployeeWorkTime(){
-            var workEmployee = Repository.GetNeedPunchAcc("全體", 2);
+            var workEmployee = Repository.GetNeedPunchAcc("全體", 2, false);
             var dtNow = definePara.dtNow();
             var startDT = dtNow.AddDays(1 - dtNow.Day).Date;
             var endDT = startDT.AddMonths(1).AddDays(-1).Date;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using practice_mvc02.Models.dataTable;
 using practice_mvc02.Repositories;
+using System.Linq;
 using practice_mvc02.Models;
 
 namespace practice_mvc02.Models
@@ -28,25 +29,16 @@ namespace practice_mvc02.Models
             var targetDate = (definePara.dtNow().Date).AddDays(-rangeDay);
             var spDate = Repository.GetThisSpecialDate(targetDate);
             List<Account> needPunchAcc = new List<Account>(){};  
-            /*
-            Dictionary<int, bool> isRest = new Dictionary<int, bool>(){};
-            if(test.ContainsKey(1)){
-                Console.WriteLine(test[1]);
-            }
-            */
 
             if(spDate == null){
+                var weekFilter = false; //排除固定制六日不用上班的人員
                 if((targetDate.DayOfWeek.ToString("d")== "0" || targetDate.DayOfWeek.ToString("d")== "6")){
-                    return;
-                }else{
-                    needPunchAcc = Repository.GetNeedPunchAcc("全體", 2);
+                    weekFilter = true;
                 }
-            }else{
-                if(spDate.status == 1 && spDate.departClass=="全體"){ //1:休假 2:上班
-                    return;
-                }else{  //全體 上班 , 個別 休假
-                    needPunchAcc = Repository.GetNeedPunchAcc(spDate.departClass, spDate.status);
-                }
+                needPunchAcc = Repository.GetNeedPunchAcc("全體", 2, weekFilter);   //type 1:休假 2:上班
+                
+            }else{  //有特殊日期
+                needPunchAcc = Repository.GetNeedPunchAcc(spDate.departClass, spDate.status, false);
             }
             
             foreach(var employee in needPunchAcc){

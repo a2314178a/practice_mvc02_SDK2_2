@@ -89,7 +89,7 @@ namespace practice_mvc02.Repositories
             var query = (from a in _DbContext.worktimerules
                         orderby a.startTime
                         select new {
-                            a.ID, a.name, a.startTime, a.endTime, 
+                            a.ID, a.name, a.type, a.startTime, a.endTime, 
                             a.sRestTime, a.eRestTime, a.elasticityMin
                         });
             result = query.ToList();

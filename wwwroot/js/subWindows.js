@@ -107,7 +107,8 @@ function setTimeOption(res){
     var timeRule = $("select[name='timeRule']");
     res.forEach(function(value){
         myObj.workTimeSpanToTime(value);
-        var text = value.name + " - 上班時間 : " + value.startTime + " ~ " + value.endTime;
+        var txt = value.type==1? "(排休制)" : "(固定制)";
+        var text = `${value.name} ${txt} - 上班時間 : ${value.startTime} ~ ${value.endTime}`;
         timeRule.append(new Option(text, value.id));
     });
 }

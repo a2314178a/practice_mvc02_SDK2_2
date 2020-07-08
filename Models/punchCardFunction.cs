@@ -124,11 +124,12 @@ namespace practice_mvc02.Models
                 }
             }                             
             if(thisWorkTime != null)
-            { 
+            {
                 sRest_start = thisWorkTime.sRestTime - thisWorkTime.startTime;
                 sRest_start = sRest_start.TotalSeconds <0? sRest_start.Add(new TimeSpan(1, 0, 0, 0)) : sRest_start;
                 eRest_sRest = thisWorkTime.eRestTime - thisWorkTime.sRestTime;
                 eRest_sRest = eRest_sRest.TotalSeconds <0? eRest_sRest.Add(new TimeSpan(1, 0, 0, 0)) : eRest_sRest;
+                wt.type = thisWorkTime.type;
                 wt.workAllTime = false;    
                 wt.sWorkDt = wt.sWorkDt + thisWorkTime.startTime;  
                 wt.eWorkDt = wt.eWorkDt + thisWorkTime.endTime; 

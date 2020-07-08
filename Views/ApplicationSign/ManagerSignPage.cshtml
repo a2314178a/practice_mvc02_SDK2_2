@@ -163,7 +163,13 @@
 	
         @section Scripts{
             <script src="~/js/baseJS.js" type="text/javascript"></script>	 
-            <script src="~/js/applySign.js" type="text/javascript"></script>
+            <script src="~/js/applySignPage/applySignPage.js" type="text/javascript"></script>
+            @if(ViewBag.Page == "punch"){
+                <script src="~/js/applySignPage/punchWarnSign.js" type="text/javascript"></script>
+            }else if(ViewBag.Page == "leave" || ViewBag.Page =="leaveLog"){
+                <script src="~/js/applySignPage/leaveSign.js" type="text/javascript"></script>
+            }
+
         }
         	 
 	</body>

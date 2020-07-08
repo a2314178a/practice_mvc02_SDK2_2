@@ -208,6 +208,7 @@ namespace practice_mvc02.Models
         public void AddUpTimeRule_convertToDic(ref Dictionary<string, string> Dic, WorkTimeRule data){
             data = (data==null? new WorkTimeRule() : data);
             Dic.Add("ruleName", data.name);
+            Dic.Add("type", data.type==1? "排休制":"固定制");
             Dic.Add("sWorkTime", data.startTime.ToString(@"hh\:mm"));
             Dic.Add("eWorkTime", data.endTime.ToString(@"hh\:mm"));
             Dic.Add("sRestTime", data.sRestTime.ToString(@"hh\:mm"));
@@ -221,6 +222,7 @@ namespace practice_mvc02.Models
             }
             var txt ="";
             txt += "班別名稱:"+ (nDic["ruleName"]==oDic["ruleName"]? $"{nDic["ruleName"]}，" : $"{oDic["ruleName"]}=>{nDic["ruleName"]}，");
+            txt += "類型:"+ (nDic["type"]==oDic["type"]? $"{nDic["type"]}，" : $"{oDic["type"]}=>{nDic["type"]}，");
             if(nDic["sWorkTime"]!=oDic["sWorkTime"] || nDic["eWorkTime"]!=oDic["eWorkTime"]){
                 txt += $"工作時間:{oDic["sWorkTime"]}~{oDic["eWorkTime"]}=>{nDic["sWorkTime"]}~{nDic["eWorkTime"]}，";
             }else{
@@ -335,7 +337,7 @@ namespace practice_mvc02.Models
                         }).FirstOrDefault();
             data = (data==null? new EmployeeAnnualLeave() : data);
 
-            Dic.Add("seniority", query.seniority==0.5? "6個月" : $"{query.seniority}年");
+            Dic.Add("seniority", query==null? "不存在" : query.seniority==0.5? "6個月" : $"{query.seniority}年");
             Dic.Add("spDays", data.specialDays.ToString());
 
             var dayToHour = definePara.dayToHour();

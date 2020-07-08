@@ -162,8 +162,8 @@ namespace practice_mvc02.Controllers
                 if(eTime.Hour == wdt.eWorkDt.Hour && eTime.Minute ==  wdt.eWorkDt.Minute){
                     //若接下來時間超過下班時間 跳到隔天的上班時間繼續加
                     eTime = eTime.AddDays(1).AddMinutes(-workLengthMinute); 
-                    var flag = true;    //判斷是否休假日 有就略過
-                    do{
+                    var flag = wdt.type==1? false : true;    //1:排休制(都要上班) 0:固定制
+                    while(flag){    //判斷是否休假日 有就略過
                         var spDate = RepositoryPunch.GetThisSpecialDate(eTime); //是否有特殊日期
                         if(spDate == null){     //DayOfWeek.ToString("d") 轉換成星期幾
                             if((eTime.DayOfWeek.ToString("d")== "0" || eTime.DayOfWeek.ToString("d")== "6")){
@@ -180,7 +180,7 @@ namespace practice_mvc02.Controllers
                                 eTime = eTime.AddDays(1);
                             }
                         }
-                    }while(flag); 
+                    } 
                 }
                 eTime = eTime.AddMinutes(1);
                 if(eTime.Hour==wdt.eWorkDt.Hour && eTime.Minute==wdt.eWorkDt.Minute && data.unit==3){
