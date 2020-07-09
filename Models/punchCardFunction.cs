@@ -209,20 +209,22 @@ namespace practice_mvc02.Models
                 statusCode |= psCode.takeLeave;
             }
 
-            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1){
+            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1  &&
+                processLog.logDate.AddDays(1) < definePara.dtNow()
+                ){
                 statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
             }
             else if(processLog.onlineTime.Year > 1 && processLog.offlineTime.Year > 1){
-                var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin).AddSeconds(59);
-                statusCode = processLog.onlineTime > newStartWt? (statusCode | psCode.lateIn) : statusCode;
+                var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin +1);   //+1因遲到以時分為主 09:00:59 也不算遲到
+                statusCode = processLog.onlineTime >= newStartWt? (statusCode | psCode.lateIn) : statusCode;
                 var timeLen = (int)((processLog.onlineTime - wt.sWorkDt).TotalMinutes);
                 timeLen = (timeLen < 0 || timeLen >elasticityMin)? 0: timeLen; 
                 statusCode = processLog.offlineTime< wt.eWorkDt.AddMinutes(timeLen)? (statusCode | psCode.earlyOut):statusCode;
             }
             else{
                 if(processLog.onlineTime.Year > 1){ //只有填上班
-                    var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin).AddSeconds(59);
-                    statusCode = processLog.onlineTime > newStartWt? (statusCode | psCode.lateIn) : statusCode;
+                    var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin +1);
+                    statusCode = processLog.onlineTime >= newStartWt? (statusCode | psCode.lateIn) : statusCode;
                     statusCode = definePara.dtNow() >= wt.ePunchDT ? (statusCode | psCode.hadLost) : statusCode; //打不到下班卡了
                 }
                 else{   //只有填下班

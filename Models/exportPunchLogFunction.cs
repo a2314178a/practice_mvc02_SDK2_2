@@ -465,7 +465,7 @@ namespace practice_mvc02.Models
                 var unit = str.Substring(leftC+1, rightC-(leftC+1));
 
                 //以下為請假時間可能有超出報表要求時間所做的處理
-                if(log.startTime >= qPara.sDate && log.endTime <= qPara.eDate){ //請假時間範圍在報表時間範圍內
+                if(log.startTime >= qPara.sDate && log.endTime < qPara.eDate.AddDays(1)){ //請假時間範圍在報表時間範圍內
                     if(unit =="天"){
                         leaveVal = log.unitVal; 
                     }else if(unit =="半天"){
@@ -500,7 +500,7 @@ namespace practice_mvc02.Models
 
                     while((eCalTime - sCalTime).TotalMinutes > ct.endStartMinute){
                         leaveVal += ct.workNoRestMinute;
-                        sCalTime.AddDays(1);
+                        sCalTime = sCalTime.AddDays(1);
                     }
                     if((eCalTime - sCalTime).TotalMinutes > (ct.workNoRestMinute)/2){//大於工作時間的一半認定有包含休息時間
                         leaveVal += (eCalTime - sCalTime).TotalMinutes - ct.restMinute;
