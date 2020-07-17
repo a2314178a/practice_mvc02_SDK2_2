@@ -66,9 +66,11 @@ namespace practice_mvc02.Controllers
                 createTime=data.createTime, updateTime=data.updateTime
             };
 
-            var hasPrincipal = Repository.ChkHasPrincipal((int)loginID);
-            if(!hasPrincipal){  //沒有代理人不可請假
+            if(!Repository.ChkHasPrincipal((int)loginID)){  //沒有代理人不可請假
                 return "noPrincipal";
+            }
+            if(!Repository.ChkApplyLeaveData(applyData)){
+                return "data_illegal";
             }
 
             applyData.endTime = getLeaveEndTime(applyData);
@@ -116,6 +118,7 @@ namespace practice_mvc02.Controllers
             var restLengthMinute = (wdt.eRestDt - wdt.sRestDt).TotalMinutes;
             restLengthMinute = restLengthMinute <0? restLengthMinute + 24*60 : restLengthMinute;
 
+            var useHalfVal = data.unit==3? Repository.IsUseHourHalfVal(data.leaveID) : false;
             var myDepartClass = (Repository.GetMyDepartClass((int)loginID)).Split(",");
             var totalMin = 0.0;
             
@@ -191,11 +194,20 @@ namespace practice_mvc02.Controllers
             if(data.unit==3){   //小時不用忽略休息時間 
                 if(iTmp < totalMin){   //若超過下班時間 以下班時間為底 
                     var hour = iTmp/60;
-                    hour = iTmp%60 >0? (++hour) : hour; 
-                    data.unitVal = hour;    //unitVal為實際請假時數(開始時間到下班時間)
+                    //unitVal為實際請假時數(開始時間到下班時間)
+                    data.unitVal = (float)(iTmp%60 >30? (++hour) : iTmp%60 >0? hour+0.5 : hour);    
                     data.note = "note_overEndWorkTime"; //用此判斷是否有超過下班時間
                 }
-                data.unitVal -= (int)(restLen_unit3/60);   //不過若有經過休息時間，unitVal需扣掉 
+                data.unitVal = ((data.unitVal*60) - restLen_unit3)/60;   //不過若有經過休息時間，unitVal需扣掉(主要是特休用)
+                if(useHalfVal){     //可以有0.5小時
+                    var dot = data.unitVal - ((int)data.unitVal);
+                    if(dot >0){
+                        dot = (float)(dot>0.5 ? 1 : 0.5);
+                        data.unitVal = (int)data.unitVal + dot;
+                    }
+                }else{
+                    data.unitVal = (float)(Math.Ceiling(data.unitVal)); //無條件進位
+                }  
             }
 
             return eTime;

@@ -15,6 +15,15 @@ $(document).ready(function() {
         val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉，除了數字
         $(this).val(val);
     });
+
+    $("#leaveList").on("change", "select[name='unit']", function(){
+        if($(this).val() == 3){
+            $("#leaveList").find("tr[name='addLeaveRow']").find("span[name='chkHalf']").show();
+        }else{
+            $("#leaveList").find("tr[name='addLeaveRow']").find("span[name='chkHalf']").hide();
+        }
+    });
+
 });//.ready function
 
 function showSetRulePage(page){

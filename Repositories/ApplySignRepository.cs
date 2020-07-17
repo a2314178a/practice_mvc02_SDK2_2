@@ -49,16 +49,38 @@ namespace practice_mvc02.Repositories
 
         //-----------------------------------------------------------------------------------------------------
 
-       #region  LeaveOffice
+        #region  LeaveOffice
 
-       public bool ChkHasPrincipal(int emID){
-            var query = (from a in _DbContext.employeeprincipals
-                        join b in _DbContext.accounts on a.principalID equals b.ID
-                        where a.employeeID == emID
-                        select b).FirstOrDefault();
-                        
-           return query==null? false : true;
-       }
+        public bool ChkHasPrincipal(int emID){
+                var query = (from a in _DbContext.employeeprincipals
+                            join b in _DbContext.accounts on a.principalID equals b.ID
+                            where a.employeeID == emID
+                            select b).FirstOrDefault();
+                            
+            return query==null? false : true;
+        }
+
+        public bool ChkApplyLeaveData(LeaveOfficeApply data){
+            var query = _DbContext.leavenames.FirstOrDefault(b=>b.ID == data.leaveID);
+            if(query == null || (data.unit > query.timeUnit)){
+                return false;
+            }
+            var result = true;
+            result = data.unitVal <=0 ? false : result; 
+            result = (data.unit==1 && (data.unitVal-(int)data.unitVal)!=0)? false : result; //單位天 值不可小數
+            result = (data.unit==2 && data.unitVal >2)? false : result; //單位半天 1:上半天 2:下半天
+            if(data.unit == 3){ //單位小時
+                var halfVal = query.halfVal;    //可否0.5小時
+                result = (!halfVal && (data.unitVal-(int)data.unitVal)!=0)? false : result; //不可小數
+                result = (halfVal && (data.unitVal%0.5)!=0)? false : result; //值不為0.5倍數
+            }
+            return result;
+        }
+
+        public bool IsUseHourHalfVal(int leaveID){
+            var query = _DbContext.leavenames.FirstOrDefault(b=>b.ID == leaveID);
+            return query == null? false : query.halfVal;
+        }
 
         public object GetMyApplyLeave(int loginID, int page, DateTime sDate, DateTime eDate){
             var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
@@ -78,7 +100,7 @@ namespace practice_mvc02.Repositories
 
         public object GetLeaveOption(){
             var query = _DbContext.leavenames.Where(b=>b.enable==true)
-                                            .Select(b=>new{b.ID, b.leaveName, b.timeUnit});
+                                            .Select(b=>new{b.ID, b.leaveName, b.timeUnit, b.halfVal});
             return query.ToList();
         }
 
@@ -231,7 +253,7 @@ namespace practice_mvc02.Repositories
             switch(context.unit){
                 case 1: applyHours = (context.unitVal)*DayToHour; break;
                 case 2: applyHours = (context.unitVal)*DayToHour/2; break;
-                case 3: applyHours = (context.unitVal)*1; break;
+                case 3: applyHours = (context.unitVal); break;
             } 
             if(leaveStatus == 2){   //減時數
                 for(int i =0; i<query.Count; i++){

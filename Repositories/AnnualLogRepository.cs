@@ -14,12 +14,12 @@ namespace practice_mvc02.Repositories
             
         }
 
-        public int GetAnnualLeaveTimeUnit(){
+        public object GetAnnualLeaveTimeUnit(){
             var query = _DbContext.leavenames.FirstOrDefault(b=>b.leaveName == definePara.annualName());                
             if(query != null){
-                return query.timeUnit;
+                return new {query.timeUnit, query.halfVal};
             }else{
-                return 3;
+                return new{timeUnit=3, halfVal=false};
             }
         }
 

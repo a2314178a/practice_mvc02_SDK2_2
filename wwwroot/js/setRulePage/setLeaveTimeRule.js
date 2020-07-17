@@ -28,7 +28,7 @@ function refreshLeaveRuleList(res){
         switch(value.timeUnit){
             case 1: var unit = "全天"; break;
             case 2: var unit = "半天"; break;
-            case 3: var unit = "小時"; break;
+            case 3: var unit = (value.halfVal==true? "半小時" : "小時"); break;
             default : var unit =""; break;
         }
         row.find("[name='timeUnit']").text(unit);
@@ -48,6 +48,7 @@ function showAddLeaveRow(){
         alert("已無可新增的項目");
         return;
     }
+    addLeaveRow.find("span[name='chkHalf']").hide();
     addLeaveRow.find("a.update_leave").remove();
     addLeaveRow.find("a.create_leave").attr("onclick", "addUpLeave(this);");
     addLeaveRow.find("a.cancel_leave").attr("onclick", "cancelAddLeave(this);");
@@ -58,15 +59,14 @@ function showAddLeaveRow(){
 
 function addUpLeave(thisBtn, leaveID=0){
     var thisRow =  $(thisBtn).closest("tr[name='addLeaveRow']");
-    var name = thisRow.find("[name='newLeaveName']").val();
+    var leaveName = thisRow.find("[name='newLeaveName']").val();
+    leaveName = leaveID ==0? leaveName : thisRow.find("td[name='name']").text();
     var timeUnit = thisRow.find("[name='unit']").val();
-    
-    name = leaveID ==0? name : thisRow.find("td[name='name']").text();
+    var halfVal = thisRow.find("[name='newChkHalf']").prop("checked");
+    halfVal = timeUnit==3? halfVal : false;
     
     var data = {
-        ID: leaveID,
-        leaveName : name,
-        timeUnit : timeUnit
+        ID:leaveID, leaveName, timeUnit, halfVal
     };
     var successFn = function(res){
         showLeaveRule();
@@ -98,20 +98,24 @@ function editLeave(thisBtn, leaveID){
     var thisRow = $(thisBtn).closest("tr[name='leaveRow']").hide();
     var thisName = thisRow.find("[name='name']").text();
     var unit = thisRow.find("[name='timeUnit']").text();
+    var halfVal = unit=="半小時"? true : false;
+    unit = unit=="半小時"? "小時" : unit;
 
     var updateLeaveRow = $(".template").find("[name='addLeaveRow']").clone();
     updateLeaveRow.find("td[name='name']").text(thisName);
-    //updateLeaveRow.find("select[name='newLeaveName']").prepend(new Option(thisName, thisName));
-    //updateLeaveRow.find("select[name='newLeaveName']").find(`option[value='${thisName}']`).prop("selected", true);
     $.each((updateLeaveRow.find("select[name='unit']").find("option")), function(key, value){
         if($(this).text()==unit){
             $(this).prop("selected", true);
         }
     });
+    if(unit == "小時"){
+        updateLeaveRow.find("input[name='newChkHalf']").prop("checked", halfVal);
+    }else{
+        updateLeaveRow.find("span[name='chkHalf']").hide();
+    }    
     updateLeaveRow.find("a.create_leave").remove();
     updateLeaveRow.find("a.update_leave").attr("onclick", `addUpLeave(this, ${leaveID})`);
     updateLeaveRow.find("a.cancel_leave").attr("onclick", "cancelAddLeave(this)");
-
     $(thisRow).after(updateLeaveRow);
 }
 

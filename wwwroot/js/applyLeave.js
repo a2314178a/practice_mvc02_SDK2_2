@@ -11,7 +11,7 @@ $(document).ready(function() {
 
     $("#applyLeaveList").on("change", "select[name='newApplyType']", function(){
         var unitOption = $("#applyLeaveList").find("select[name='newTimeUnit']").empty().append(new Option("天", 1));
-        var useRule = myObj.leaveOption[$(this).val()];
+        var useRule = myObj.leaveOption[$(this).val()]["timeUnit"];
         if(useRule == 2){
             $(unitOption).append(new Option("半天", 2));
         }else if(useRule == 3){
@@ -24,9 +24,10 @@ $(document).ready(function() {
     $("#applyLeaveList").on("change", "select[name='newTimeUnit']", function(){
         var selUnit = $(this).val();
         var inputVal = $("#applyLeaveList").find("input[name='newTimeLength']").val();
-        var useRule = myObj.leaveOption[$("#applyLeaveList").find("select[name='newApplyType']").val()];
+        var useRule = myObj.leaveOption[$("#applyLeaveList").find("select[name='newApplyType']").val()]["timeUnit"];
         if(selUnit == 1 || selUnit == 2){
             $("#applyLeaveList").find("input[name='newStartTime']").hide();
+            $("#applyLeaveList").find("input[name='newTimeLength']").val(isNaN(parseInt(inputVal))? "":parseInt(inputVal));
         }else if(selUnit == 3){
             $("#applyLeaveList").find("input[name='newStartTime']").show();
         }
@@ -37,15 +38,18 @@ $(document).ready(function() {
             $("#applyLeaveList").find("input[name='newTimeLength']").show();
             $("#applyLeaveList").find("select[name='newHalfSel']").hide();
         }
-
-        if(useRule == 1 || (selUnit != 1)){    
-            $("#applyLeaveList").find("input[name='newTimeLength']").val(isNaN(parseInt(inputVal))? "":parseInt(inputVal));
-        }
     });
 
     $("#applyLeaveList").on("input", "input[name='newTimeLength']", function(){
+        var halfVal = myObj.leaveOption[$("#applyLeaveList").find("select[name='newApplyType']").val()]["halfVal"];
         var val = $(this).val();
-        val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉，除了數字
+        if(halfVal && $("#applyLeaveList").find("select[name='newTimeUnit']").val() == 3){
+            val = val.replace(/[^\d.]/g, ""); //先把非數字的都替換掉，除了數字和.
+            val = val.replace(/^\./g, ""); //必須保證第一個為數字而不是.
+            val = val.replace(".", "$#$").replace(/\./g, "").replace("$#$", "."); //保證.只出現一次，而不能出現兩次以上
+        }else{
+            val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉，除了數字
+        }
         $(this).val(val);
     });
 
@@ -97,7 +101,7 @@ function getLeaveOption(){
         myObj.leaveOption = {};
         res.forEach(function(value){
             $(sel).append(new Option(value.leaveName, value.id));
-            myObj.leaveOption[value.id] = value.timeUnit;
+            myObj.leaveOption[value.id] = {timeUnit:value.timeUnit, halfVal:value.halfVal};
         });
     };
     myObj.rAjaxFn("post", "/ApplyLeave/getLeaveOption", null, successFn);
@@ -165,11 +169,11 @@ function addUpApplyLeave(thisBtn, applyingID=0){
     var successFn = function(res){
         if(res == "notEnough"){
             alert("剩餘的特休時數不足"); return;
-        }
-        else if(res == "noPrincipal"){
+        }else if(res == "noPrincipal"){
             alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!"); return;
-        }
-        else if(res == "overEndWorkTime"){
+        }else if(res == "data_illegal"){
+            alert("請假時間不符合請假規定"); return;
+        }else if(res == "overEndWorkTime"){
             alert("注意! 請假時長不得超過下班時間");
         }
         cancelApplyLeave();

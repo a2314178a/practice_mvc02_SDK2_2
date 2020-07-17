@@ -78,25 +78,39 @@ function showRow(sel){
 
 function showMyAnnualLeave(res){
     $("[name='spLeaveDeadLine']").empty();
-    var unit = res.annualLeaveUnit;
+    var unit = res.annualLeaveUnit["timeUnit"];
+    var halfVal = res.annualLeaveUnit["halfVal"];
     var hourToDay = myObj.workHoursToDay;  //工作幾小時算一天
     var sumSpDays = 0;
     var sumSpHours = 0;
     res.myAnnualLeave.forEach((value)=>{
         var dlDt = myObj.dateTimeFormat(value.deadLine);
-        if(unit == 1 || unit == 2){
-            var remainDays = unit==1?parseInt((value.remainHours)/hourToDay) : parseFloat((value.remainHours)/hourToDay);
-            var deadLine = `${remainDays} 天於 ${dlDt.ymdText} 到期`;
+
+        if(unit == 1 || unit == 2){ //1:天 2:半天
+            if(unit == 1){
+                var remainDays = parseInt((value.remainHours)/hourToDay);
+                var otherHours = (value.remainHours)%hourToDay;
+            }else{
+                var remainDays = parseInt((value.remainHours)/(hourToDay*0.5)); //mod 半天(4hour)
+                remainDays *= 0.5;  //轉成天 ex:37hours /4 = 9個半天 ...9/2 = 4.5天
+                var otherHours = (value.remainHours)%(hourToDay*0.5);
+            }
             sumSpDays += remainDays;
+            sumSpHours += otherHours;
+            var txt = `${remainDays} 天` + (otherHours>0? ` ${otherHours}小時` : "") + `於 ${dlDt.ymdText} 到期`;
         }else{
             var remainHours = value.remainHours;
-            var deadLine = `${remainHours} 小時於 ${dlDt.ymdText} 到期`;
+            var txt = `${remainHours} 小時於 ${dlDt.ymdText} 到期`;
             sumSpHours += remainHours;
         }
-        $("[name='spLeaveDeadLine']").append(`<div>${deadLine}</div>`);
+        $("[name='spLeaveDeadLine']").append(`<div>${txt}</div>`);
     });
 
-    var sumSpText = (unit==1||unit==2? `${sumSpDays} 天` : `${sumSpHours} 小時`);
+    if(unit==1 || unit==2){
+        var sumSpText = `${sumSpDays} 天` + (sumSpHours >0? ` ${sumSpHours} 小時` : "");
+    }else{
+        var sumSpText = `${sumSpHours} 小時`;
+    }
     $("[name='mySpLeave']").text(sumSpText); 
 }
 

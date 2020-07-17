@@ -404,7 +404,7 @@ namespace practice_mvc02.Models
                 ct.onNoPunchCount += ((log.punchStatus & psCode.hadLost) >0 && log.onlineTime.Year ==1 && log.offlineTime.Year >1) ? 1 : 0;
                 ct.allNoPunchCount += (log.punchStatus & psCode.noWork)>0 ? 1 : 0;
 
-                if((log.punchStatus & psCode.lateIn)>0){    //計算遲到次數與時間
+                if((log.punchStatus & psCode.lateIn) >0){    //計算遲到次數與時間
                     ct.lateCount++;
                     var onTime = new TimeSpan(log.onlineTime.Hour, log.onlineTime.Minute, log.onlineTime.Second);
                     if(onTime < wtRule.startTime){
@@ -414,13 +414,19 @@ namespace practice_mvc02.Models
                     }
                 }
 
-                if((log.punchStatus & psCode.earlyOut)>0){  //計算早退次數與時間
+                if((log.punchStatus & psCode.earlyOut) >0){  //計算早退次數與時間
                     ct.earlyCount++;
                     var offTime = new TimeSpan(log.offlineTime.Hour, log.offlineTime.Minute, log.offlineTime.Second);
-                    if(wtRule.endTime < offTime){
-                        ct.sumEarlyMinute += (int)(wtRule.endTime.Add(new TimeSpan(24,0,0)) - offTime).TotalMinutes;
+                    var newEndTime = wtRule.endTime;
+                    if(log.onlineTime.Year >1 && (log.punchStatus & psCode.lateIn)==0){
+                        var timeLen = (int)((log.onlineTime - workTime.sWorkDt).TotalMinutes);
+                        timeLen = (timeLen < 0 || timeLen >workTime.elasticityMin)? 0: timeLen; 
+                        newEndTime = newEndTime.Add(new TimeSpan(0, timeLen, 0));
+                    }
+                    if(newEndTime < offTime){
+                        ct.sumEarlyMinute += (int)(newEndTime.Add(new TimeSpan(24,0,0)) - offTime).TotalMinutes;
                     }else{
-                        ct.sumEarlyMinute += (int)(wtRule.endTime - offTime).TotalMinutes;
+                        ct.sumEarlyMinute += (int)(newEndTime - offTime).TotalMinutes;
                     }
                 }
 

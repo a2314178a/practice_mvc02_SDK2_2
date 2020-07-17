@@ -261,6 +261,7 @@ namespace practice_mvc02.Models
             data = (data==null? new LeaveName() : data);
             Dic.Add("leaveName", data.leaveName);
             Dic.Add("timeUnit", (data.timeUnit==1? "全天":data.timeUnit==2? "半天":"小時"));
+            Dic.Add("halfVal", (data.halfVal? "半小時" : "一小時"));
         }
 
         public string AddUpLeave_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
@@ -270,6 +271,7 @@ namespace practice_mvc02.Models
             var txt ="";
             txt += "請假名稱:"+ (nDic["leaveName"]==oDic["leaveName"]? $"{nDic["leaveName"]}，" : $"{oDic["leaveName"]}=>{nDic["leaveName"]}，");
             txt += "請假時間單位:"+ (nDic["timeUnit"]==oDic["timeUnit"]? $"{nDic["timeUnit"]}，" : $"{oDic["timeUnit"]}=>{nDic["timeUnit"]}，");
+            txt += "小時單位:"+ (nDic["halfVal"]==oDic["halfVal"]? $"{nDic["halfVal"]}，" : $"{oDic["halfVal"]}=>{nDic["halfVal"]}，");
             return txt.Substring(0,txt.Length - 1);
         }
 

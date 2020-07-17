@@ -9,9 +9,10 @@ namespace practice_mvc02.Models.dataTable
         public int ID {get;set;}
         public int emAnnualID {get; set;}
         public string reason {get; set;}
-        public int value {get; set;}
+        public float value {get; set;}    //unit: hour
         public int lastOperaAccID {get; set;}
         public DateTime createTime {get; set;}
         public DateTime updateTime {get; set;}
     }
 }
+

@@ -15,8 +15,8 @@ namespace practice_mvc02.Models.dataTable
         public DateTime startTime {get; set;}
         public DateTime endTime {get; set;}
         public float unitVal {get; set;}
-        public byte unit {get; set;}
-        public int applyStatus {get; set;}
+        public byte unit {get; set;}    //1:全天 2:半天 3:小時
+        public int applyStatus {get; set;}  //0:申請中 1:通過 2:沒通過
         public int lastOperaAccID {get; set;}
         public DateTime createTime {get; set;}
         public DateTime updateTime {get; set;}

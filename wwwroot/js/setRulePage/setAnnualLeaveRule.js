@@ -78,12 +78,15 @@ function addUpSpLeaveRule(thisBtn, ruleID=0){
     var seniority = $(thisRow).find("select[name='yearSel']").val();
     var specialDays = $(thisRow).find("select[name='daySel']").val();
     var buffDays = $(thisRow).find("select[name='buffDaySel']").val();
+    if(ruleID >0){
+        var thisYear = thisRow.find("td[name='seniority']").text();
+        seniority = thisYear == "6個月"? 0.5 : parseInt(thisYear);
+    }
     buffDays*=30;
-
+    
     var data={
         ID:ruleID, seniority, specialDays, buffDays
     };
-
     var successFn = ()=>{
         showSpLeaveRule();
     }
@@ -99,17 +102,12 @@ function editSpLeaveRule(thisBtn, ruleID){
 
     var thisRow = $(thisBtn).closest("tr[name='spLeaveRow']").hide();
     var thisYear = thisRow.find("[name='years']").text();
-    var thisYearVal = thisYear == "6個月"? 0.5 : thisYear.substring(0, thisYear.length-1);
     var thisSpDay = thisRow.find("[name='days']").text();
     var thisBuffDay = thisRow.find("[name='buffDays']").text();
 
     var upSpLeaveRow = $(".template").find("[name='addSpLeaveRow']").clone();
-    upSpLeaveRow.find("select[name='yearSel']").prepend(new Option(thisYear, thisYearVal));
-    $.each(upSpLeaveRow.find("[name='yearSel']").find("option"), function(){
-        if($(this).text() == thisYear){
-            $(this).prop("selected", true);
-        }
-    });
+    upSpLeaveRow.find("td[name='seniority']").text(thisYear);
+
     $.each(upSpLeaveRow.find("[name='daySel']").find("option"), function(){
         if($(this).text() == thisSpDay){
             $(this).prop("selected", true);

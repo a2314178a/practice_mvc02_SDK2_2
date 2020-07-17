@@ -63,6 +63,7 @@ namespace practice_mvc02.Repositories
 
             modelBuilder.Entity<LeaveName>(entity=>{
                 entity.Property(b=>b.enable).HasColumnType("tinyint(1)");
+				entity.Property(b=>b.halfVal).HasColumnType("tinyint(1)");
                 //entity.Property(b=>b.timeUnit).HasComment("1:全天 2:半天 3:小時");
             });
 
