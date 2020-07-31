@@ -78,10 +78,8 @@ namespace practice_mvc02.Models
                         data02.deadLine = data02.deadLine.AddMonths(buffMonth);   
                     }
                     data02.remainHours = data02.specialDays*dayToHour;
-                    /*data02.remainHours = data02.specialDays*dayToHour - Repository.GetSpLeaveTotalHours(
-                                    data02.employeeID, data02.deadLine.AddMonths(-(dlMonth+buffMonth)), data02.deadLine);*/
-                    if(data02.deadLine > definePara.dtNow())
-                        Repository.RecordEmployeeSpDays(data02);
+                    
+                    Repository.RecordEmployeeSpDays(data02);
                 }
             }//foreach
         }

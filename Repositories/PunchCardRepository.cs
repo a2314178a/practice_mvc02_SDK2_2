@@ -8,49 +8,83 @@ using practice_mvc02.Models;
 namespace practice_mvc02.Repositories
 {
     public class PunchCardRepository : BaseRepository
-    {
-        const int lessStHour = -2;
-        const int addEtHour = 13;
-
+    {       
         public PunchCardRepository(DBContext dbContext):base(dbContext)
         {
             
         }
 
-        public PunchCardLog GetTodayPunchLog(int employeeID, WorkTimeRule thisWorkTime){
-            //
-            DateTime sDateTime = definePara.dtNow().Date;
-            DateTime eDateTime = definePara.dtNow().Date;
-            if(thisWorkTime != null){
-                sDateTime = definePara.dtNow().Date + thisWorkTime.startTime;
-                eDateTime = definePara.dtNow().Date + thisWorkTime.endTime;
-                eDateTime = eDateTime <= sDateTime ? eDateTime.AddDays(1): eDateTime;
-                sDateTime = sDateTime.AddHours(lessStHour);
-                eDateTime = eDateTime.AddHours(addEtHour);
-                if(definePara.dtNow() >= eDateTime){
-                    sDateTime = sDateTime.AddDays(1);
-                    eDateTime = eDateTime.AddDays(1);
-                }else if(definePara.dtNow() < sDateTime){
-                    sDateTime = sDateTime.AddDays(-1);
-                    eDateTime = eDateTime.AddDays(-1);
+        public WorkDateTime workTimeProcess(WorkTimeRule thisWorkTime, PunchCardLog customLog = null){
+            var wt = new WorkDateTime();
+            wt.sWorkDt = definePara.dtNow().Date;  //online work dateTime
+            wt.eWorkDt = definePara.dtNow().Date;   //offline work dateTime
+            wt.sPunchDT = definePara.dtNow().Date;  //可打卡時間
+            wt.ePunchDT = definePara.dtNow().Date;  //
+            var sRest_start = new TimeSpan(0);
+            var eRest_sRest = new TimeSpan(0);
+            
+            if(customLog != null){
+                if(customLog.logDate.Year !=1){
+                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.logDate.Date;
+                }else if(customLog.onlineTime.Year !=1){
+                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.onlineTime.Date;
+                }else if(customLog.offlineTime.Year !=1){
+                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.offlineTime.Date;
                 }
+            }                             
+            if(thisWorkTime != null)
+            {
+                var eWork_sWork = thisWorkTime.endTime - thisWorkTime.startTime;
+                eWork_sWork = eWork_sWork.TotalSeconds <0? eWork_sWork.Add(new TimeSpan(1, 0, 0, 0)) : eWork_sWork;
+                wt.addEtHour = (int)(24*60 + wt.lessStHour - eWork_sWork.TotalMinutes);   //單位改為分鐘
+                sRest_start = thisWorkTime.sRestTime - thisWorkTime.startTime;
+                sRest_start = sRest_start.TotalSeconds <0? sRest_start.Add(new TimeSpan(1, 0, 0, 0)) : sRest_start;
+                eRest_sRest = thisWorkTime.eRestTime - thisWorkTime.sRestTime;
+                eRest_sRest = eRest_sRest.TotalSeconds <0? eRest_sRest.Add(new TimeSpan(1, 0, 0, 0)) : eRest_sRest;
+                wt.type = thisWorkTime.type;
+                wt.workAllTime = false;    
+                wt.sWorkDt = wt.sWorkDt + thisWorkTime.startTime;  
+                wt.eWorkDt = wt.eWorkDt + thisWorkTime.endTime; 
+                wt.eWorkDt = wt.eWorkDt <= wt.sWorkDt ? wt.eWorkDt.AddDays(1) : wt.eWorkDt;  
+                wt.sPunchDT = wt.sWorkDt.AddMinutes(wt.lessStHour);
+                wt.ePunchDT = wt.eWorkDt.AddMinutes(wt.addEtHour);
+                wt.elasticityMin = thisWorkTime.elasticityMin;
+                if(customLog == null){
+                    if(definePara.dtNow() >= wt.ePunchDT){
+                        wt.sPunchDT = wt.sPunchDT.AddDays(1);
+                        wt.ePunchDT = wt.ePunchDT.AddDays(1);
+                        wt.sWorkDt = wt.sPunchDT.AddMinutes((wt.lessStHour*-1));
+                        wt.eWorkDt = wt.ePunchDT.AddMinutes((wt.addEtHour*-1));
+                    }else if(definePara.dtNow() < wt.sPunchDT){
+                        wt.sPunchDT = wt.sPunchDT.AddDays(-1);   
+                        wt.ePunchDT = wt.ePunchDT.AddDays(-1);
+                        wt.sWorkDt = wt.sPunchDT.AddMinutes((wt.lessStHour*-1));
+                        wt.eWorkDt = wt.ePunchDT.AddMinutes((wt.addEtHour*-1));   
+                    }
+                }
+                
             }else{
-                eDateTime = eDateTime.AddDays(1);
+                wt.workAllTime = true;
+                wt.eWorkDt = wt.eWorkDt.AddDays(1);
+                wt.ePunchDT = wt.ePunchDT.AddDays(1);
             }
-            PunchCardLog result = null;
-            var query = from a in _DbContext.punchcardlogs
-                        where a.accountID == employeeID && 
-                        (a.onlineTime < eDateTime && a.onlineTime >= sDateTime ||
-                         a.offlineTime <= eDateTime && a.offlineTime > sDateTime ||
-                         (a.logDate.Date == (sDateTime.AddHours((lessStHour*-1))).Date && 
-                          a.onlineTime.Year == 1 && a.offlineTime.Year == 1)
-                        )
-                        select a;
+            wt.sRestDt = wt.sWorkDt.AddMinutes(sRest_start.TotalMinutes);
+            wt.eRestDt = wt.sRestDt.AddMinutes(eRest_sRest.TotalMinutes);
+            return wt;
+        } 
 
-            if(query.Count() > 0){
-                result = query.ToList()[0];
-            }
-            return result;
+        public PunchCardLog GetTodayPunchLog(int employeeID, WorkTimeRule thisWorkTime){
+            var wt = workTimeProcess(thisWorkTime);
+            var query = (from a in _DbContext.punchcardlogs
+                        where a.accountID == employeeID && 
+                        (
+                            (a.onlineTime < wt.ePunchDT && a.onlineTime >= wt.sPunchDT) ||
+                            (a.offlineTime < wt.ePunchDT && a.offlineTime > wt.sPunchDT) ||
+                            (a.logDate.Date == wt.sWorkDt.Date && 
+                            a.onlineTime.Year == 1 && a.offlineTime.Year == 1)
+                        )
+                        select a).FirstOrDefault();
+            return query;
         }
 
         public object GetPunchLogByIDByMonth(int employeeID, DateTime startMonth, DateTime endMonth){
@@ -191,6 +225,14 @@ namespace practice_mvc02.Repositories
                 if(_DbContext.SaveChanges() > 0){
                     systemSendMessage(query.userName, query.accountID, "punch");
                 }
+            }
+        }
+
+        public void delPunchLogWarnAndMessage(PunchCardLog log){
+            var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == log.ID);
+            if(context != null){
+                _DbContext.punchlogwarns.Remove(context);
+                _DbContext.SaveChanges();
             }
         }
 

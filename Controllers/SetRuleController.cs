@@ -20,10 +20,13 @@ namespace practice_mvc02.Controllers
     {
         //private readonly ILogger<HomeController> _logger;
         public SetRuleRepository Repository { get; }
+        public punchCardFunction punchCardFn {get;}
 
-        public SetRuleController(SetRuleRepository repository, IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
+        public SetRuleController(SetRuleRepository repository, punchCardFunction fn,
+                                    IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
         {
             this.Repository = repository;
+            this.punchCardFn = fn;
         }
 
         public IActionResult Index(string page)
@@ -49,6 +52,10 @@ namespace practice_mvc02.Controllers
 
         public dynamic addUpTimeRule(WorkTimeRule data){
             bool hasSame = Repository.chkSameWorkTime(data);
+            bool isLegal = chkDataLegal(data);
+            if(!isLegal){
+                return "illegal";
+            }
             var result = 0;
             data.lastOperaAccID = (int)loginID;
             if(data.ID==0){
@@ -66,6 +73,17 @@ namespace practice_mvc02.Controllers
 
         public int delTimeRule(int timeRuleID){
             return Repository.DelTimeRule(timeRuleID, (int)loginID);
+        }
+
+        public bool chkDataLegal(WorkTimeRule data){
+            var wt = punchCardFn.workTimeProcess(data);
+            var result = true;
+            result = (wt.sWorkDt < wt.eWorkDt)? result : false;
+            result = (wt.eWorkDt - wt.sWorkDt).TotalMinutes <=720? result : false;  //720mins = 12hours
+            result = (wt.sRestDt > wt.sWorkDt && wt.sRestDt < wt.eWorkDt)? result : false;
+            result = (wt.eRestDt > wt.sWorkDt && wt.eRestDt < wt.eWorkDt)? result : false;
+            result = (wt.sRestDt <= wt.eRestDt)? result : false;
+            return result;
         }
 
         #endregion //timeRule

@@ -27,21 +27,29 @@ namespace practice_mvc02.Repositories
         }
 
         public void RecordEmployeeSpDays(EmployeeAnnualLeave data){
-            var query = _DbContext.employeeannualleaves.FirstOrDefault(
+            var dtNow = definePara.dtNow();
+            if(data.deadLine <= dtNow)
+                return;
+            var result = 0;
+            var query = _DbContext.employeeannualleaves.Where(
                             b=>b.employeeID==data.employeeID && b.ruleID==data.ruleID && 
-                            b.deadLine == data.deadLine
-                        );
-            var count = 0;
-            if(query == null){
-                data.createTime = definePara.dtNow();
-                _DbContext.employeeannualleaves.Add(data);
-                count = _DbContext.SaveChanges();
+                            b.deadLine > dtNow
+                        ).ToList();
+                        
+            foreach(var tmp in query){
+                var length = (data.deadLine - tmp.deadLine).Duration();
+                if(length.Days <= 90)   //若有人手動調整該員工特休期限  為了避免重複新增
+                    return;             //同樣條件的特休(只是期限與原先不同) 所作處理 3個月為判斷   
             }
-            if(count == 1){
+            data.createTime = dtNow;
+            _DbContext.employeeannualleaves.Add(data);
+            result = _DbContext.SaveChanges();
+            
+            if(result == 1){
                 var dic = new Dictionary<string,string>{};
                 var opLog = new OperateLog(){
                     operateID=data.lastOperaAccID,  employeeID=data.employeeID,
-                    active="新增", category="特休", createTime=definePara.dtNow()
+                    active="新增", category="特休", createTime=dtNow
                 };
                 toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref dic, data);
                 opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(dic);

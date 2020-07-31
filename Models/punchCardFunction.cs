@@ -16,8 +16,8 @@ namespace practice_mvc02.Models
         private punchStatusCode psCode;
         private int? loginID;
         private int? loginDepartmentID;
-        const int lessStHour = -2;
-        const int addEtHour = 13;
+        //const int lessStHour = -2;
+        //private int addEtHour = 13;
 
         public punchCardFunction(PunchCardRepository repository, IHttpContextAccessor httpContextAccessor){
             this.Repository = repository;
@@ -67,14 +67,20 @@ namespace practice_mvc02.Models
             }
             newLogData.punchStatus = getStatusCode(wt, newLogData);
             resultCount = newLogData.ID ==0? Repository.AddPunchCardLog(newLogData, true):Repository.UpdatePunchCard(newLogData, true);
-            if(resultCount == 1 && newLogData.punchStatus > 1 && newLogData.punchStatus != psCode.takeLeave){    //一定要新增log成功 不然會沒logID
-                Repository.AddPunchLogWarnAndMessage(newLogData);
+            if(resultCount == 1){    //一定要新增log成功 不然會沒logID
+                if(newLogData.punchStatus > psCode.normal && newLogData.punchStatus != psCode.takeLeave){
+                    Repository.AddPunchLogWarnAndMessage(newLogData);
+                }
+                else if(newLogData.punchStatus == psCode.normal){
+                    Repository.delPunchLogWarnAndMessage(newLogData);
+                }
             }
             return resultCount;
         }
 
         public int forcePunchLogProcess(PunchCardLog processLog, WorkTimeRule thisWorkTime, string action, string from=""){
             WorkDateTime wt = workTimeProcess(thisWorkTime, processLog);
+            var et_big_st = thisWorkTime.endTime >= thisWorkTime.startTime? true: false;
             processLog.logDate = wt.sWorkDt.Date;
             processLog.lastOperaAccID = (int)loginID;
             if(action == "update"){
@@ -82,88 +88,45 @@ namespace practice_mvc02.Models
             }else{
                 processLog.createTime = definePara.dtNow();
             }
-            
-            if(processLog.onlineTime.Year !=1){
-                if(processLog.onlineTime < wt.sPunchDT){
+
+            if(processLog.onlineTime.Year !=1){     
+                if(processLog.onlineTime < wt.sPunchDT){    //2300-0800 if write 0000-0800
                     processLog.onlineTime = processLog.onlineTime.AddDays(1);
+                }
+                if(processLog.onlineTime >= wt.ePunchDT){    //0000-0800 if write 2355-0800
+                    processLog.onlineTime = processLog.onlineTime.AddDays(-1);
                 }
             }
             if(processLog.offlineTime.Year !=1){
-                if(processLog.offlineTime <= wt.sWorkDt){
+                if(processLog.offlineTime <= wt.sWorkDt){   //2300-0800 if write 2300-0800
                     processLog.offlineTime = processLog.offlineTime.AddDays(1); 
                 }
             }
-
+            if(et_big_st && processLog.onlineTime.Year !=1 && processLog.offlineTime.Year !=1){
+                if(processLog.onlineTime >= processLog.offlineTime){
+                    processLog.onlineTime = processLog.onlineTime.AddDays(-1);
+                }
+            }else if(!et_big_st && processLog.onlineTime.Year !=1 && processLog.offlineTime.Year !=1){
+                if(processLog.offlineTime <= processLog.onlineTime){
+                    processLog.offlineTime = processLog.offlineTime.AddDays(1);
+                }
+            }
+            
             processLog.punchStatus = getStatusCode(wt, processLog);
             int result = action == "update"? Repository.UpdatePunchCard(processLog, false) : Repository.AddPunchCardLog(processLog, false);
-            if(result == 1 && processLog.punchStatus > 1 && processLog.punchStatus != psCode.takeLeave){
-                Repository.AddPunchLogWarnAndMessage(processLog);
-            }
-            if(action == "update" && from == "applySign" && result==1){
-                Repository.UpdatePunchLogWarn(processLog.ID);
+            if(result == 1){
+                if(processLog.punchStatus > psCode.normal && processLog.punchStatus != psCode.takeLeave){
+                    Repository.AddPunchLogWarnAndMessage(processLog);
+                }
+                if(action == "update" && from == "applySign"){
+                    Repository.UpdatePunchLogWarn(processLog.ID);
+                }
             }
             return result;
         }
       
         public WorkDateTime workTimeProcess(WorkTimeRule thisWorkTime, PunchCardLog customLog = null){
-            var wt = new WorkDateTime();
-            wt.sWorkDt = definePara.dtNow().Date;  //online work dateTime
-            wt.eWorkDt = definePara.dtNow().Date;   //offline work dateTime
-            wt.sPunchDT = definePara.dtNow().Date;  //可打卡時間
-            wt.ePunchDT = definePara.dtNow().Date;  //
-            var sRest_start = new TimeSpan(0);
-            var eRest_sRest = new TimeSpan(0);
-            
-            if(customLog != null){
-                if(customLog.onlineTime.Year !=1){
-                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.onlineTime.Date;
-                }else if(customLog.offlineTime.Year !=1){
-                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.offlineTime.Date;
-                }else if(customLog.logDate.Year !=1){
-                    wt.sWorkDt = wt.eWorkDt = wt.sPunchDT = wt.ePunchDT = customLog.logDate.Date;
-                }
-            }                             
-            if(thisWorkTime != null)
-            {
-                sRest_start = thisWorkTime.sRestTime - thisWorkTime.startTime;
-                sRest_start = sRest_start.TotalSeconds <0? sRest_start.Add(new TimeSpan(1, 0, 0, 0)) : sRest_start;
-                eRest_sRest = thisWorkTime.eRestTime - thisWorkTime.sRestTime;
-                eRest_sRest = eRest_sRest.TotalSeconds <0? eRest_sRest.Add(new TimeSpan(1, 0, 0, 0)) : eRest_sRest;
-                wt.type = thisWorkTime.type;
-                wt.workAllTime = false;    
-                wt.sWorkDt = wt.sWorkDt + thisWorkTime.startTime;  
-                wt.eWorkDt = wt.eWorkDt + thisWorkTime.endTime; 
-                wt.eWorkDt = wt.eWorkDt <= wt.sWorkDt ? wt.eWorkDt.AddDays(1) : wt.eWorkDt;  
-                wt.sPunchDT = wt.sWorkDt.AddHours(lessStHour);
-                wt.ePunchDT = wt.eWorkDt.AddHours(addEtHour);
-                wt.elasticityMin = thisWorkTime.elasticityMin;
-                if(customLog == null){
-                    if(definePara.dtNow() >= wt.ePunchDT){
-                        wt.sPunchDT = wt.sPunchDT.AddDays(1);
-                        wt.ePunchDT = wt.ePunchDT.AddDays(1);
-                        wt.sWorkDt = wt.sPunchDT.AddHours((lessStHour*-1));
-                        wt.eWorkDt = wt.sPunchDT.AddHours((addEtHour*-1));
-                    }else if(definePara.dtNow() < wt.sPunchDT){
-                        wt.sPunchDT = wt.sPunchDT.AddDays(-1);   
-                        wt.ePunchDT = wt.ePunchDT.AddDays(-1);
-                        wt.sWorkDt = wt.sPunchDT.AddHours((lessStHour*-1));
-                        wt.eWorkDt = wt.sPunchDT.AddHours((addEtHour*-1));   
-                    }
-                }
-                
-            }else{
-                wt.workAllTime = true;
-                wt.eWorkDt = wt.eWorkDt.AddDays(1);
-                wt.ePunchDT = wt.ePunchDT.AddDays(1);
-            }
-            wt.sRestDt = wt.sWorkDt.AddMinutes(sRest_start.TotalMinutes);
-            wt.eRestDt = wt.sRestDt.AddMinutes(eRest_sRest.TotalMinutes);
-            return wt;
-        }
-
-        public object workTimeProcess02 (WorkTimeRule thisWorkTime, PunchCardLog customLog = null){
-            //無使用 等想到更好的寫法 來取代workTimeProcess()
-            return null;
+            return Repository.workTimeProcess(thisWorkTime, customLog);
         }
 
         public dynamic getObjectValue(string key, object obj){
@@ -210,7 +173,8 @@ namespace practice_mvc02.Models
             }
 
             if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1  &&
-                processLog.logDate.AddDays(1) < definePara.dtNow()
+                //processLog.logDate.AddDays(1) < definePara.dtNow()
+                definePara.dtNow() >= wt.ePunchDT
                 ){
                 statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
             }

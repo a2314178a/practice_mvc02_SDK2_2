@@ -69,10 +69,14 @@ function addUpTimeRule(thisBtn, ID=0){
     };
 
     var successFn = function(res){
-        if(res == "same"){
-            alert("注意! 已有相同的上班與下班時間");
+        if(res == "illegal"){
+            alert("該時間規則不合法"); 
+        }else{
+            if(res == "same"){
+                alert("注意! 已有相同的上班與下班時間");
+            }
+            showTimeRule();
         }
-        showTimeRule();
     }
     myObj.cudAjaxFn("/SetRule/addUpTimeRule", data, successFn);
 }

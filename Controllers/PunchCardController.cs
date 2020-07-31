@@ -142,7 +142,7 @@ namespace practice_mvc02.Controllers
 
         public int forceUpdatePunchCardLog(PunchCardLog updatePunchLog, string from){
             if( updatePunchLog.ID == 0 || (updatePunchLog.onlineTime.Year == 1 && updatePunchLog.offlineTime.Year == 1) ){
-                  return 2; //此打卡紀錄不合法
+                return 2; //此打卡紀錄不合法
             }
             updatePunchLog.accountID = Repository.GetThisLogAccID(updatePunchLog.ID);
             WorkTimeRule thisWorkTime = Repository.GetThisWorkTime(updatePunchLog.accountID);

@@ -55,7 +55,7 @@ function editPunchLogWarn(thisBtn, logID){
     updateLogRow.find("input[name='newOfflineTime']").val(thisOfflineTime);
 
     updateLogRow.find("a.up_punchLogWarn").attr("onclick", "updatePunchLog(this, "+ logID +")");
-    updateLogRow.find("a.cel_punchLogWarn").attr("onclick", "cancelPunchLog()");
+    updateLogRow.find("a.cel_punchLogWarn").attr("onclick", "cancelPunchLog(this)");
 
     $(thisRow).after(updateLogRow);
 }
@@ -95,13 +95,16 @@ function updatePunchLog(thisBtn, logID){
         if(res == 2){
             alert("此打卡紀錄不合法");return;
         }
-        cancelPunchLog();
+        getPunchLogWarn();
     }
     myObj.cudAjaxFn("/PunchCard/forceUpdatePunchCardLog", {updatePunchLog: updatePunchLog, from:"applySign"}, successFn);
 }
 
-function cancelPunchLog(){
-    getPunchLogWarn();
+function cancelPunchLog(thisBtn){
+    $(thisBtn).closest("tr[name='upPunchLogWarnRow']").remove();
+    $("#punchLogWarnList").find("tr[name='punchLogWarnRow']").show();
+    $('.btnActive').css('pointer-events', "");
+    //getPunchLogWarn();
 }
 
 //#endregion punchWarn

@@ -110,7 +110,7 @@ namespace practice_mvc02.Controllers
             }
             ViewBag.Auth = "N";
             _session.Clear();
-            return View("Index");
+            return RedirectToAction("Index");
         }
 
 
