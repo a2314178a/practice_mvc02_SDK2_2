@@ -46,7 +46,7 @@ namespace practice_mvc02.Middleware
         private bool chkIsFromDesktop(HttpContext context){
             var userAgent = context.Request.Headers["User-Agent"].ToString().ToLower();
             //Console.WriteLine(userAgent);
-            var desktop = new Regex(@"linux|mac os|windows 98|windows me|windows nt|x11");
+            var desktop = new Regex(@"linux|mac os|windows 98|windows me|windows nt");
             var mobile = new Regex(@"android|ipad|iphone|mobile|windows phone");
             if(desktop.IsMatch(userAgent)==true && mobile.IsMatch(userAgent)==false) {
                 return true;
