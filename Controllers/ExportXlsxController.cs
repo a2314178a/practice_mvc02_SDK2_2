@@ -48,7 +48,7 @@ namespace practice_mvc02.Controllers
             if (!Directory.Exists(fileFolderPath)){     //需用完整目錄來檢查
                 Directory.CreateDirectory(fileFolderPath);
             }
-            string sFileName = $"{Guid.NewGuid()}.xlsx";
+            string sFileName = $"{loginID},{Guid.NewGuid()}.xlsx";
 
             FileInfo file = new FileInfo(Path.Combine(fileFolderPath, sFileName));
             exportPara.crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
@@ -79,7 +79,7 @@ namespace practice_mvc02.Controllers
 		
 		public IActionResult delPunchXlsxReport(){
             var removeXlsx = new RemoveXlsxFile(_hostingEnvironment);
-            removeXlsx.start(0);
+            removeXlsx.start((int)loginID, 0);
             _session.SetInt32("hasPunchXlsxFile", 0);
             return RedirectToAction("logOut", "Home");
         }

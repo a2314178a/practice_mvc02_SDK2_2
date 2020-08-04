@@ -37,7 +37,7 @@ namespace practice_mvc02.filters
             var controllerName = context.RouteData.Values["controller"].ToString();
             var actionName = context.RouteData.Values["action"].ToString();
 
-            if(chkLoginStatus(controllerName, actionName)){
+            if(chkLoginStatusIsInvalid(controllerName, actionName)){
                 gotoLogOut(context);
             }  
         }
@@ -52,23 +52,23 @@ namespace practice_mvc02.filters
         }
 
 
-        private bool chkLoginStatus(string controllerName, string actionName){
+        private bool chkLoginStatusIsInvalid(string controllerName, string actionName){
             var goLogOut = false;
-            if(!isLoginInfo(loginID, loginGroupID) || !chkCurrentUser(loginID, loginTimeStamp)){
-                goLogOut = true; 
+            if(ruleVal==null || !isLoginInfo(loginID, loginGroupID) || !chkCurrentUser(loginID, loginTimeStamp)){
+                return true; 
             }
             switch(controllerName){
+                case "AdminFn": goLogOut = ((ruleVal & ruleCode.adminFn) == 0)? true : goLogOut; break;
                 case "ApplicationSign": goLogOut = ((ruleVal & ruleCode.applySign) == 0)? true : goLogOut; break;
                 case "ApplyLeave": goLogOut = ((ruleVal & ruleCode.baseActive) == 0)? true : goLogOut; break;
                 case "DepartmentList": goLogOut = ((ruleVal & ruleCode.departmentList) == 0)? true : goLogOut; break;
+                case "EmployeeDetail": break;
                 case "EmployeeList": goLogOut = ((ruleVal & ruleCode.allEmployeeList) == 0 && 
                                                  (ruleVal & ruleCode.departEmployeeList) ==0)? true : goLogOut; break;
+                case "Home": break;
+                case "Message": break;
                 case "PunchCard": goLogOut = ((ruleVal & ruleCode.baseActive) == 0)? true : goLogOut; break;
                 case "SetRule": goLogOut = ((ruleVal & ruleCode.setRule) == 0)? true : goLogOut; break;
-                case "AdminFn": goLogOut = ((ruleVal & ruleCode.adminFn) == 0)? true : goLogOut; break;
-                case "EmployeeDetail":
-                case "Message":
-                case "Home": break;
                 default: goLogOut = true; break;
             }
             if(controllerName == "EmployeeList"){

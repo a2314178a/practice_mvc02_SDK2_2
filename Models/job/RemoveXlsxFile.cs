@@ -16,11 +16,11 @@ namespace practice_mvc02.Models
             this._hostingEnvironment = hostingEnvironment;
         } 
 
-        public void start(int delDay = 7){ 
-            delFile(delDay);    //刪除幾天前的檔案
+        public void start(int targetID = 0, int delDay = 7){ 
+            delFile(targetID, delDay);    //刪除幾天前的檔案
         }
 
-        private void delFile(int delDay){                               
+        private void delFile(int targetID, int delDay){                              
             string sWebRootFolder = _hostingEnvironment.WebRootPath;
             string subFolder = definePara.getPunchExcelSubFolder();
             string fileFolderPath = Path.Combine(sWebRootFolder, subFolder);
@@ -33,7 +33,8 @@ namespace practice_mvc02.Models
                 DateTime dtNow = definePara.dtNow();                
                 foreach(FileInfo file in files){
                     var fileTime = file.CreationTime;
-                    if(fileTime < dtNow.AddDays(-1*delDay)){
+					var fileID = file.Name.Split(",")[0];
+                    if(fileTime < dtNow.AddDays(-1*delDay) && (targetID==0 || targetID.ToString()==fileID)){
                         file.Delete();
                     }
                 }
