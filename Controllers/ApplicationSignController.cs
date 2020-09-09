@@ -71,7 +71,7 @@ namespace practice_mvc02.Controllers
         public int isAgreeApplyLeave(int applyLeaveID, int isAgree){
             LeaveOfficeApply context = Repository.IsAgreeApplyLeave(applyLeaveID, isAgree, (int)loginID);
             if(context != null){
-                Repository.punchLogWithTakeLeave(context, (int)loginDepartmentID);
+                Repository.punchLogWithTakeLeave(context);
             }
             return context == null? 0 : 1;
         }

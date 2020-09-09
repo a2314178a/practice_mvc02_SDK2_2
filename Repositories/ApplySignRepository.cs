@@ -225,7 +225,7 @@ namespace practice_mvc02.Repositories
         public bool chkEmployeeAnnualLeave(LeaveOfficeApply context, int leaveStatus=2){
             if(leaveStatus != 2){
                 return true;
-            }else{
+            }else{  //若減時數 需確認還有多餘的時可以以扣
                 var DayToHour = definePara.dayToHour();
                 var applyHours = 0.0f;
                 switch(context.unit){
@@ -285,7 +285,7 @@ namespace practice_mvc02.Repositories
             _DbContext.SaveChanges();                       
         }
 
-        public void punchLogWithTakeLeave(LeaveOfficeApply restLog, int departID){
+        public void punchLogWithTakeLeave(LeaveOfficeApply restLog){
             var startDate = restLog.startTime.Date;
             var endDate = restLog.endTime.Date;
             var wtRule = (from a in _DbContext.accounts
@@ -314,6 +314,8 @@ namespace practice_mvc02.Repositories
                     _DbContext.SaveChanges();    
                 }else{
                     if(restLog.applyStatus == 1){
+                        var applyAcc = _DbContext.accounts.FirstOrDefault(b=>b.ID == restLog.accountID);
+                        var departID = applyAcc==null? 0 : applyAcc.departmentID;
                         PunchCardLog newLog = new PunchCardLog{
                             accountID = restLog.accountID, departmentID = departID,
                             logDate = startDate, createTime = definePara.dtNow(),

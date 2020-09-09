@@ -162,19 +162,19 @@ namespace practice_mvc02.Models
             if(thisLeave.Count >0){
                 foreach(var tmp in thisLeave){
                     if(wt.sWorkDt >= tmp.startTime && wt.sWorkDt < tmp.endTime){
-                        wt.sWorkDt = tmp.endTime>=wt.sRestDt && tmp.endTime<=wt.eRestDt? wt.eRestDt: tmp.endTime;
+                        //wt.sWorkDt = tmp.endTime>=wt.sRestDt && tmp.endTime<=wt.eRestDt? wt.eRestDt: tmp.endTime;
                     }
                     if(wt.eWorkDt > tmp.startTime && wt.eWorkDt <= tmp.endTime){
-                        wt.eWorkDt = tmp.startTime;
+                        //wt.eWorkDt = tmp.startTime;
                     }
                     fullDayRest = (tmp.startTime <= wt.sWorkDt && tmp.endTime >= wt.eWorkDt)? true : false;
                 }
                 statusCode |= psCode.takeLeave;
             }
 
-            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1  &&
+            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1  //&&
                 //processLog.logDate.AddDays(1) < definePara.dtNow()
-                definePara.dtNow() >= wt.ePunchDT
+                //definePara.dtNow() >= wt.ePunchDT
                 ){
                 statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
             }
