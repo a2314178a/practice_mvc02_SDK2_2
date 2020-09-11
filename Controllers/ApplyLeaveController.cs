@@ -59,11 +59,20 @@ namespace practice_mvc02.Controllers
 
         public dynamic addUpApplyLeave(LeaveOfficeApply data){
             var applyData = new LeaveOfficeApply(){
-                ID=data.ID, accountID=data.accountID, principalID=data.principalID,
-                leaveID=data.leaveID, optionType=data.optionType, note=data.note,
-                startTime=data.startTime, endTime=data.endTime, applyStatus=data.applyStatus,
-                unitVal=data.unitVal, unit=data.unit, lastOperaAccID=data.lastOperaAccID,
-                createTime=data.createTime, updateTime=data.updateTime
+                ID = data.ID, 
+                accountID = data.accountID, 
+                principalID = data.principalID,
+                leaveID = data.leaveID, 
+                optionType = data.optionType, 
+                note = data.note,
+                startTime = data.startTime, 
+                endTime = data.endTime, 
+                applyStatus = data.applyStatus,
+                unitVal = data.unitVal, 
+                unit = data.unit, 
+                lastOperaAccID = data.lastOperaAccID,
+                createTime = data.createTime, 
+                updateTime = data.updateTime
             };
 
             if(!Repository.ChkHasPrincipal((int)loginID)){  //沒有代理人不可請假

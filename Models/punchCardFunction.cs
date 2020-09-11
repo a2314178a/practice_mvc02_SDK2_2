@@ -152,7 +152,7 @@ namespace practice_mvc02.Models
             if(wt.workAllTime){
                 return psCode.normal;
             }
-            var elasticityMin = wt.elasticityMin;
+            var elasticityMin = wt.elasticityMin;   //彈性時間
             List<LeaveOfficeApply> thisLeave = new List<LeaveOfficeApply>();
             if(leave == null){
                 thisLeave = Repository.GetThisTakeLeave(processLog.accountID, wt.sWorkDt, wt.eWorkDt);
@@ -161,28 +161,24 @@ namespace practice_mvc02.Models
             }                        
             if(thisLeave.Count >0){
                 foreach(var tmp in thisLeave){
-                    if(wt.sWorkDt >= tmp.startTime && wt.sWorkDt < tmp.endTime){
-                        //wt.sWorkDt = tmp.endTime>=wt.sRestDt && tmp.endTime<=wt.eRestDt? wt.eRestDt: tmp.endTime;
-                    }
-                    if(wt.eWorkDt > tmp.startTime && wt.eWorkDt <= tmp.endTime){
-                        //wt.eWorkDt = tmp.startTime;
-                    }
                     fullDayRest = (tmp.startTime <= wt.sWorkDt && tmp.endTime >= wt.eWorkDt)? true : false;
                 }
                 statusCode |= psCode.takeLeave;
             }
 
-            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1  //&&
-                //processLog.logDate.AddDays(1) < definePara.dtNow()
-                //definePara.dtNow() >= wt.ePunchDT
-                ){
-                statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
+            if(processLog.onlineTime.Year == 1 && processLog.offlineTime.Year == 1){ 
+                if(definePara.dtNow() >= wt.ePunchDT){
+                    statusCode = fullDayRest? statusCode : (statusCode | psCode.noWork);
+                }else{
+                    if(definePara.dtNow() >= wt.eWorkDt)
+                        statusCode = fullDayRest? statusCode : (statusCode | psCode.hadLost);
+                }
             }
             else if(processLog.onlineTime.Year > 1 && processLog.offlineTime.Year > 1){
                 var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin +1);   //+1因遲到以時分為主 09:00:59 也不算遲到
                 statusCode = processLog.onlineTime >= newStartWt? (statusCode | psCode.lateIn) : statusCode;
                 var timeLen = (int)((processLog.onlineTime - wt.sWorkDt).TotalMinutes);
-                timeLen = (timeLen < 0 || timeLen >elasticityMin)? 0: timeLen; 
+                timeLen = (timeLen < 0 || timeLen >elasticityMin)? 0: timeLen; //上班打卡超過彈性時間 下班就已下班時間為準
                 statusCode = processLog.offlineTime< wt.eWorkDt.AddMinutes(timeLen)? (statusCode | psCode.earlyOut):statusCode;
             }
             else{
@@ -190,8 +186,7 @@ namespace practice_mvc02.Models
                     var newStartWt = wt.sWorkDt.AddMinutes(elasticityMin +1);
                     statusCode = processLog.onlineTime >= newStartWt? (statusCode | psCode.lateIn) : statusCode;
                     statusCode = definePara.dtNow() >= wt.ePunchDT ? (statusCode | psCode.hadLost) : statusCode; //打不到下班卡了
-                }
-                else{   //只有填下班
+                }else{   //只有填下班
                     statusCode |= psCode.hadLost;
                     statusCode = processLog.offlineTime < wt.eWorkDt ? (statusCode | psCode.earlyOut) : statusCode;
                 }

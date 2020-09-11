@@ -49,7 +49,55 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
-        
+        public void ClearEmployeeAnnualLeaves(DateTime dt){
+            var query = _DbContext.employeeannualleaves.Where(b=>b.deadLine < dt).ToList();
+            _DbContext.employeeannualleaves.RemoveRange(query);
+            _DbContext.SaveChanges();
+        }
+
+        public void ClearEmployeeLeaveOfficeApply(DateTime dt){
+            var query = _DbContext.leaveofficeapplys.Where(b=>b.createTime < dt).ToList();
+            _DbContext.leaveofficeapplys.RemoveRange(query);
+            _DbContext.SaveChanges();
+        }
+
+        public void ClearMessageAndMsgSendReceive(){
+            var canDelMsgID = (((from del1 in _DbContext.msgsendreceive 
+                        where del1.rDelete == true && del1.sendID == 0
+                        select del1.messageID).ToArray()).Except(
+                        (from del0 in _DbContext.msgsendreceive 
+                        where del0.rDelete == false && del0.sendID == 0
+                        select del0.messageID).ToArray())).ToArray();
+            var msgSR = _DbContext.msgsendreceive.Where(b=> canDelMsgID.Contains(b.messageID)).ToList();
+            _DbContext.msgsendreceive.RemoveRange(msgSR);
+            _DbContext.SaveChanges();
+            
+            var msg = _DbContext.message.Where(b=>canDelMsgID.Contains(b.ID)).ToList();
+            _DbContext.message.RemoveRange(msg);
+            _DbContext.SaveChanges();           
+        }
+
+        public void ClearOperateLogs(DateTime dt){
+            var query = _DbContext.operateLogs.Where(b=>b.createTime < dt).ToList();
+            _DbContext.operateLogs.RemoveRange(query);
+            _DbContext.SaveChanges();
+        }
+
+        public void ClearPunchCardLogs(DateTime dt){
+            var query = _DbContext.punchcardlogs.Where(b=>b.logDate < dt).ToList();
+            _DbContext.punchcardlogs.RemoveRange(query);
+            _DbContext.SaveChanges();
+        }
+
+        public void ClearPunchLogWarns(){
+            var query = (from a in _DbContext.punchlogwarns
+                        join b in _DbContext.punchcardlogs on a.punchLogID equals b.ID into noID
+                        from c in noID.DefaultIfEmpty()
+                        where c == null
+                        select a).ToList();
+            _DbContext.punchlogwarns.RemoveRange(query);
+            _DbContext.SaveChanges();
+        }
         
     }
 }

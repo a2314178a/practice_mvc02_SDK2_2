@@ -54,8 +54,9 @@ namespace practice_mvc02.Controllers
         public int addUpAnnualStatus(EmployeeAnnualLeave annualData, AnnualDaysOffset offsetData){
             offsetData.createTime = annualData.updateTime = definePara.dtNow();
             offsetData.lastOperaAccID = annualData.lastOperaAccID = (int)loginID;
+            var isLegal = aRepository.chkDeadLineLength(annualData);
             var res = 0;
-            if(aRepository.AddOffsetData(offsetData) == 1){
+            if(isLegal && aRepository.AddOffsetData(offsetData) == 1){
                 res = aRepository.UpEmployeeAnnualDays(annualData, offsetData);
             }
             return res;

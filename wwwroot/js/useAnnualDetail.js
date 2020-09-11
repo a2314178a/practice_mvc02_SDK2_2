@@ -231,7 +231,7 @@ function editSpDays(thisBtn, id){
     addUpRow.find("input[name='editRemainDays']").attr("step", step05? "0.5" : "1");
     addUpRow.find("input[name='editRemainDays']").data({"spDays":spDays, "oldRemainHours":remainHours}).val(remainVal);
     addUpRow.find("span[name='remainHours']").text(txt);
-    addUpRow.find("input[name='editDeadLine']").val(deadLine);
+    addUpRow.find("input[name='editDeadLine']").val(deadLine).data("deadLine", deadLine);
     addUpRow.find(".addUp_spDays").attr("onclick", `addUpSpDays(${id});`);
     addUpRow.find(".cel_spDays").attr("onclick", "celSpDays();");
     thisRow.after(addUpRow);
@@ -248,6 +248,7 @@ function addUpSpDays(emAnnualID=0){
     otherHours = otherHours.replace(/[^\d.]/g, "");
     otherHours = otherHours==""? 0: otherHours;
     var newDeadLine = thisRow.find("input[name='editDeadLine']").val();
+    var oldDeadLine = thisRow.find("input[name='editDeadLine']").data("deadLine");
     var reason = thisRow.find("input[name='editReason']").val();
     if(newRemainHours =="" || newDeadLine=="" || reason==""){
         alert("欄位皆須填寫");
@@ -259,12 +260,16 @@ function addUpSpDays(emAnnualID=0){
     }
     newRemainHours = (annualUnit==3? parseFloat(newRemainHours) : parseFloat(newRemainHours*hourToDay));  //轉換成hour
     newRemainHours += parseFloat(otherHours);
+    if(isNaN(newRemainHours)){
+        alert("更新失敗");
+        return;
+    }
     if(newRemainHours > spDays*hourToDay){
         alert("調整後剩餘天數不可超過特休天數");
         return;
     }
-    if(isNaN(newRemainHours)){
-        alert("更新失敗");
+    if(DateDiff(newDeadLine, oldDeadLine) > 120){
+        alert("調整後特休期限不可與原先相差超過120天");
         return;
     }
     var annualData = {
@@ -279,4 +284,11 @@ function addUpSpDays(emAnnualID=0){
         searchAnnualLog();
     };
     myObj.rAjaxFn("post", "/AnnualLog/addUpAnnualStatus", {annualData, offsetData}, successFn);
+}
+
+function DateDiff(sDate1, sDate2){
+    var oDate1 = new Date(sDate1);
+    var oDate2 = new Date(sDate2);
+    var iDays = parseInt(Math.abs(oDate1 - oDate2)/1000/60/60/24); // 把相差的毫秒數轉換為天數
+    return iDays;
 }

@@ -21,12 +21,14 @@ namespace practice_mvc02.Controllers
     {
         public PunchCardRepository Repository { get; }
         public punchCardFunction punchCardFn {get;}
+        public ApplySignRepository aRepository {get;}
 
         public PunchCardController(PunchCardRepository repository, punchCardFunction fn,
-                                    IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
+                        IHttpContextAccessor httpContextAccessor, ApplySignRepository a_repository):base(httpContextAccessor)
         {
             this.Repository = repository;
             this.punchCardFn = fn;
+            this.aRepository = a_repository;
         }
 
         public IActionResult Index(string page, int target=0)
@@ -123,7 +125,8 @@ namespace practice_mvc02.Controllers
             List<LeaveOfficeApply> takeLeave = Repository.GetThisTakeLeave(employeeID, sWorkDt, eWorkDt);
             List<object> leave = new List<object>();
             foreach(var tmp in takeLeave){
-                leave.Add(new{tmp.startTime, tmp.endTime});
+                var leaveName = aRepository.getApplyLeaveName(tmp.leaveID);
+                leave.Add(new{leaveName, tmp.startTime, tmp.endTime});
             }
 
             return new{punchLog=punchLog, takeLeave=leave};

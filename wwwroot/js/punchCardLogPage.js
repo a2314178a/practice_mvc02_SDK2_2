@@ -107,11 +107,11 @@ function refreshPunchLogList(res){
         if((value.punchStatus & 0x40) > 0 && res.takeLeave.length >0){
             var textRow = $(".template").find("[name='takeLeaveText']").clone();
             var text = "";
-            res.takeLeave.forEach(function(time){
-                var sTime = myObj.dateTimeFormat(time.startTime);
-                var eTime = myObj.dateTimeFormat(time.endTime);
+            res.takeLeave.forEach(function(data){
+                var sTime = myObj.dateTimeFormat(data.startTime);
+                var eTime = myObj.dateTimeFormat(data.endTime);
                 text += sTime.ymdHtml + " " +  sTime.hmText + " ~ ";
-                text += eTime.ymdHtml + " " +  eTime.hmText + " 請假 ";
+                text += eTime.ymdHtml + " " +  eTime.hmText + ` 請假(${data.leaveName})`;
             });
             $(textRow).find("td").text(text);
         }

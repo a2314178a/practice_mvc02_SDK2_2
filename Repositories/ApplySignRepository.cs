@@ -286,15 +286,29 @@ namespace practice_mvc02.Repositories
         }
 
         public void punchLogWithTakeLeave(LeaveOfficeApply restLog){
-            var startDate = restLog.startTime.Date;
-            var endDate = restLog.endTime.Date;
+            var restST = restLog.startTime;
+            var restET = restLog.endTime;
+            var wtLength = 720;   //工作時間長度 unit:minute
+            //因工作時間可能跨日 不能直接用restST.Date EX: 2300-0800 休下半天0400-0800
+            var workDate = restST.Date;  //工作天日期(logDate) 
             var wtRule = (from a in _DbContext.accounts
                              join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
                              where a.ID == restLog.accountID
                              select b).FirstOrDefault();
+
+           if(wtRule != null){
+                if(wtRule.endTime < wtRule.startTime){
+                    wtLength = (int)(wtRule.endTime.Add(new TimeSpan(24,0,0)) - wtRule.startTime).TotalMinutes;
+                }else{
+                    wtLength = (int)(wtRule.endTime - wtRule.startTime).TotalMinutes;
+                }
+                var restSTime = new TimeSpan(restST.Hour, restST.Minute, restST.Second);
+                workDate = (wtRule.startTime > restSTime)? workDate.AddDays(-1) : workDate;
+            }
+            
             do{
                 var log = _DbContext.punchcardlogs.FirstOrDefault(b=>
-                                        b.accountID == restLog.accountID && b.logDate == startDate);
+                                        b.accountID == restLog.accountID && b.logDate == workDate);
                 if(log != null){
                     log.lastOperaAccID = 0;
                     log.updateTime = definePara.dtNow();
@@ -303,7 +317,7 @@ namespace practice_mvc02.Repositories
                         log.punchStatus = punchCardFn.getStatusCode(wt, log, restLog);
                     }else{
                         log.punchStatus &= ~psCode.takeLeave;
-                        if(log.logDate > definePara.dtNow() && log.punchStatus == psCode.takeLeave){
+                        if(log.logDate > definePara.dtNow()){
                             _DbContext.Remove(log);
                         }else{
                             if(log.onlineTime.Year ==1 && log.offlineTime.Year ==1){
@@ -318,7 +332,7 @@ namespace practice_mvc02.Repositories
                         var departID = applyAcc==null? 0 : applyAcc.departmentID;
                         PunchCardLog newLog = new PunchCardLog{
                             accountID = restLog.accountID, departmentID = departID,
-                            logDate = startDate, createTime = definePara.dtNow(),
+                            logDate = workDate, createTime = definePara.dtNow(),
                         };
                         WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, newLog);
                         newLog.punchStatus = punchCardFn.getStatusCode(wt, newLog, restLog);
@@ -326,8 +340,14 @@ namespace practice_mvc02.Repositories
                         _DbContext.SaveChanges();
                     }
                 }
-                startDate = startDate.AddDays(1);
-            }while(startDate <= endDate);
+            
+                if(restST.AddMinutes(wtLength) < restET){
+                    restST = restST.AddDays(1);
+                    workDate = workDate.AddDays(1);
+                }else{
+                    restST = restST.AddMinutes(wtLength);
+                }
+            }while(restST < restET);
         }
 
         

@@ -60,6 +60,12 @@ namespace practice_mvc02.Controllers
             return aRepository.GetOperateLog(filter);
         }
 
+        public object getFilterOption(){
+            var category = aRepository.GetOpLogCategory();
+            var userName = mRepository.GetAllPrincipal();
+            return new {category, userName};
+        }
+
         public void manual_refreshPunchLogWarn(){
             if(((int)ruleVal & new groupRuleCode().adminFn) >0){
                 chkWarn.start();
@@ -78,11 +84,37 @@ namespace practice_mvc02.Controllers
             }
         }
 
-        public object getFilterOption(){
-            var category = aRepository.GetOpLogCategory();
-            var userName = mRepository.GetAllPrincipal();
-            return new {category, userName};
+        /*public void clearEmployeeAnnualLeaves(int month=36){   //清除舊的年假 以deadline做為判斷
+            var dt = definePara.dtNow().Date;
+            dt = dt.AddMonths(-month);
+            aRepository.ClearEmployeeAnnualLeaves(dt);  
         }
+
+        public void clearEmployeeLeaveOfficeApply(int month=36){    //清除舊請假紀錄 以createTime為判斷
+            var dt = definePara.dtNow().Date;
+            dt = dt.AddMonths(-month);
+            aRepository.ClearEmployeeLeaveOfficeApply(dt);
+        }
+
+        public void clearMessageAndMsgSendReceive(){ //清除訊息 需寄件人與收件人都刪除才可清除
+            aRepository.ClearMessageAndMsgSendReceive();
+        }
+
+        public void clearOperateLogs(int month=60){ //清除操作紀錄 以createTime為判斷
+            var dt = definePara.dtNow().Date;
+            dt = dt.AddMonths(-month);
+            aRepository.ClearOperateLogs(dt);
+        }
+
+        public void clearPunchCardLogs(int month=36){   //清除打卡 以logDate為判斷
+            var dt = definePara.dtNow().Date;
+            dt = dt.AddMonths(-month);
+            aRepository.ClearPunchCardLogs(dt);
+        }
+
+        public void clearPunchLogWarns(){   //清除打卡異常紀錄 以punchLogID是否存在進行判斷
+            aRepository.ClearPunchLogWarns();
+        }*/
     }
 
 }

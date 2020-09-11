@@ -312,16 +312,17 @@ namespace practice_mvc02.Repositories
         public List<PunchCardLog> GetAllPunchLogWithWarn(int day){
             var dtRange = definePara.dtNow().Date.AddDays(-1*day);
             var query = _DbContext.punchcardlogs.Where(b=> b.logDate >= dtRange &&
-                                (b.punchStatus != 0x01 || (b.punchStatus == 0x01 && b.offlineTime.Year ==1)));
-                                                           //上班打卡正常 但 下班沒打卡                      
+                                (b.punchStatus != 0x01 || b.onlineTime.Year ==1 || b.offlineTime.Year ==1));
+                                                                                
             return query.ToList();
         }
 
         public List<LeaveOfficeApply> GetThisTakeLeave(int accID, DateTime sWorkTime, DateTime eWorkTime){
             var query = _DbContext.leaveofficeapplys.Where(
                     b=>b.accountID == accID && b.applyStatus == 1 && 
-                    ((sWorkTime >= b.startTime && sWorkTime < b.endTime) || 
-                     (eWorkTime > b.startTime && eWorkTime <= b.endTime))
+                    ((b.startTime <= sWorkTime && sWorkTime < b.endTime) || 
+                     (b.startTime < eWorkTime && eWorkTime <= b.endTime) ||
+                     (sWorkTime < b.startTime && b.endTime < eWorkTime))
                 );
             return query.ToList();
         }

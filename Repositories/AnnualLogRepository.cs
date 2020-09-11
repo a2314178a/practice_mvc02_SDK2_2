@@ -49,6 +49,16 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
+        public bool chkDeadLineLength(EmployeeAnnualLeave data){
+            var isLegal = false;
+            var context = _DbContext.employeeannualleaves.FirstOrDefault(b=>b.ID==data.ID);
+            if(context != null){
+                var length = (data.deadLine - context.deadLine).Duration();
+                isLegal = length.Days <= 120? true : false;
+            }
+            return isLegal;
+        }
+
         public int AddOffsetData(AnnualDaysOffset data){
             var count = 0;
             try{

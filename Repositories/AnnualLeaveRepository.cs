@@ -38,8 +38,8 @@ namespace practice_mvc02.Repositories
                         
             foreach(var tmp in query){
                 var length = (data.deadLine - tmp.deadLine).Duration();
-                if(length.Days <= 90)   //若有人手動調整該員工特休期限  為了避免重複新增
-                    return;             //同樣條件的特休(只是期限與原先不同) 所作處理 3個月為判斷   
+                if(length.Days <= 120)   //若有人手動調整該員工特休期限  為了避免重複新增
+                    return;             //同樣條件的特休(只是期限與原先不同) 所作處理 120天為判斷   
             }
             data.createTime = dtNow;
             _DbContext.employeeannualleaves.Add(data);
