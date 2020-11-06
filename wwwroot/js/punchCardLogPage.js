@@ -111,9 +111,10 @@ function refreshPunchLogList(res){
                 var sTime = myObj.dateTimeFormat(data.startTime);
                 var eTime = myObj.dateTimeFormat(data.endTime);
                 text += sTime.ymdHtml + " " +  sTime.hmText + " ~ ";
-                text += eTime.ymdHtml + " " +  eTime.hmText + ` 請假(${data.leaveName})`;
+                text += eTime.ymdHtml + " " +  eTime.hmText + ` 請假(${data.leaveName})\n`;
             });
-            $(textRow).find("td").text(text);
+            var dateTD = $(textRow).find("td").text(text);
+            dateTD.html(dateTD.html().replace(/\n/g, "<br/>"));
         }
         var dtOn = myObj.dateTimeFormat(value.onlineTime);
         var dtOff = myObj.dateTimeFormat(value.offlineTime);
@@ -147,7 +148,7 @@ function showAddPunchLogRow(employeeID, employeeDepartID){
         alert("該天已有紀錄 無法新增");
         return;
     }
-    $("#punchLogDiv").find("a.add_punchLog").hide();
+    $("#punchLogDiv").find("a.add_punchLog, a.add_leave").hide();
     $('.btnActive').css('pointer-events', "none"); 
     var addPunchLogRow = $(".template").find("[name='addPunchLogRow']").clone();
     addPunchLogRow.find("td[name='dateTime']").text(myObj.qDateStr);
@@ -163,7 +164,7 @@ function showAddPunchLogRow(employeeID, employeeDepartID){
 
 function cancelPunchLog(){
     $('.btnActive').css('pointer-events', ""); 
-    $("#punchLogDiv").find("a.add_punchLog").show();
+    $("#punchLogDiv").find("a.add_punchLog, a.add_leave").show();
     getPunchLogByIDByDate(myObj.qDateStr);
 }
 
@@ -384,7 +385,8 @@ function showCalendar(){
     $("#punchLogList").empty();
     $(".noDisplay").hide();
     $('.btnActive').css('pointer-events', ""); 
-    $("#punchLogDiv").find("a.add_punchLog").show();
+    $("#punchLogDiv").find("a.add_punchLog, a.add_leave, .punchLog_table").show();
+    $(".passiveLeave_table").hide();
 }
 
 //#endregion calendar

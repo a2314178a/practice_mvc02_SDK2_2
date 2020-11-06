@@ -120,48 +120,6 @@ select, input, ul[group='table']{
   height: 500px;
 }
 
-/*-----punchLogPage-----*/
-.calendar_table{
-  width: 60%;
-  text-align:center;
-  margin-left:auto; 
-  margin-right:auto;
-  font-size:25px;
-  word-break:break-all;
-}
-.calendar_table td{
-  height: 80px !important;
-}
-#calendar .tdGray{
-  background-color: #ccc;
-}
-#calendar .tdRed{
-  background-color: #F002;
-}
-#calendar .tdRed.tdHighRed{
-  background-color: #F006;
-}
-#calendar .tdGreen{
-  background-color: #0F02;
-}
-#calendar .tdGreen.tdHighGreen{
-  background-color: #0F06;
-}
-
-#calendar .tdBlue{
-  background-color: #00F3;
-}
-#calendar .tdBlue.tdHighBlue{
-  background-color: #00F6;
-}
-
-#calendar .tdRedBlue{
-  background: linear-gradient(45deg,#F002,#00F4);
-}
-#calendar .tdRedBlue.tdHighRedBlue{
-  background: linear-gradient(45deg,#F006,#00F6);
-}
-
 /*-----edit employee-----*/
 #thisManagerDiv{
   display:inline-block; 

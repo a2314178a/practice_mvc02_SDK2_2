@@ -74,19 +74,32 @@ namespace practice_mvc02.Controllers
                 createTime = data.createTime, 
                 updateTime = data.updateTime
             };
+            var isActiveApply = data.accountID ==0? true : false;   //是否個人申請請假 還是主管幫申請
+            if(!isActiveApply){    //被申請
+                applyData.lastOperaAccID = applyData.principalID = (int)loginID;
+                applyData.applyStatus = 1;  //申請狀態直接通過
+            }else{
+                applyData.accountID = applyData.lastOperaAccID = (int)loginID;
+                applyData.principalID = (int)principalID;
+            }
 
-            if(!Repository.ChkHasPrincipal((int)loginID)){  //沒有代理人不可請假
+            if(isActiveApply && !Repository.ChkHasPrincipal(applyData.accountID)){  //沒有代理人不可請假
                 return "noPrincipal";
             }
-            if(!Repository.ChkApplyLeaveData(applyData)){
+            if(!Repository.ChkApplyLeaveData(applyData, isActiveApply)){
                 return "data_illegal";
             }
-
+            
             applyData.endTime = getLeaveEndTime(applyData);
-            applyData.accountID = applyData.lastOperaAccID = (int)loginID;
             var isOverEndWorkTime = (applyData.note == "note_overEndWorkTime"? true : false);
             applyData.note = data.note; //須改回原本的note
-            
+            if(!isActiveApply){
+                applyData.note += $"({loginName}主管申請)"; //被主管申請的請假進行備註
+            }
+            if(Repository.ChkLeaveHadSameTimeData(applyData)){
+                return "hadSameTimeLeave";
+            }
+
             var leaveName = Repository.getApplyLeaveName(applyData.leaveID);
             if(leaveName == definePara.annualName()){
                 if(!Repository.chkEmployeeAnnualLeave(applyData)){  //特休不足不可請假
@@ -94,16 +107,20 @@ namespace practice_mvc02.Controllers
                 }
             }
             int result = 0;
-            applyData.principalID = (int)principalID;
+            
             if(applyData.ID ==0){
                 applyData.createTime = definePara.dtNow();
                 result = Repository.CreateApplyLeave(applyData);
                 if(result == 1){
-                    Repository.systemSendMessage(loginName, (int)loginID, "leave");
+                    if(isActiveApply){
+                        Repository.systemSendMessage(loginName, applyData.accountID, "leave");
+                    }else{
+                        Repository.punchLogWithTakeLeave(applyData);
+                    }
                 }
-            }else{
-                applyData.updateTime = definePara.dtNow();
-                result = Repository.UpdateApplyLeave(applyData);
+            }else{  //編輯更新 未使用
+                //applyData.updateTime = definePara.dtNow();
+                //result = Repository.UpdateApplyLeave(applyData);
             }
             
             if(isOverEndWorkTime && applyData.unit ==3 && result ==1){
@@ -118,7 +135,7 @@ namespace practice_mvc02.Controllers
 
         public DateTime getLeaveEndTime(LeaveOfficeApply data){ //計算請假結束時間
             
-            var workTime = RepositoryPunch.GetThisWorkTime((int)loginID);
+            var workTime = RepositoryPunch.GetThisWorkTime(data.accountID);
             WorkDateTime wdt = punchCardFn.workTimeProcess(workTime);
             var offsetDay = (data.startTime.Date - wdt.sWorkDt.Date).TotalDays;
 
@@ -128,7 +145,7 @@ namespace practice_mvc02.Controllers
             restLengthMinute = restLengthMinute <0? restLengthMinute + 24*60 : restLengthMinute;
 
             var useHalfVal = data.unit==3? Repository.IsUseHourHalfVal(data.leaveID) : false;
-            var myDepartClass = (Repository.GetMyDepartClass((int)loginID)).Split(",");
+            var myDepartClass = (Repository.GetMyDepartClass(data.accountID)).Split(",");
             var totalMin = 0.0;
             
             if(data.unit == 3){ //小時

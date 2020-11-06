@@ -773,7 +773,12 @@ namespace practice_mvc02.Models
                         leaveVal *= (ct.workNoRestMinute/60); 
                     }
                     ws.Cells[ rowIndex, dCol[leaveName] ].Value = leaveVal;
-                    detailData.Add(dCol[leaveName].ToString(), leaveVal);
+                    if(detailData.ContainsKey(dCol[leaveName].ToString())){
+                        var oldVal = (double)detailData[dCol[leaveName].ToString()];
+                        detailData[dCol[leaveName].ToString()] = leaveVal + oldVal;
+                    }else{
+                        detailData.Add(dCol[leaveName].ToString(), leaveVal);
+                    }
                 }  
             }
         }

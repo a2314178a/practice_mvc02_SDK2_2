@@ -21,10 +21,10 @@
                         <ul class="nav nav-tabs justify-content-end" group="table">                         
                             <span style="width:30px;"></span>
                             <li class="nav-item">
-                                <a class='nav-link @(@ViewBag.Page!="log"?"active":"")' href="#" name="applyLeave" onclick="showApplyLeavePage();">申請</a>
+                                <a class='nav-link @(@ViewBag.Page!="log"?"active":"")' href="#" name="applyLeave" onclick="leaveApp.showApplyLeavePage();">申請</a>
                             </li>
                             <li class="nav-item">
-                                <a class='nav-link @(@ViewBag.Page=="log"?"active":"")' href="#" name="applyLeaveLog" onclick="showApplyLeavePage('log');">申請紀錄</a>
+                                <a class='nav-link @(@ViewBag.Page=="log"?"active":"")' href="#" name="applyLeaveLog" onclick="leaveApp.showApplyLeavePage('log');">申請紀錄</a>
                             </li>
                         </ul>
                         
@@ -55,7 +55,7 @@
                                     <tbody id="applyLeaveList">
                                     </tbody>
                                 </table>
-                                <a href="javascript:void(0);" class="btn btn-primary btnActive add_applyLeave" style="float:right" onclick="showAddApplyLeaveRow();">申請</a>
+                                <a href="javascript:void(0);" class="btn btn-primary btnActive add_applyLeave" style="float:right" onclick="leaveApp.showAddApplyLeaveRow();">申請</a>
                             </div>
                         }
                         else

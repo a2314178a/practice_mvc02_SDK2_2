@@ -154,15 +154,21 @@ namespace practice_mvc02.Models
             }
             var elasticityMin = wt.elasticityMin;   //彈性時間
             List<LeaveOfficeApply> thisLeave = new List<LeaveOfficeApply>();
-            if(leave == null){
+            //if(leave == null){
                 thisLeave = Repository.GetThisTakeLeave(processLog.accountID, wt.sWorkDt, wt.eWorkDt);
-            }else{
-                thisLeave.Add(leave);
-            }                        
+            //}else{
+            //    thisLeave.Add(leave);
+            //}                        
             if(thisLeave.Count >0){
+                var allWorkLen = (wt.eWorkDt - wt.sWorkDt).TotalMinutes;
+                var restLen = (wt.eRestDt - wt.sRestDt).TotalMinutes;
+                var workLen = allWorkLen - restLen;
+                var sum = 0.0;
                 foreach(var tmp in thisLeave){
+                    sum += (tmp.endTime - tmp.startTime).TotalMinutes;
                     fullDayRest = (tmp.startTime <= wt.sWorkDt && tmp.endTime >= wt.eWorkDt)? true : false;
                 }
+                fullDayRest = sum >= workLen? true : fullDayRest;
                 statusCode |= psCode.takeLeave;
             }
 

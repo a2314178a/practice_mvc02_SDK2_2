@@ -60,7 +60,7 @@ namespace practice_mvc02.Repositories
             return query==null? false : true;
         }
 
-        public bool ChkApplyLeaveData(LeaveOfficeApply data){
+        public bool ChkApplyLeaveData(LeaveOfficeApply data, bool isActiveApply){
             var query = _DbContext.leavenames.FirstOrDefault(b=>b.ID == data.leaveID);
             if(query == null || (data.unit > query.timeUnit)){
                 return false;
@@ -74,7 +74,15 @@ namespace practice_mvc02.Repositories
                 result = (!halfVal && (data.unitVal-(int)data.unitVal)!=0)? false : result; //不可小數
                 result = (halfVal && (data.unitVal%0.5)!=0)? false : result; //值不為0.5倍數
             }
+            result = (!isActiveApply && data.unit == 1 && data.unitVal != 1)? false : result;   //被請假 只能請當天(1天)
             return result;
+        }
+
+        public bool ChkLeaveHadSameTimeData(LeaveOfficeApply data){
+            var query = _DbContext.leaveofficeapplys.FirstOrDefault(
+                                    b=>b.accountID == data.accountID && b.startTime == data.startTime &&
+                                    b.endTime == data.endTime && b.applyStatus < 2);
+            return query == null? false : true;
         }
 
         public bool IsUseHourHalfVal(int leaveID){
