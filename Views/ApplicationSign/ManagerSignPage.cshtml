@@ -9,6 +9,19 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1">				    
         @* <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">       *@
+        <style>
+            .ignoreBtn{
+                font-size: 15px;
+            }
+            #selAllChkBox{
+                width: 15px; 
+                height: 15px; 
+            }
+            #punchWarnDiv td input[type="checkbox"]{
+                width: 25px; 
+                height: 25px; 
+            }
+        </style>
 	</head>
 
 	<body>			
@@ -55,7 +68,11 @@
                                             <th scope="col">下班時間</th>
                                             <th scope="col">打卡狀態</th>
                                             <th scope="col">處理狀態</th>
-                                            <th scope="col">管理動作</th>         
+                                            <th scope="col">處理</th>
+                                            <th scope="col" name="ignoreGrid">
+                                                <input id="selAllChkBox" type="checkbox">
+                                                <button type="button" class="ignoreBtn" onclick="ignorePunchLogWarn()">忽略</button>
+                                            </th>         
                                         </tr>
                                     </thead> 
                                     <tbody id="punchLogWarnList">
@@ -76,10 +93,7 @@
                                             <th scope="col">開始時間</th>
                                             <th scope="col">結束時間</th>
                                             <th scope="col">審核狀態</th>
-                                            @if(ViewBag.Page == "leave")
-                                            {
-                                            <th scope="col" width="15%">管理動作</th>
-                                            }
+                                            <th scope="col" width="15%">管理動作</th>     
                                         </tr>
                                     </thead> 
                                     <tbody id="applyLeaveList">
@@ -111,9 +125,12 @@
                         <td scope="col" name="logOfflineTime"></td>
                         <td scope="col" name="logPunchStatus"></td>
                         <td scope="col" name="signStatus"></td>
-                        <td scope="col" width="20%">
+                        <td scope="col" width="10%">
                             <a href="javascript:void(0);" class="btn btn-primary edit_punchLog btnActive" >處理</a>
-                            <a href="javascript:void(0);" class="btn btn-danger ignore_punchLog btnActive" >忽略訊息</a>
+                        </td> 
+                        <td scope="col" width="10%" name="ignoreGrid">
+                            @* <a href="javascript:void(0);" class="btn btn-danger ignore_punchLog btnActive" >忽略</a> *@
+                            <input type="checkbox" name="logChkBox">
                         </td> 
                     </tr>
 
@@ -151,6 +168,10 @@
                         <td scope="col" width="15%">
                             <a href="javascript:void(0);" class="btn btn-primary yes_applyLeave btnActive" >通過</a>
                             <a href="javascript:void(0);" class="btn btn-danger no_applyLeave btnActive" >不通過</a>
+                        </td>
+                        }else{
+                        <td scope="col" width="15%">
+                            <a href="javascript:void(0);" class="btn btn-danger cancel_applyLeave btnActive" >取消請假</a>
                         </td>
                         }
                     </tr>

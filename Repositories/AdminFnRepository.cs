@@ -62,19 +62,27 @@ namespace practice_mvc02.Repositories
         }
 
         public void ClearMessageAndMsgSendReceive(){
-            var canDelMsgID = (((from del1 in _DbContext.msgsendreceive 
-                        where del1.rDelete == true && del1.sendID == 0
-                        select del1.messageID).ToArray()).Except(
-                        (from del0 in _DbContext.msgsendreceive 
-                        where del0.rDelete == false && del0.sendID == 0
-                        select del0.messageID).ToArray())).ToArray();
-            var msgSR = _DbContext.msgsendreceive.Where(b=> canDelMsgID.Contains(b.messageID)).ToList();
-            _DbContext.msgsendreceive.RemoveRange(msgSR);
-            _DbContext.SaveChanges();
-            
-            var msg = _DbContext.message.Where(b=>canDelMsgID.Contains(b.ID)).ToList();
-            _DbContext.message.RemoveRange(msg);
-            _DbContext.SaveChanges();           
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                try{
+                    var canDelMsgID = (((from del1 in _DbContext.msgsendreceive 
+                            where del1.rDelete == true && del1.sendID == 0
+                            select del1.messageID).ToArray()).Except(
+                            (from del0 in _DbContext.msgsendreceive 
+                            where del0.rDelete == false && del0.sendID == 0
+                            select del0.messageID).ToArray())).ToArray();
+                    var msgSR = _DbContext.msgsendreceive.Where(b=> canDelMsgID.Contains(b.messageID)).ToList();
+                    _DbContext.msgsendreceive.RemoveRange(msgSR);
+                    _DbContext.SaveChanges();
+                    
+                    var msg = _DbContext.message.Where(b=>canDelMsgID.Contains(b.ID)).ToList();
+                    _DbContext.message.RemoveRange(msg);
+                    _DbContext.SaveChanges();  
+                    trans.Commit();
+                }catch(Exception e){
+                    Console.WriteLine("ClearMessageAndMsgSendReceive fail ----------------------");
+                    throw e;
+                }
+            }     
         }
 
         public void ClearOperateLogs(DateTime dt){

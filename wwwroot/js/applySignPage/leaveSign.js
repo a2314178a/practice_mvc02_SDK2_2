@@ -56,15 +56,30 @@ function refreshApplyLeaveIng(res){
 
         row.find(".yes_applyLeave").attr("onclick",`isAgreeApplyLeave(this, ${value.id}, 1);`);
         row.find(".no_applyLeave").attr("onclick",`isAgreeApplyLeave(this, ${value.id}, 2);`);
+        if(value.applyStatus == 1){
+            row.find(".cancel_applyLeave").attr("onclick",`isAgreeApplyLeave(this, ${value.id}, 3);`);
+        }else{
+            row.find(".cancel_applyLeave").remove();
+        }
+        
         $("#applyLeaveList").append(row);
     });
 }
 
 function isAgreeApplyLeave(thisBtn, applyLeaveID, isAgree){
+
+    if(isAgree == 3){
+        var msg = "您確定要取消該筆請假紀錄嗎？\n\n請確認！";
+        if(confirm(msg)==false){ 
+            return;
+        }
+        isAgree = 2;
+    }
     var thisRow = $(thisBtn).closest("tr[name='applyLeaveRow']");
     var successFn = function(res){
         if(res == 1){
             thisRow.find("[name='applyStatus']").text(isAgree ==1? "通過" : "不通過");
+            thisRow.find(".cancel_applyLeave").hide();
         }
     }
     myObj.cudAjaxFn("/ApplicationSign/isAgreeApplyLeave", {applyLeaveID, isAgree}, successFn);

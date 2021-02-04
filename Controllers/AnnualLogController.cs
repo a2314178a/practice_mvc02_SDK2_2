@@ -56,7 +56,7 @@ namespace practice_mvc02.Controllers
             offsetData.lastOperaAccID = annualData.lastOperaAccID = (int)loginID;
             var isLegal = aRepository.chkDeadLineLength(annualData);
             var res = 0;
-            if(isLegal && aRepository.AddOffsetData(offsetData) == 1){
+            if(isLegal){
                 res = aRepository.UpEmployeeAnnualDays(annualData, offsetData);
             }
             return res;

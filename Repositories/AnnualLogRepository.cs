@@ -59,44 +59,47 @@ namespace practice_mvc02.Repositories
             return isLegal;
         }
 
-        public int AddOffsetData(AnnualDaysOffset data){
-            var count = 0;
-            try{
-                if(data.reason == "" || data.reason == null)return 0;
-                _DbContext.annualdaysoffset.Add(data) ;
-                count = _DbContext.SaveChanges();
-            }catch(Exception e){
-                count = ((MySqlException)e.InnerException).Number;
-            }
-            return count;
-        }
-
         public int UpEmployeeAnnualDays(EmployeeAnnualLeave data, AnnualDaysOffset offsetData){
-            var oDic = new Dictionary<string,string>{};
-            var nDic = new Dictionary<string,string>{};
-            var opLog = new OperateLog(){
-                operateID=data.lastOperaAccID, 
-                active="更新", category="特休", createTime=definePara.dtNow()
-            };
-            var context = _DbContext.employeeannualleaves.FirstOrDefault(b=>b.ID==data.ID);
-            var count = 0;
-            if(context != null){
-                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref oDic, context);
-                opLog.employeeID = context.employeeID;
 
-                context.remainHours = data.remainHours;
-                context.deadLine = data.deadLine;
-                context.lastOperaAccID = data.lastOperaAccID;
-                context.updateTime = data.updateTime;
-                count = _DbContext.SaveChanges();
-            }
-            if(count == 1){
-                toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref nDic, context);
-                opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(nDic, oDic);
-                opLog.content += $"，原因:{offsetData.reason}"; //主管調整員工餘額
-                saveOperateLog(opLog);    //紀錄操作紀錄
-            }
-            return count;
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    if(offsetData.reason == "" || offsetData.reason == null){return 0;}
+                    _DbContext.annualdaysoffset.Add(offsetData);
+                    count = _DbContext.SaveChanges();
+                    if(count == 0){return 0;}
+
+                    var oDic = new Dictionary<string,string>{};
+                    var nDic = new Dictionary<string,string>{};
+                    var opLog = new OperateLog(){
+                        operateID=data.lastOperaAccID, 
+                        active="更新", category="特休", createTime=definePara.dtNow()
+                    };
+                    var context = _DbContext.employeeannualleaves.FirstOrDefault(b=>b.ID==data.ID);
+                    if(context != null){
+                        toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref oDic, context);
+                        opLog.employeeID = context.employeeID;
+
+                        context.remainHours = data.remainHours;
+                        context.deadLine = data.deadLine;
+                        context.lastOperaAccID = data.lastOperaAccID;
+                        context.updateTime = data.updateTime;
+                        count = _DbContext.SaveChanges();
+                    }
+                    if(count == 1){
+                        toNameFn.AddUpEmployeeAnnualDays_convertToDic(ref nDic, context);
+                        opLog.content = toNameFn.AddUpEmployeeAnnualDays_convertToText(nDic, oDic);
+                        opLog.content += $"，原因:{offsetData.reason}"; //主管調整員工餘額
+                        saveOperateLog(opLog);    //紀錄操作紀錄
+                    }
+                    trans.Commit();
+                }
+                catch (Exception ex){
+                   count = catchErrorProcess(ex, count);
+                }
+                return count;
+            }//using
         }
         
     }

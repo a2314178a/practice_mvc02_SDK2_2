@@ -81,11 +81,11 @@ namespace practice_mvc02.Controllers
             }else{
                 applyData.accountID = applyData.lastOperaAccID = (int)loginID;
                 applyData.principalID = (int)principalID;
+                if(!Repository.ChkHasPrincipal(applyData.accountID)){  //沒有代理人不可請假
+                    return "noPrincipal";
+                }
             }
 
-            if(isActiveApply && !Repository.ChkHasPrincipal(applyData.accountID)){  //沒有代理人不可請假
-                return "noPrincipal";
-            }
             if(!Repository.ChkApplyLeaveData(applyData, isActiveApply)){
                 return "data_illegal";
             }
@@ -110,14 +110,7 @@ namespace practice_mvc02.Controllers
             
             if(applyData.ID ==0){
                 applyData.createTime = definePara.dtNow();
-                result = Repository.CreateApplyLeave(applyData);
-                if(result == 1){
-                    if(isActiveApply){
-                        Repository.systemSendMessage(loginName, applyData.accountID, "leave");
-                    }else{
-                        Repository.punchLogWithTakeLeave(applyData);
-                    }
-                }
+                result = Repository.CreateApplyLeave(applyData, isActiveApply, loginName);
             }else{  //編輯更新 未使用
                 //applyData.updateTime = definePara.dtNow();
                 //result = Repository.UpdateApplyLeave(applyData);

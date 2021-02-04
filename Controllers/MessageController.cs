@@ -39,7 +39,7 @@ namespace practice_mvc02.Controllers
                 case "new": ViewBag.Page = "new";break;
                 case "all": ViewBag.Page = "all";break;
                 //case "write": ViewBag.Page = "write";break;
-                case "backup": ViewBag.Page = "backup";break;
+                //case "backup": ViewBag.Page = "backup";break;
             }
             return View("MessagePage");  
         }
@@ -82,42 +82,7 @@ namespace practice_mvc02.Controllers
             }
             msg.lastOperaAccID = (int)loginID;
             msg.createTime = definePara.dtNow();
-            var msgID = Repository.createMessage(msg);
-            if(msgID >0){
-                return sendMessage(msgID, depart, receiveID);
-            }else{
-                return 0;
-            }
-        }
-
-        public int sendMessage(int msgID, string depart, string receiveID){
-            var sendSel = 0;
-            if((depart == "-1") || (depart == "" && receiveID == "-1")){
-                sendSel = 1;    //send All
-            }else if(receiveID == "-1"){
-                sendSel = 2;    //send depart all
-            }else{
-                sendSel = 3;    //send one
-            }
-            List<Account> receiveAllID = new List<Account>(){};
-            switch(sendSel){
-                case 1: receiveAllID = Repository.GetAllAccID();  break;
-                case 2: receiveAllID = Repository.GetDepartAllAccID(depart);  break;
-                case 3: var result = 0; 
-                        Int32.TryParse(receiveID, out result);
-                        receiveAllID.Add(new Account{ID = result}); 
-                        break;
-            }
-            var count = 0;
-            foreach(var account in receiveAllID){
-                var record = new MsgSendReceive();
-                record.messageID = msgID;
-                record.sendID = record.lastOperaAccID = (int)loginID;
-                record.receiveID = account.ID;
-                record.createTime = definePara.dtNow();
-                count += Repository.SendMessage(record);
-            }
-            return count;
+            return Repository.createMessage(msg, depart, receiveID);
         }
 
         #endregion //write Message

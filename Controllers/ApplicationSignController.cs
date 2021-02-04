@@ -52,7 +52,7 @@ namespace practice_mvc02.Controllers
             return Repository.GetPunchLogWarn((int)loginID);
         }
 
-        public int ignorePunchLogWarn(int punchLogID){
+        public int ignorePunchLogWarn(int[] punchLogID){
             return Repository.IgnorePunchLogWarn(punchLogID);
         }
 
@@ -69,11 +69,7 @@ namespace practice_mvc02.Controllers
         }
 
         public int isAgreeApplyLeave(int applyLeaveID, int isAgree){
-            LeaveOfficeApply context = Repository.IsAgreeApplyLeave(applyLeaveID, isAgree, (int)loginID);
-            if(context != null){
-                Repository.punchLogWithTakeLeave(context);
-            }
-            return context == null? 0 : 1;
+            return Repository.IsAgreeApplyLeave(applyLeaveID, isAgree, (int)loginID);
         }
 
         #endregion //leaveOffice

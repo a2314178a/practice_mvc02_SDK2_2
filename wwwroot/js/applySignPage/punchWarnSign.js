@@ -4,6 +4,7 @@
 
 function getPunchLogWarn(){
     $('.btnActive').css('pointer-events', "");
+    $('[name="ignoreGrid"]').show();
     $("#punchLogWarnList").empty();
     var successFn = function(res){
         res.forEach(function(value){
@@ -32,7 +33,8 @@ function getPunchLogWarn(){
             row.find("[name='logPunchStatus']").text(status);
             row.find("[name='signStatus']").text(value.warnStatus==1? "已處理":"未處理");
             row.find(".edit_punchLog").attr("onclick","editPunchLogWarn(this, "+value.id+");");
-            row.find(".ignore_punchLog").attr("onclick","ignorePunchLogWarn(this, "+value.id+");");
+            //row.find(".ignore_punchLog").attr("onclick","ignorePunchLogWarn(this, "+value.id+");");
+            row.find("input[name='logChkBox']").val(value.id);
             $("#punchLogWarnList").append(row);
         });
     };
@@ -41,6 +43,7 @@ function getPunchLogWarn(){
 
 function editPunchLogWarn(thisBtn, logID){
     $('.btnActive').css('pointer-events', "none");
+    $('[name="ignoreGrid"]').hide()
 
     var thisRow = $(thisBtn).closest("tr[name='punchLogWarnRow']").hide();
     var thisName = thisRow.find("[name='employeeName']").text();
@@ -60,18 +63,25 @@ function editPunchLogWarn(thisBtn, logID){
     $(thisRow).after(updateLogRow);
 }
 
-function ignorePunchLogWarn(thisBtn, logID){
-    var msg = "您真的確定要忽略嗎？\n\n請確認！";
-    if(confirm(msg)==false) 
+function ignorePunchLogWarn(){
+    var punchLogID = [];
+    var hasChkLog = $("#punchLogWarnList").find("input[name='logChkBox']:checked");
+    $.each(hasChkLog, function(key, obj){
+        punchLogID.push($(obj).val());
+    });
+    var msg = "您真的確定要忽略這些訊息嗎？\n\n請確認！";
+    if(confirm(msg)==false || punchLogID.length == 0){
         return;
+    }
+
     var successFn = function(res){
         if(res > 0){
-            cancelPunchLog();
+            getPunchLogWarn();
         }else{
             alert('fail');
         }     
     };
-    myObj.cudAjaxFn("/ApplicationSign/ignorePunchLogWarn", {punchLogID: logID}, successFn);
+    myObj.cudAjaxFn("/ApplicationSign/ignorePunchLogWarn", {punchLogID}, successFn);
 }
 
 function updatePunchLog(thisBtn, logID){
@@ -104,6 +114,7 @@ function cancelPunchLog(thisBtn){
     $(thisBtn).closest("tr[name='upPunchLogWarnRow']").remove();
     $("#punchLogWarnList").find("tr[name='punchLogWarnRow']").show();
     $('.btnActive').css('pointer-events', "");
+    $('[name="ignoreGrid"]').show();
     //getPunchLogWarn();
 }
 

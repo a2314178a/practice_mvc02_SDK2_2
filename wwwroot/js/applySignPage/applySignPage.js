@@ -7,6 +7,15 @@ $(document).ready(function() {
     $("#searchFilterDiv").on("click", "[name='searchFilterBtn']", function(){
         getEmployeeApplyLeave();
     });
+
+    $("#selAllChkBox").on("click", function(){
+        if($(this).prop("checked")){
+            $("#punchLogWarnList").find("input[type='checkbox']").prop("checked", true);
+        }else{
+            $("#punchLogWarnList").find("input[type='checkbox']").prop("checked", false);
+        }
+    });
+
 });//.ready function
 
 

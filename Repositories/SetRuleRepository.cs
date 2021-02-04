@@ -55,31 +55,41 @@ namespace practice_mvc02.Repositories
         }
 
         public int DelTimeRule(int id, int loginID){
-            var dic = new Dictionary<string,string>{};
-            var opLog = new OperateLog(){
-                operateID=loginID, active="刪除", 
-                category="工作時間設定", createTime=definePara.dtNow()
-            };
-            int count = 0;
-            var context = _DbContext.worktimerules.FirstOrDefault(b=>b.ID == id);
-            if(context != null){
-                toNameFn.AddUpTimeRule_convertToDic(ref dic, context);
+            
+            using (var trans = _DbContext.Database.BeginTransaction()){
+                var dic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    operateID=loginID, active="刪除", 
+                    category="工作時間設定", createTime=definePara.dtNow()
+                };
+                var count = 0;
+                try
+                {
+                    var context = _DbContext.worktimerules.FirstOrDefault(b=>b.ID == id);
+                    if(context != null){
+                        toNameFn.AddUpTimeRule_convertToDic(ref dic, context);
 
-                _DbContext.worktimerules.Remove(context);
-                count = _DbContext.SaveChanges();
-            }
-            if(count ==1){
-                var query = _DbContext.accounts.Where(b=>b.timeRuleID == id).ToList();
-                foreach(var tmp in query){
-                    tmp.timeRuleID = 0;
-                    tmp.lastOperaAccID  = 0;
-                    tmp.updateTime = definePara.dtNow();
-                    _DbContext.SaveChanges();
+                        _DbContext.worktimerules.Remove(context);
+                        count = _DbContext.SaveChanges();
+                    }
+                    if(count ==1){
+                        var query = _DbContext.accounts.Where(b=>b.timeRuleID == id).ToList();
+                        foreach(var tmp in query){
+                            tmp.timeRuleID = 0;
+                            tmp.lastOperaAccID  = 0;
+                            tmp.updateTime = definePara.dtNow();
+                            _DbContext.SaveChanges();
+                        }
+                        opLog.content = toNameFn.AddUpTimeRule_convertToText(dic);
+                        saveOperateLog(opLog);    //紀錄操作紀錄
+                        trans.Commit();
+                    }
                 }
-                opLog.content = toNameFn.AddUpTimeRule_convertToText(dic);
-                saveOperateLog(opLog);    //紀錄操作紀錄
-            }
-            return count;
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            }    
         }
 
         public int UpdateTimeRule(WorkTimeRule updateData){
@@ -413,90 +423,105 @@ namespace practice_mvc02.Repositories
         }
 
         public int AddSpLeaveRule(AnnualLeaveRule data){
-            int count = 0;
-            try{
-                _DbContext.annualleaverule.Add(data);
-                count = _DbContext.SaveChanges();
-            }catch(Exception e){
-                count = ((MySqlException)e.InnerException).Number;
-            }
-            if(count == 1){
-                var dic = new Dictionary<string,string>{};
-                var opLog = new OperateLog(){
-                    operateID=data.lastOperaAccID, active="新增", 
-                    category="特休天數設定", createTime=definePara.dtNow()
-                };
-                toNameFn.AddUpSpLeave_convertToDic(ref dic, data);
-                opLog.content = toNameFn.AddUpSpLeave_convertToText(dic);
-                saveOperateLog(opLog);    //紀錄操作紀錄
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                 try{
+                    _DbContext.annualleaverule.Add(data);
+                    count = _DbContext.SaveChanges();
+                    if(count == 1){
+                        var dic = new Dictionary<string,string>{};
+                        var opLog = new OperateLog(){
+                            operateID=data.lastOperaAccID, active="新增", 
+                            category="特休天數設定", createTime=definePara.dtNow()
+                        };
+                        toNameFn.AddUpSpLeave_convertToDic(ref dic, data);
+                        opLog.content = toNameFn.AddUpSpLeave_convertToText(dic);
+                        saveOperateLog(opLog);    //紀錄操作紀錄
 
-                if(data.ID >0){ //data.ID = new add dataID
-                    AnnualLeave.refreshLowAnnualLeaveData(data);
+                        if(data.ID >0){ //data.ID = new add dataID
+                            AnnualLeave.refreshLowAnnualLeaveData(data);
+                        }
+                        trans.Commit();
+                    } 
+                }catch(Exception ex){
+                    count = catchErrorProcess(ex, count);
                 }
+                return count;
             }
-            return count;
         }
 
         public int UpdateSpLeaveRule(AnnualLeaveRule data){
-            var oDic = new Dictionary<string,string>{};
-            var nDic = new Dictionary<string,string>{};
-            var opLog = new OperateLog(){
-                operateID=data.lastOperaAccID, active="更新", 
-                category="特休天數設定", createTime=definePara.dtNow()
-            };
-            int count = 0;
-            int diffSpecialDays=0, diffBuffDays=0;
-            try{
-                var context = _DbContext.annualleaverule.FirstOrDefault(b=>b.ID == data.ID);
-                if(context != null){
-                    toNameFn.AddUpSpLeave_convertToDic(ref oDic, context);
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var oDic = new Dictionary<string,string>{};
+                var nDic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    operateID=data.lastOperaAccID, active="更新", 
+                    category="特休天數設定", createTime=definePara.dtNow()
+                };
+                var count = 0;
+                int diffSpecialDays=0, diffBuffDays=0;
+                try{
+                    var context = _DbContext.annualleaverule.FirstOrDefault(b=>b.ID == data.ID);
+                    if(context != null){
+                        toNameFn.AddUpSpLeave_convertToDic(ref oDic, context);
 
-                    diffSpecialDays = data.specialDays - context.specialDays;
-                    diffBuffDays = data.buffDays - context.buffDays;
+                        diffSpecialDays = data.specialDays - context.specialDays;
+                        diffBuffDays = data.buffDays - context.buffDays;
 
-                    //context.seniority = data.seniority;
-                    context.specialDays = data.specialDays;
-                    context.buffDays = data.buffDays;
-                    context.lastOperaAccID = data.lastOperaAccID;
-                    context.updateTime = data.updateTime;
-                    count = _DbContext.SaveChanges();
+                        //context.seniority = data.seniority;
+                        context.specialDays = data.specialDays;
+                        context.buffDays = data.buffDays;
+                        context.lastOperaAccID = data.lastOperaAccID;
+                        context.updateTime = data.updateTime;
+                        count = _DbContext.SaveChanges();
 
-                    if(count == 1){
-                        toNameFn.AddUpSpLeave_convertToDic(ref nDic, context);
-                        opLog.content = toNameFn.AddUpSpLeave_convertToText(nDic, oDic);
-                        saveOperateLog(opLog);    //紀錄操作紀錄
-                        AnnualLeave.UpEmployeeSpLeave(data.ID, diffSpecialDays, diffBuffDays);
+                        if(count == 1){
+                            toNameFn.AddUpSpLeave_convertToDic(ref nDic, context);
+                            opLog.content = toNameFn.AddUpSpLeave_convertToText(nDic, oDic);
+                            saveOperateLog(opLog);    //紀錄操作紀錄
+                            AnnualLeave.UpEmployeeSpLeave(data.ID, diffSpecialDays, diffBuffDays);
+                            trans.Commit();
+                        }  
                     }
+                }catch(Exception ex){
+                    count = catchErrorProcess(ex, count);
                 }
-            }catch(Exception e){
-                count = ((MySqlException)e.InnerException).Number;
-            }
-            return count;
+                return count;
+            }   
         }
 //新增:找使用比她小1規則的年資移除重計算, 刪除:移除後重計算, 
 //修改:修改對應資料(年資改為不可修改)
         public int DelSpLeaveRule(int ruleID, int loginID){
-            var dic = new Dictionary<string,string>{};
-            var opLog = new OperateLog(){
-                operateID=loginID, active="刪除", 
-                category="特休天數設定", createTime=definePara.dtNow()
-            };
-            int count = 0;
-            var context = _DbContext.annualleaverule.FirstOrDefault(b=>b.ID == ruleID);
-            if(context != null){
-                toNameFn.AddUpSpLeave_convertToDic(ref dic, context);
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var dic = new Dictionary<string,string>{};
+                var opLog = new OperateLog(){
+                    operateID=loginID, active="刪除", 
+                    category="特休天數設定", createTime=definePara.dtNow()
+                };
+                var count = 0;
+                try
+                {
+                    var context = _DbContext.annualleaverule.FirstOrDefault(b=>b.ID == ruleID);
+                    if(context != null){
+                        toNameFn.AddUpSpLeave_convertToDic(ref dic, context);
 
-                _DbContext.annualleaverule.Remove(context);
-                count = _DbContext.SaveChanges();
-            }
-            if(count == 1){
-                opLog.content = toNameFn.AddUpSpLeave_convertToText(dic);
-                saveOperateLog(opLog);    //紀錄操作紀錄
+                        _DbContext.annualleaverule.Remove(context);
+                        count = _DbContext.SaveChanges();
+                    }
+                    if(count == 1){
+                        opLog.content = toNameFn.AddUpSpLeave_convertToText(dic);
+                        saveOperateLog(opLog);    //紀錄操作紀錄
 
-                AnnualLeave.refreshAnnualLeaveHours(context);
-                AnnualLeave.DelSomeAnnualLeaveRecord(ruleID);    
-            }
-            return count;
+                        AnnualLeave.refreshAnnualLeaveHours(context);
+                        AnnualLeave.DelSomeAnnualLeaveRecord(ruleID);   
+                        trans.Commit(); 
+                    }   
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            } 
         }
 
         #endregion  //spLeaveRule

@@ -44,42 +44,64 @@ namespace practice_mvc02.Repositories
         }
 
         public int SetHadReadMsg(int[] msgID, int loginID){
-            int count = 0;
-            var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
-            foreach(var msg in context){
-                msg.read = 1;
-                msg.lastOperaAccID = loginID;
-                msg.updateTime = definePara.dtNow();
-                count = _DbContext.SaveChanges();
-            }
-            return count;
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
+                    var nowTime = definePara.dtNow();
+                    foreach(var msg in context){
+                        msg.read = 1;
+                        msg.lastOperaAccID = loginID;
+                        msg.updateTime = nowTime;
+                        _DbContext.SaveChanges();
+                    }
+                    count = 1;
+                    trans.Commit();
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            } 
         }
 
         public int DelMessage(int[] msgID, string sel, int loginID){
-            int count = 0;
-            var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
-            foreach(var msg in context){
-                if(sel=="rDel"){
-                    msg.rDelete = true;
-                    msg.lastOperaAccID = loginID;
-                    msg.updateTime = definePara.dtNow();
-                    count = _DbContext.SaveChanges();
-                }else if(sel=="sDel"){
-                    var sameSend = _DbContext.msgsendreceive
-                                    .Where(b=>b.messageID==msg.messageID && b.sendID==loginID).ToList();
-                    foreach(var tmp in sameSend){
-                        tmp.sDelete = true;
-                        tmp.lastOperaAccID = loginID;
-                        tmp.updateTime = definePara.dtNow();
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    var context = _DbContext.msgsendreceive.Where(b=>msgID.Contains(b.ID)).ToList();
+                    foreach(var msg in context){
+                        if(sel=="rDel"){
+                            msg.rDelete = true;
+                            msg.lastOperaAccID = loginID;
+                            msg.updateTime = definePara.dtNow();
+                            _DbContext.SaveChanges();
+                        }else if(sel=="sDel"){
+                            var sameSend = _DbContext.msgsendreceive
+                                            .Where(b=>b.messageID==msg.messageID && b.sendID==loginID).ToList();
+                            foreach(var tmp in sameSend){
+                                tmp.sDelete = true;
+                                tmp.lastOperaAccID = loginID;
+                                tmp.updateTime = definePara.dtNow();
+                            }
+                            _DbContext.SaveChanges();
+                        }  
                     }
-                    count = _DbContext.SaveChanges();
+                    var allDel = _DbContext.msgsendreceive.Where(b=>b.rDelete && b.sDelete).ToList();
+                    if(allDel != null){
+                        _DbContext.msgsendreceive.RemoveRange(allDel);
+                        _DbContext.SaveChanges();
+                    }
+                    count = 1;
+                    trans.Commit();
                 }
-                var allDel = _DbContext.msgsendreceive.Where(b=>b.rDelete && b.sDelete).ToList();
-                _DbContext.msgsendreceive.RemoveRange(allDel);
-                _DbContext.SaveChanges();
-                
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
             }
-            return count;
         }
         
         public object GetReceiveOption(){
@@ -94,17 +116,48 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
-        public int createMessage(Message msg){
-            _DbContext.message.Add(msg);
-            _DbContext.SaveChanges();
-            return msg.ID;
-        }
-
-        public int SendMessage(MsgSendReceive record){
-            var count = 0;
-            _DbContext.msgsendreceive.Add(record);
-            count = _DbContext.SaveChanges();
-            return count;
+        public int createMessage(Message msg, string depart, string receiveID){
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {   
+                    _DbContext.message.Add(msg);        //createMsg
+                    count = _DbContext.SaveChanges();
+                    if(msg.ID >0 && count == 1){        //sendMsg
+                        var sendSel = 0;
+                        if((depart == "-1") || (depart == "" && receiveID == "-1")){
+                            sendSel = 1;    //send All
+                        }else if(receiveID == "-1"){
+                            sendSel = 2;    //send depart all
+                        }else{
+                            sendSel = 3;    //send one
+                        }
+                        List<Account> receiveAllID = new List<Account>(){};
+                        switch(sendSel){
+                            case 1: receiveAllID = GetAllAccID();  break;
+                            case 2: receiveAllID = GetDepartAllAccID(depart);  break;
+                            case 3: var result = 0; 
+                                    Int32.TryParse(receiveID, out result);
+                                    receiveAllID.Add(new Account{ID = result}); 
+                                    break;
+                        }
+                        foreach(var account in receiveAllID){
+                            var record = new MsgSendReceive();
+                            record.messageID = msg.ID;
+                            record.sendID = record.lastOperaAccID = msg.lastOperaAccID;
+                            record.receiveID = account.ID;
+                            record.createTime = definePara.dtNow();
+                            _DbContext.msgsendreceive.Add(record);
+                            _DbContext.SaveChanges();
+                        }
+                        trans.Commit();
+                    } 
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            }
         }
 
         public List<Account> GetAllAccID(){

@@ -35,14 +35,26 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
-        public int IgnorePunchLogWarn(int punchLogID){
-            int count = 0;
-            var context = _DbContext.punchlogwarns.FirstOrDefault(b=>b.punchLogID == punchLogID);
-            if(context != null){
-                context.warnStatus = 2;
-                count = _DbContext.SaveChanges();
+        public int IgnorePunchLogWarn(int[] punchLogID){
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    var context = _DbContext.punchlogwarns.Where(b=>punchLogID.Contains(b.punchLogID)).ToList();
+                    var nowTime = definePara.dtNow();
+                    foreach(var log in context){
+                        log.warnStatus = 2;
+                        log.updateTime = nowTime;
+                        _DbContext.SaveChanges();
+                    }
+                    count = 1;
+                    trans.Commit();
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
             }
-            return count;
         }
 
         #endregion //punchWarn
@@ -114,20 +126,25 @@ namespace practice_mvc02.Repositories
 
         public object GetEmployeeApplyLeave(int loginID, int page, DateTime sDate, DateTime eDate){
             var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
-            var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過
+            //var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過   //page=0:leave / page=1=log
 
-            var query = from a in _DbContext.leaveofficeapplys
+            var query = (from a in _DbContext.leaveofficeapplys
                         join b in _DbContext.accounts on a.accountID equals b.ID
                         join c in _DbContext.employeeprincipals on a.accountID equals c.employeeID
                         join d in _DbContext.leavenames on a.leaveID equals d.ID
                         where (c.principalID == loginID || c.principalAgentID == loginID) &&
-                                a.accountID != loginID && a.applyStatus < selStatus && 
+                                a.accountID != loginID && /*a.applyStatus < selStatus && */
                                 a.createTime >= sDate && a.createTime < feDate
                         orderby a.createTime descending
                         select new{
                             a.ID, a.leaveID, a.note, a.startTime, a.endTime, a.applyStatus, a.createTime, 
                             b.userName, d.leaveName, d.timeUnit
-                        };
+                        }).ToList();
+            if(page == 1){
+                query = query.Where(b=>b.applyStatus == 1 || b.applyStatus == 2).ToList();
+            }else {
+                query = query.Where(b=>b.applyStatus == 0).ToList();
+            }
             return query.ToList();
         }
 
@@ -145,34 +162,59 @@ namespace practice_mvc02.Repositories
             return query != null? ($"全體,{query.department},{query.name}") : "全體";
         }
 
-        public int CreateApplyLeave(LeaveOfficeApply newApply){
-            int count = 0;
-            try{
-                _DbContext.leaveofficeapplys.Add(newApply);
-                count = _DbContext.SaveChanges();
-            }catch(Exception e){
-                count = ((MySqlException)e.InnerException).Number;
-            }
-            if(count == 1){
-                var leaveName = getApplyLeaveName(newApply.leaveID);
-                if(leaveName == specialName)
-                    refreshEmployeeAnnualLeave(newApply, 2);    //減時數
-            }
-            return count;
+        public int CreateApplyLeave(LeaveOfficeApply newApply, bool isActiveApply, String loginName){
+
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    _DbContext.leaveofficeapplys.Add(newApply);
+                    count = _DbContext.SaveChanges();
+                    if(count == 1){
+                        var leaveName = getApplyLeaveName(newApply.leaveID);
+                        if(leaveName == specialName){
+                            refreshEmployeeAnnualLeave(newApply, 2);    //減時數
+                        }
+                        if(isActiveApply){
+                            systemSendMessage(loginName, newApply.accountID, "leave");
+                        }else{
+                            punchLogWithTakeLeave(newApply);
+                        }
+                    }
+                    trans.Commit();
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            }   
         }
 
         public int DelApplyLeave(int applyLeaveID, int loginID){
-            int count = 0;
-            var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyLeaveID);
-            if(context != null){
-                var leaveName = getApplyLeaveName(context.leaveID);
-                _DbContext.Remove(context);
-                count = _DbContext.SaveChanges();
-                if(count == 1 && leaveName == specialName){
-                    refreshEmployeeAnnualLeave(context, 1); //加時數
+
+            using (var trans = _DbContext.Database.BeginTransaction())
+            {
+                var count = 0;
+                try
+                { 
+                    var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyLeaveID);
+                    if(context != null){
+                        var leaveName = getApplyLeaveName(context.leaveID);
+                        _DbContext.Remove(context);
+                        count = _DbContext.SaveChanges();
+                        if(count == 1){
+                            if(leaveName == specialName){
+                                refreshEmployeeAnnualLeave(context, 1); //加時數
+                            }
+                        }
+                        trans.Commit();
+                    }
                 }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
             }
-            return count;
         }
 
         public int UpdateApplyLeave(LeaveOfficeApply updateApply){  //暫無使用到
@@ -195,34 +237,46 @@ namespace practice_mvc02.Repositories
             return count;
         }
 
-        public LeaveOfficeApply IsAgreeApplyLeave(int applyID, int newStatus, int loginID){
-            int count = 0;
-            var leaveStatus = 0;    //0:沒動作 1:加回特休時數 2:減特休時數
-            var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyID);
-            var leaveName = getApplyLeaveName(context.leaveID);
+        public int IsAgreeApplyLeave(int applyID, int newStatus, int loginID){
 
-            if(context != null){
-                if(leaveName == specialName){   //申請假別為特休
-                    var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
-                    if((oldStatus == 2 && newStatus == 0) || (oldStatus == 2 && newStatus == 1)){
-                        leaveStatus = 2;    //減特休時數
-                    }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 0 && newStatus == 2)){
-                        leaveStatus = 1;    //加回特休時數
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    var leaveStatus = 0;    //0:沒動作 1:加回特休時數 2:減特休時數
+                    var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyID);
+                    var leaveName = getApplyLeaveName(context.leaveID);
+
+                    if(context != null){
+                        if(leaveName == specialName){   //申請假別為特休
+                            var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
+                            if((oldStatus == 2 && newStatus == 0) || (oldStatus == 2 && newStatus == 1)){
+                                leaveStatus = 2;    //減特休時數
+                            }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 0 && newStatus == 2)){
+                                leaveStatus = 1;    //加回特休時數
+                            }
+                            if(!chkEmployeeAnnualLeave(context, leaveStatus)){
+                                return 0;
+                            }
+                        }
+                        context.applyStatus = newStatus;
+                        context.lastOperaAccID = loginID;
+                        context.updateTime = definePara.dtNow();
+                        count = _DbContext.SaveChanges();  
                     }
-                    if(!chkEmployeeAnnualLeave(context, leaveStatus)){
-                        return null;
+                    if(count == 1){
+                        punchLogWithTakeLeave(context);
+                        if(leaveName == specialName && leaveStatus >0){
+                            refreshEmployeeAnnualLeave(context, leaveStatus);
+                        }
                     }
+                    trans.Commit();
                 }
-   
-                context.applyStatus = newStatus;
-                context.lastOperaAccID = loginID;
-                context.updateTime = definePara.dtNow();
-                count = _DbContext.SaveChanges();  
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
             }
-            if(count == 1 && leaveName == specialName && leaveStatus >0){
-                refreshEmployeeAnnualLeave(context, leaveStatus);
-            }
-            return count == 1? context : null;
         }
 
         public string getApplyLeaveName(int leaveID){
@@ -300,9 +354,9 @@ namespace practice_mvc02.Repositories
             //因工作時間可能跨日 不能直接用restST.Date EX: 2300-0800 休下半天0400-0800
             var workDate = restST.Date;  //工作天日期(logDate) 
             var wtRule = (from a in _DbContext.accounts
-                             join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
-                             where a.ID == restLog.accountID
-                             select b).FirstOrDefault();
+                        join b in _DbContext.worktimerules on a.timeRuleID equals b.ID
+                        where a.ID == restLog.accountID
+                        select b).FirstOrDefault();
 
            if(wtRule != null){
                 if(wtRule.endTime < wtRule.startTime){

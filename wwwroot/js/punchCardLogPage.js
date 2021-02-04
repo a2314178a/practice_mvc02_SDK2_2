@@ -138,7 +138,7 @@ function refreshPunchLogList(res){
         row.find("[name='logOfflineTime']").text(dtOffTime);
         row.find("[name='logPunchStatus']").text(status);
         row.find(".edit_punchLog").attr("onclick", `editPunchLog(this, ${value.id});`);
-        row.find(".del_punchLog").attr("onclick", `delPunchLog(${value.id});`);
+        // row.find(".del_punchLog").attr("onclick", `delPunchLog(${value.id});`);
         $("#punchLogList").append(row).append(textRow);
     });
 }

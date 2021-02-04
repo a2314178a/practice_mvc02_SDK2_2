@@ -33,7 +33,7 @@ namespace practice_mvc02.Models
         public int punchCardProcess(PunchCardLog logData, WorkTimeRule thisWorkTime, int action, int employeeID)
         {   
             WorkDateTime wt = workTimeProcess(thisWorkTime);
-            //需new一個出來 用原本的logData會等於context，一旦修改logData之後query後的context也會是修改後的(雖然資料庫沒變)
+            //需new一個出來 用原本的logData會等於context，一旦修改logData之後query後的context也會是修改後的(雖然沒儲存所以資料庫沒變)
             PunchCardLog newLogData;    
             int resultCount = 0; //0:操作異常 1:成功 
             
@@ -66,7 +66,7 @@ namespace practice_mvc02.Models
                 }
             }
             newLogData.punchStatus = getStatusCode(wt, newLogData);
-            resultCount = newLogData.ID ==0? Repository.AddPunchCardLog(newLogData, true):Repository.UpdatePunchCard(newLogData, true);
+            resultCount = newLogData.ID ==0? Repository.AddPunchCardLog(newLogData, true) : Repository.UpdatePunchCard(newLogData, true);
             if(resultCount == 1){    //一定要新增log成功 不然會沒logID
                 if(newLogData.punchStatus > psCode.normal && newLogData.punchStatus != psCode.takeLeave){
                     Repository.AddPunchLogWarnAndMessage(newLogData);
