@@ -6,6 +6,7 @@ function getPunchLogWarn(){
     $('.btnActive').css('pointer-events', "");
     $('[name="ignoreGrid"]').show();
     $("#punchLogWarnList").empty();
+    var fDepart = $("#filterDepart").val();
     var successFn = function(res){
         res.forEach(function(value){
             var dtOn = myObj.dateTimeFormat(value.onlineTime);
@@ -33,12 +34,11 @@ function getPunchLogWarn(){
             row.find("[name='logPunchStatus']").text(status);
             row.find("[name='signStatus']").text(value.warnStatus==1? "已處理":"未處理");
             row.find(".edit_punchLog").attr("onclick","editPunchLogWarn(this, "+value.id+");");
-            //row.find(".ignore_punchLog").attr("onclick","ignorePunchLogWarn(this, "+value.id+");");
             row.find("input[name='logChkBox']").val(value.id);
             $("#punchLogWarnList").append(row);
         });
     };
-    myObj.rAjaxFn("get", "/ApplicationSign/getPunchLogWarn", null, successFn);
+    myObj.rAjaxFn("get", "/ApplicationSign/getPunchLogWarn", {fDepart}, successFn);
 }
 
 function editPunchLogWarn(thisBtn, logID){

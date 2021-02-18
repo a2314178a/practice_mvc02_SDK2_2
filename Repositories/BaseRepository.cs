@@ -13,6 +13,7 @@ namespace practice_mvc02.Repositories
     {
         protected DBContext _DbContext {get;set;}
         protected operateLogFunction toNameFn;
+        protected String noDepartStr = definePara.noDepart();
 
         public BaseRepository(DBContext dbContext)
         {
@@ -39,7 +40,7 @@ namespace practice_mvc02.Repositories
                         select new{
                             a.account, a.userName, a.timeRuleID, a.groupID, a.accLV,
                             departmentID=(bb==null? 0:bb.ID), 
-                            department=(bb==null? "未指派":bb.department), 
+                            department=(bb==null? noDepartStr : bb.department), 
                             position=(bb==null? null:bb.position), 
                             sex=(cc==null? 0:cc.sex),
                             birthday=(cc==null? definePara.dtNow().ToString("yyyy-MM-dd"):cc.birthday.ToString("yyyy-MM-dd")),

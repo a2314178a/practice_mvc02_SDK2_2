@@ -42,12 +42,36 @@
                                 <a class='nav-link @(@ViewBag.Page=="leaveLog"?"active":"")' href="#" name="leaveSignLog" onclick="selPageContext(3);">員工請假紀錄</a>
                             </li>
                         </ul>
+                        @if(ViewBag.showDepartFilter && ViewBag.Page !="leaveLog")
+                        {
+                        <div id="DepartFilterDiv" style="text-align:center; margin:20px auto;">
+                            <p>
+                                <form>
+                                    <span style="margin:10px">
+                                        <span style="font-size:20px;">部門:&nbsp;</span>
+                                        <select id="filterDepart">
+                                            <option value="">所有部門</option>
+                                        </select>
+                                    </span>
+                                    <input type="button" name="searchFilterBtn" value="搜尋">
+                                </form>
+                            </p>   
+                        </div>
+                        }
 
                         @if(ViewBag.Page =="leaveLog")
                         {
                         <div id="searchFilterDiv" style="text-align:center; margin:20px auto;">
                             <p>
                                 <form>
+                                    @if(ViewBag.showDepartFilter)
+                                    {
+                                        <span>部門:&nbsp;</span>
+                                        <select id="filterDepart">
+                                            <option value="">所有部門</option>
+                                        </select>
+                                        <span>&nbsp;</span>
+                                    }
                                     起始 Date: <input type="date" id="filter_sDate">&nbsp;&nbsp;&nbsp;&nbsp;
                                     結束 Date: <input type="date" id="filter_eDate">
                                     <input type="button" name="searchFilterBtn" value="搜尋">
@@ -126,10 +150,11 @@
                         <td scope="col" name="logPunchStatus"></td>
                         <td scope="col" name="signStatus"></td>
                         <td scope="col" width="10%">
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
                             <a href="javascript:void(0);" class="btn btn-primary edit_punchLog btnActive" >處理</a>
+                            }
                         </td> 
                         <td scope="col" width="10%" name="ignoreGrid">
-                            @* <a href="javascript:void(0);" class="btn btn-danger ignore_punchLog btnActive" >忽略</a> *@
                             <input type="checkbox" name="logChkBox">
                         </td> 
                     </tr>
@@ -148,8 +173,10 @@
                         <td scope="col" name="punchStatus"></td>
                         <td scope="col" name="signStatus"></td>
                         <td scope="col" width="20%">
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
                             <a href="javascript:void(0);" class="btn btn-primary up_punchLogWarn" >更新</a>
                             <a href="javascript:void(0);" class="btn btn-danger cel_punchLogWarn" >取消</a>
+                            }
                         </td>
                     </tr>
                 }
@@ -163,17 +190,19 @@
                         <td scope="col" name="startTime"></td>
                         <td scope="col" name="endTime"></td>
                         <td scope="col" name="applyStatus"></td>
+                        <td scope="col" width="15%">
                         @if(ViewBag.Page == "leave")
                         {
-                        <td scope="col" width="15%">
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
                             <a href="javascript:void(0);" class="btn btn-primary yes_applyLeave btnActive" >通過</a>
                             <a href="javascript:void(0);" class="btn btn-danger no_applyLeave btnActive" >不通過</a>
-                        </td>
+                            }
                         }else{
-                        <td scope="col" width="15%">
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
                             <a href="javascript:void(0);" class="btn btn-danger cancel_applyLeave btnActive" >取消請假</a>
-                        </td>
+                            }
                         }
+                        </td>
                     </tr>
                 }
            </table>

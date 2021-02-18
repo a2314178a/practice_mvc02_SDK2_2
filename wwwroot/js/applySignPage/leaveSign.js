@@ -3,12 +3,15 @@
 //#region leaveSign
 
 function getEmployeeApplyLeave(){
+    var sDate = null;
+    var eDate = null;
+    var fDepart = $("#filterDepart").val();
     if($("#searchFilterDiv").length >0){
-        var sDate = $("#filter_sDate").val();
-        var eDate = $("#filter_eDate").val();
+        sDate = $("#filter_sDate").val();
+        eDate = $("#filter_eDate").val();
     }else{
-        var sDate = new Date(2000, 0, 1);   //=2000-01-01
-        var eDate = new Date(); //
+        sDate = new Date(2000, 0, 1);   //=2000-01-01
+        eDate = new Date(); //
     }
     
     var page = $("#leaveSignDiv").attr("name") == "leave"? 0 : 1;
@@ -17,7 +20,7 @@ function getEmployeeApplyLeave(){
             refreshApplyLeaveIng(res);   
         };
         var data ={
-            page, sDate, eDate
+            page, sDate, eDate, fDepart
         };
         myObj.rAjaxFn("post", "/ApplicationSign/getEmployeeApplyLeave", data, successFn);
     }else{

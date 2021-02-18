@@ -19,10 +19,13 @@ namespace practice_mvc02.Controllers
     public class ApplicationSignController : BaseController
     {
         public ApplySignRepository Repository { get; }
+        public MasterRepository mRepository { get; }
         
-        public ApplicationSignController(ApplySignRepository repository, IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
+        public ApplicationSignController(ApplySignRepository repository, MasterRepository masterRepository,
+                                        IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)
         {
             this.Repository = repository;
+            this.mRepository = masterRepository;
         }
 
         public IActionResult Index(int type=1)
@@ -31,11 +34,14 @@ namespace practice_mvc02.Controllers
         }
 
         public IActionResult selectPage(int type){
+            var code = new groupRuleCode();
             ViewBag.ruleVal = ruleVal;
             ViewData["loginName"] = loginName;
             ViewBag.Auth = "Y";
             ViewBag.Page = type==3 ? "leaveLog" : type==2 ? "leave" : "punch";
             ViewBag.loginAccLV = loginAccLV;
+            ViewBag.showDepartFilter = (ruleVal & code.allEmployeeList)>0? true : false;
+            ViewBag.editPunchLog = (ruleVal & code.editPunchLog)>0? true : false;
             switch(type){
                 case 1: 
                 case 2: 
@@ -44,11 +50,22 @@ namespace practice_mvc02.Controllers
             }   
         }
 
+        public object getFilterOption(){
+            var crossDepart = ((ruleVal & ruleCode.allEmployeeList) > 0)? true: false;
+            return mRepository.GetDepartPosition((int)loginID, crossDepart);
+        }
+
+
         //---------------------------------------------------------------------------------------
         
         #region punchWarn
         
-        public object getPunchLogWarn(){
+        public object getPunchLogWarn(string fDepart){
+            var code = new groupRuleCode();
+            if((ruleVal & code.allEmployeeList) > 0){
+                fDepart = String.IsNullOrEmpty(fDepart)? "" : fDepart;
+                return Repository.GetPunchLogWarn_canAll((int)loginID, fDepart);
+            }
             return Repository.GetPunchLogWarn((int)loginID);
         }
 
@@ -64,7 +81,12 @@ namespace practice_mvc02.Controllers
 
         #region  LeaveOffice
 
-        public object getEmployeeApplyLeave(int page, DateTime sDate, DateTime eDate){
+        public object getEmployeeApplyLeave(string fDepart, int page, DateTime sDate, DateTime eDate){
+            var code = new groupRuleCode();
+            if((ruleVal & code.allEmployeeList) > 0){
+                fDepart = String.IsNullOrEmpty(fDepart)? "" : fDepart;
+                return Repository.GetEmployeeApplyLeave_canAll((int)loginID, fDepart, page, sDate, eDate);
+            }
             return Repository.GetEmployeeApplyLeave((int)loginID, page, sDate, eDate);
         }
 

@@ -4,8 +4,12 @@ var myObj = new MyObj();
 $(document).ready(function() {  
     init();
 
-    $("#searchFilterDiv").on("click", "[name='searchFilterBtn']", function(){
-        getEmployeeApplyLeave();
+    $("input[name='searchFilterBtn']").on("click", function(){
+        if($("#punchWarnDiv").length >0){
+            getPunchLogWarn();
+        }else{
+            getEmployeeApplyLeave();
+        }
     });
 
     $("#selAllChkBox").on("click", function(){
@@ -24,6 +28,9 @@ function selPageContext(type){
 }
 
 function init(){
+    if($("#filterDepart").length >0){
+        getDepartFilterOption();
+    }
     if($("#punchWarnDiv").length >0){
         getPunchLogWarn();
     }else if($("#leaveSignDiv").length >0){
@@ -37,4 +44,18 @@ function init(){
         }
         getEmployeeApplyLeave();
     }
+}
+
+function getDepartFilterOption(){
+    var successFn = function(res){
+        var depart=[];
+        res.forEach(value=>{
+            depart.push(value.department);
+        });
+        depart = depart.filter((value, key, arr)=>arr.indexOf(value)===key);
+        depart.forEach(function(value){
+            $("#filterDepart").append(new Option(value, value));
+        });
+    };
+    myObj.rAjaxFn("get", "/ApplicationSign/getFilterOption", null, successFn);
 }

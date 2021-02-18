@@ -263,7 +263,7 @@ namespace practice_mvc02.Repositories
                          from bb in tmp.DefaultIfEmpty()
                          join c in _DbContext.worktimerules on a.timeRuleID equals c.ID
                          select new {em=a, 
-                            dp=(bb==null? new Department{department="未指派"}:bb), wtc=c
+                            dp=(bb==null? new Department{department=noDepartStr}:bb), wtc=c
                          }).ToList();
             if(weekFilter){ //排除固定制六日不用上班的人員
                 joinTB = joinTB.Where(b=>b.wtc.type == 1).ToList(); //wtc.type 0:固定制 1:排休制

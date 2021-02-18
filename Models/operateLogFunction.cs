@@ -24,6 +24,7 @@ namespace practice_mvc02.Models
         }
 
         public void AddUpEmployee_covertToDic(ref Dictionary<string, string> Dic, Account baseData, EmployeeDetail detailData){
+            var noDepart = definePara.noDepart();
             var query = (from a in _DbContext.accounts
                         join b in _DbContext.departments on a.departmentID equals b.ID into deTmp
                         from bb in deTmp.DefaultIfEmpty()
@@ -32,7 +33,7 @@ namespace practice_mvc02.Models
                         from e in tmp.DefaultIfEmpty()
                         where a.ID == baseData.ID
                         select new {
-                            department=(bb==null? "未指派" : bb.department),
+                            department=(bb==null? noDepart : bb.department),
                             position=(bb==null? " " : bb.position),
                             c.groupName, 
                             name=(e==null? "不受限" : e.name) 

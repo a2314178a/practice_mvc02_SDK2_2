@@ -13,10 +13,16 @@ namespace practice_mvc02.Repositories
         private punchCardFunction punchCardFn {get;} 
         private string specialName = definePara.annualName();
         
+        
         public ApplySignRepository(DBContext dbContext, punchCardFunction fn):base(dbContext)
         {
             this.psCode = new punchStatusCode();
             this.punchCardFn = fn;
+        }
+
+        public string GetDepartmentByDepartID(int departID){
+            var query = _DbContext.departments.FirstOrDefault(b=>b.ID == departID);
+            return query==null? noDepartStr : query.department;
         }
 
         #region punchWarn
@@ -32,6 +38,22 @@ namespace practice_mvc02.Repositories
                          select new{
                             c.userName, a.ID, a.logDate, a.onlineTime, a.offlineTime, a.punchStatus, b.warnStatus
                         };
+            return query.ToList();
+        }
+
+         public object GetPunchLogWarn_canAll(int loginID, string fDepart){
+            var query =  (from a in _DbContext.punchcardlogs
+                         join b in _DbContext.punchlogwarns on a.ID equals b.punchLogID
+                         join c in _DbContext.accounts on a.accountID equals c.ID
+                         join d in _DbContext.departments on c.departmentID equals d.ID into noDepart
+                         from dd in noDepart.DefaultIfEmpty()
+                         where a.accountID != loginID && b.warnStatus <2 
+                         orderby a.logDate descending
+                         select new{
+                            c.userName, a.ID, a.logDate, a.onlineTime, a.offlineTime, a.punchStatus, b.warnStatus,
+                            department=(dd==null? noDepartStr : dd.department)
+                        }).ToList();
+            query = query.Where(b=>b.department.Contains(fDepart)).ToList();
             return query.ToList();
         }
 
@@ -127,19 +149,41 @@ namespace practice_mvc02.Repositories
         public object GetEmployeeApplyLeave(int loginID, int page, DateTime sDate, DateTime eDate){
             var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
             //var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過   //page=0:leave / page=1=log
-
             var query = (from a in _DbContext.leaveofficeapplys
                         join b in _DbContext.accounts on a.accountID equals b.ID
                         join c in _DbContext.employeeprincipals on a.accountID equals c.employeeID
                         join d in _DbContext.leavenames on a.leaveID equals d.ID
-                        where (c.principalID == loginID || c.principalAgentID == loginID) &&
-                                a.accountID != loginID && /*a.applyStatus < selStatus && */
+                        where (c.principalID == loginID || c.principalAgentID == loginID) && a.accountID != loginID && 
                                 a.createTime >= sDate && a.createTime < feDate
                         orderby a.createTime descending
                         select new{
                             a.ID, a.leaveID, a.note, a.startTime, a.endTime, a.applyStatus, a.createTime, 
                             b.userName, d.leaveName, d.timeUnit
                         }).ToList();
+            if(page == 1){
+                query = query.Where(b=>b.applyStatus == 1 || b.applyStatus == 2).ToList();
+            }else {
+                query = query.Where(b=>b.applyStatus == 0).ToList();
+            }
+            return query.ToList();
+        }
+
+        public object GetEmployeeApplyLeave_canAll(int loginID, string fDepart, int page, DateTime sDate, DateTime eDate){
+            var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
+            //var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過   //page=0:leave / page=1=log
+            var query = (from a in _DbContext.leaveofficeapplys
+                        join b in _DbContext.accounts on a.accountID equals b.ID
+                        join c in _DbContext.departments on b.departmentID equals c.ID into noDepart
+                        from cc in noDepart.DefaultIfEmpty()
+                        join d in _DbContext.leavenames on a.leaveID equals d.ID
+                        where  a.accountID != loginID && a.createTime >= sDate && a.createTime < feDate
+                        orderby a.createTime descending
+                        select new{
+                            a.ID, a.leaveID, a.note, a.startTime, a.endTime, a.applyStatus, a.createTime, 
+                            department=(cc==null? noDepartStr:cc.department), b.userName, d.leaveName, d.timeUnit
+                        }).ToList();
+
+            query = query.Where(b=>b.department.Contains(fDepart)).ToList();
             if(page == 1){
                 query = query.Where(b=>b.applyStatus == 1 || b.applyStatus == 2).ToList();
             }else {
@@ -156,7 +200,7 @@ namespace practice_mvc02.Repositories
                         from d in tmp.DefaultIfEmpty()
                         where a.ID == loginID
                         select new{
-                            department=(bb==null? "未指派":bb.department), 
+                            department=(bb==null? noDepartStr:bb.department), 
                             name=(d==null? null:d.name)
                         }).FirstOrDefault();
             return query != null? ($"全體,{query.department},{query.name}") : "全體";
@@ -372,18 +416,20 @@ namespace practice_mvc02.Repositories
                 var log = _DbContext.punchcardlogs.FirstOrDefault(b=>
                                         b.accountID == restLog.accountID && b.logDate == workDate);
                 if(log != null){
-                    log.lastOperaAccID = 0;
+                    log.lastOperaAccID = restLog.lastOperaAccID;
                     log.updateTime = definePara.dtNow();
-                    if(restLog.applyStatus == 1){  
-                        WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, log);
-                        log.punchStatus = punchCardFn.getStatusCode(wt, log, restLog);
-                    }else{
-                        log.punchStatus &= ~psCode.takeLeave;
-                        if(log.logDate > definePara.dtNow()){
-                            _DbContext.Remove(log);
+                    WorkDateTime wt = punchCardFn.workTimeProcess(wtRule, log);
+                    log.punchStatus = punchCardFn.getStatusCode(wt, log);
+                    if(restLog.applyStatus != 1){  
+                        if(wtRule != null){
+                            var logEndTime = log.logDate + wtRule.endTime;
+                            logEndTime = (wtRule.endTime <= wtRule.startTime )? logEndTime.AddDays(1) : logEndTime;
+                            if(definePara.dtNow() <= logEndTime && log.onlineTime.Year ==1 && log.offlineTime.Year ==1){
+                                _DbContext.Remove(log);
+                            }
                         }else{
-                            if(log.onlineTime.Year ==1 && log.offlineTime.Year ==1){
-                                log.punchStatus |= psCode.noWork;
+                            if(log.logDate > definePara.dtNow()){
+                                _DbContext.Remove(log);
                             }
                         }
                     }
