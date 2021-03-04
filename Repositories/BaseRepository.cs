@@ -58,6 +58,7 @@ namespace practice_mvc02.Repositories
             switch(type){
                 case "punch": text = "打卡異常，如有需要請前往處理，謝謝"; break;
                 case "leave": text = "辦理了請假手續，若方便請前往處理，謝謝"; break;
+                case "overtime": text = "申請加班，若方便請前往處理，謝謝"; break;
             }
             var content = name + text;
             var msg = new Message{title=title, content=content, createTime=definePara.dtNow()};

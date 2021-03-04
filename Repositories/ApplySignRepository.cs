@@ -11,7 +11,8 @@ namespace practice_mvc02.Repositories
     {
         private punchStatusCode psCode;
         private punchCardFunction punchCardFn {get;} 
-        private string specialName = definePara.annualName();
+        private string specialName = definePara.annualName();   //"特休"
+        private string otRestName = definePara.otRestName();    //"補休"
         
         
         public ApplySignRepository(DBContext dbContext, punchCardFunction fn):base(dbContext)
@@ -206,7 +207,7 @@ namespace practice_mvc02.Repositories
             return query != null? ($"全體,{query.department},{query.name}") : "全體";
         }
 
-        public int CreateApplyLeave(LeaveOfficeApply newApply, bool isActiveApply, String loginName){
+        public int CreateApplyLeave(LeaveOfficeApply newApply, bool isActiveApply, string loginName, string leaveName){
 
             using(var trans = _DbContext.Database.BeginTransaction()){
                 var count = 0;
@@ -214,10 +215,12 @@ namespace practice_mvc02.Repositories
                 {
                     _DbContext.leaveofficeapplys.Add(newApply);
                     count = _DbContext.SaveChanges();
-                    if(count == 1){
-                        var leaveName = getApplyLeaveName(newApply.leaveID);
+                    if(count == 1)
+                    {
                         if(leaveName == specialName){
                             refreshEmployeeAnnualLeave(newApply, 2);    //減時數
+                        }else if(leaveName == otRestName){
+                            refreshEmployeeOvertimeRest(newApply, 2);
                         }
                         if(isActiveApply){
                             systemSendMessage(loginName, newApply.accountID, "leave");
@@ -235,7 +238,6 @@ namespace practice_mvc02.Repositories
         }
 
         public int DelApplyLeave(int applyLeaveID, int loginID){
-
             using (var trans = _DbContext.Database.BeginTransaction())
             {
                 var count = 0;
@@ -249,6 +251,8 @@ namespace practice_mvc02.Repositories
                         if(count == 1){
                             if(leaveName == specialName){
                                 refreshEmployeeAnnualLeave(context, 1); //加時數
+                            }else if(leaveName == otRestName){
+                                refreshEmployeeOvertimeRest(context, 1);    
                             }
                         }
                         trans.Commit();
@@ -292,14 +296,14 @@ namespace practice_mvc02.Repositories
                     var leaveName = getApplyLeaveName(context.leaveID);
 
                     if(context != null){
-                        if(leaveName == specialName){   //申請假別為特休
+                        if(leaveName == specialName || leaveName == otRestName){   //申請假別為特休or補休
                             var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
                             if((oldStatus == 2 && newStatus == 0) || (oldStatus == 2 && newStatus == 1)){
                                 leaveStatus = 2;    //減特休時數
                             }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 0 && newStatus == 2)){
                                 leaveStatus = 1;    //加回特休時數
                             }
-                            if(!chkEmployeeAnnualLeave(context, leaveStatus)){
+                            if(!chkEmployeeAnnualLeave(context, leaveStatus, leaveName)){
                                 return 0;
                             }
                         }
@@ -312,6 +316,8 @@ namespace practice_mvc02.Repositories
                         punchLogWithTakeLeave(context);
                         if(leaveName == specialName && leaveStatus >0){
                             refreshEmployeeAnnualLeave(context, leaveStatus);
+                        }else if(leaveName == otRestName && leaveStatus >0){
+                            refreshEmployeeOvertimeRest(context, leaveStatus);
                         }
                     }
                     trans.Commit();
@@ -328,42 +334,39 @@ namespace practice_mvc02.Repositories
             return query == null? "" : query.leaveName;
         }
 
-        public bool chkEmployeeAnnualLeave(LeaveOfficeApply context, int leaveStatus=2){
-            if(leaveStatus != 2){
+        public bool chkEmployeeAnnualLeave(LeaveOfficeApply context, int leaveStatus, string leaveName){
+            if(leaveStatus != 2){   //0:無動作 1:加時數 2:減時數
                 return true;
             }else{  //若減時數 需確認還有多餘的時可以以扣
-                var DayToHour = definePara.dayToHour();
-                var applyHours = 0.0f;
-                switch(context.unit){
-                    case 1: applyHours = (context.unitVal)*DayToHour; break;
-                    case 2: applyHours = (context.unitVal)*DayToHour/2; break;
-                    case 3: applyHours = (context.unitVal)*1; break;
-                }
-                var query = _DbContext.employeeannualleaves
-                            .Where(b=>b.employeeID == context.accountID && context.startTime < b.deadLine);
-                var haveHours = 0.0f;
-                foreach(var spDays in query){
-                    haveHours += spDays.remainHours;
+                var applyHours = getApplyHours(context);    //申請請假時數
+                var haveHours = 0.0f;       //剩餘請假時數
+                if(leaveName == specialName){       //特休
+                    var query = _DbContext.employeeannualleaves
+                            .Where(b=>b.employeeID == context.accountID && definePara.dtNow() < b.deadLine);
+                    foreach(var spDays in query){
+                        haveHours += spDays.remainHours;
+                    }
+                }else if(leaveName == otRestName){      //補休
+                    var query = _DbContext.overTimeRest.FirstOrDefault(b=>b.accountID == context.accountID);
+                    haveHours = query == null? haveHours : query.canRestTime / 60.0f ;
+                }else{
+                    return false;
                 }
                 return haveHours >= applyHours? true : false;
             }
         }
 
         public void refreshEmployeeAnnualLeave(LeaveOfficeApply context, int leaveStatus){
-            var query = _DbContext.employeeannualleaves
-                            .Where(b=>b.employeeID == context.accountID && context.startTime < b.deadLine)
-                            .OrderBy(b=>b.deadLine).ToList();
-
             var DayToHour = definePara.dayToHour();
-            var applyHours = 0.0f;  
-            switch(context.unit){
-                case 1: applyHours = (context.unitVal)*DayToHour; break;
-                case 2: applyHours = (context.unitVal)*DayToHour/2; break;
-                case 3: applyHours = (context.unitVal); break;
-            } 
+            var applyHours = getApplyHours(context);
+
+            var spLeaves = _DbContext.employeeannualleaves
+                            .Where(b=>b.employeeID == context.accountID && definePara.dtNow() < b.deadLine)
+                            .OrderBy(b=>b.deadLine).ToList();
+            
             if(leaveStatus == 2){   //減時數
-                for(int i =0; i<query.Count; i++){
-                    var remainHours = query[i].remainHours;
+                for(int i =0; i<spLeaves.Count; i++){
+                    var remainHours = spLeaves[i].remainHours;
                     if(remainHours >= applyHours){
                         remainHours -= applyHours;
                         applyHours = 0;
@@ -371,21 +374,21 @@ namespace practice_mvc02.Repositories
                         applyHours -= remainHours;
                         remainHours = 0;
                     }
-                    query[i].remainHours = remainHours;
-                    query[i].updateTime = definePara.dtNow();
+                    spLeaves[i].remainHours = remainHours;
+                    spLeaves[i].updateTime = definePara.dtNow();
                 }
             }else if(leaveStatus == 1){ //加回時數
-                for(int i = query.Count-1; i>=0; i--){
-                    var remainHours = query[i].remainHours;
-                    if((remainHours + applyHours) > (query[i].specialDays)*DayToHour){
-                        applyHours -= ((query[i].specialDays)*DayToHour - remainHours);
-                        remainHours = (query[i].specialDays)*DayToHour;
+                for(int i = spLeaves.Count-1; i>=0; i--){
+                    var remainHours = spLeaves[i].remainHours;
+                    if((remainHours + applyHours) > (spLeaves[i].specialDays)*DayToHour){
+                        applyHours -= ((spLeaves[i].specialDays)*DayToHour - remainHours);
+                        remainHours = (spLeaves[i].specialDays)*DayToHour;
                     }else{
                         remainHours += applyHours;
                         applyHours = 0;
                     }
-                    query[i].remainHours = remainHours;
-                    query[i].updateTime = definePara.dtNow();  
+                    spLeaves[i].remainHours = remainHours;
+                    spLeaves[i].updateTime = definePara.dtNow();  
                 }
             }   
             _DbContext.SaveChanges();                       
@@ -458,8 +461,135 @@ namespace practice_mvc02.Repositories
             }while(restST < restET);
         }
 
-        
         #endregion //leaveOffice
+
+        //-----------------------------------------------------------------------------------------------------
+
+        #region  overtime
+
+        public object GetEmployeeApplyOvertime(int loginID, int page, DateTime sDate, DateTime eDate){
+            var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
+            //var selStatus = page == 0? 1 : 3;   //0: 待審 1:通過 2:不通過   //page=0:leave / page=1=log
+            var query = (from a in _DbContext.overtimeApply
+                        join b in _DbContext.accounts on a.accountID equals b.ID
+                        join c in _DbContext.employeeprincipals on a.accountID equals c.employeeID
+                        where (c.principalID == loginID || c.principalAgentID == loginID) && a.accountID != loginID && 
+                                a.createTime >= sDate && a.createTime < feDate
+                        orderby a.createTime descending
+                        select new{
+                            a.ID, a.note, a.workDate, timeLength=(a.timeLength/6), a.applyStatus, a.createTime, 
+                            b.userName,
+                        }).ToList();
+            if(page == 1){
+                query = query.Where(b=>b.applyStatus == 1 || b.applyStatus == 2).ToList();
+            }else {
+                query = query.Where(b=>b.applyStatus == 0).ToList();
+            }
+            return query.ToList();
+        }
+
+        public object GetEmployeeApplyOvertime_canAll(int loginID, string fDepart, int page, DateTime sDate, DateTime eDate){
+            var feDate = eDate.Year == 1? eDate.AddYears(9998) : eDate.AddDays(1);
+            var query = (from a in _DbContext.overtimeApply
+                        join b in _DbContext.accounts on a.accountID equals b.ID
+                        join c in _DbContext.departments on b.departmentID equals c.ID into noDepart
+                        from cc in noDepart.DefaultIfEmpty()
+                        where  a.accountID != loginID && a.createTime >= sDate && a.createTime < feDate
+                        orderby a.createTime descending
+                        select new{
+                            a.ID, a.note, a.workDate, timeLength=(a.timeLength/6), a.applyStatus, a.createTime, 
+                            department=(cc==null? noDepartStr:cc.department), b.userName
+                        }).ToList();
+
+            query = query.Where(b=>b.department.Contains(fDepart)).ToList();
+            if(page == 1){
+                query = query.Where(b=>b.applyStatus == 1 || b.applyStatus == 2).ToList();
+            }else {
+                query = query.Where(b=>b.applyStatus == 0).ToList();
+            }
+            return query.ToList();
+        }
+
+        public int IsAgreeApplyOvertime(int applyID, int newStatus, int loginID){
+
+            using(var trans = _DbContext.Database.BeginTransaction()){
+                var count = 0;
+                try
+                {
+                    var overtimeStatus = 0;    //0:沒動作 1:加可補休分鐘數 2:減可補休分鐘數
+                    var context = _DbContext.overtimeApply.FirstOrDefault(b=>b.ID == applyID);
+                    if(context != null){
+                        var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
+                        if((oldStatus == 0 && newStatus == 1) || (oldStatus == 2 && newStatus == 1)){
+                            overtimeStatus = 1;    //加可補休分鐘數
+                        }else if((oldStatus == 1 && newStatus == 2) || (oldStatus == 1 && newStatus == 0)){
+                            overtimeStatus = 2;    //減可補休分鐘數
+                        }
+                        context.applyStatus = newStatus;
+                        context.lastOperaAccID = loginID;
+                        context.updateTime = definePara.dtNow();
+                        count = _DbContext.SaveChanges();  
+                    }
+                    if(count == 1){
+                        refreshOvertimeRest(context, overtimeStatus);
+                    }
+                    trans.Commit();
+                }
+                catch (Exception ex){
+                    count = catchErrorProcess(ex, count);
+                }
+                return count;
+            }
+        }
+
+        public void refreshOvertimeRest(OvertimeApply data, int status){    //0:none / 1:add / 2:less
+            if(status == 0){
+                return;
+            }
+            var timeLength = data.timeLength;
+            var context = _DbContext.overTimeRest.FirstOrDefault(b=>b.accountID == data.accountID);
+            if(context == null){
+                context = new OverTimeRest{
+                        accountID=data.accountID,  lastOperaAccID=data.lastOperaAccID,
+                        createTime=definePara.dtNow(), updateTime=definePara.dtNow()
+                    };
+                context.canRestTime = status==1? timeLength : 0;
+                _DbContext.overTimeRest.Add(context);
+            }else{
+                context.lastOperaAccID = data.lastOperaAccID;
+                context.updateTime = definePara.dtNow();
+                if(status == 1){
+                    context.canRestTime += timeLength;
+                }else if(status == 2){
+                    context.canRestTime -= timeLength;
+                    context.canRestTime = context.canRestTime<0? 0 : context.canRestTime;
+                }
+            }
+            _DbContext.SaveChanges();
+        }
+
+        public void refreshEmployeeOvertimeRest(LeaveOfficeApply context, int status){
+            var applyHours = getApplyHours(context);  
+            var tmpOvertimeApply = new OvertimeApply{
+                accountID = context.accountID, 
+                timeLength = Convert.ToInt32(applyHours*60),
+                lastOperaAccID = context.lastOperaAccID,
+            };
+            refreshOvertimeRest(tmpOvertimeApply, status);                   
+        }
+
+        #endregion //overtime
+
+        public float getApplyHours(LeaveOfficeApply context){
+            var DayToHour = definePara.dayToHour();
+            var applyHours = 0.0f;  
+            switch(context.unit){
+                case 1: applyHours = (context.unitVal)*DayToHour; break;
+                case 2: applyHours = (context.unitVal)*(DayToHour/2.0f); break;
+                case 3: applyHours = (context.unitVal); break;
+            }
+            return applyHours;
+        }
 
 
     }

@@ -101,16 +101,17 @@ namespace practice_mvc02.Controllers
             }
 
             var leaveName = Repository.getApplyLeaveName(applyData.leaveID);
-            if(leaveName == definePara.annualName()){
-                if(!Repository.chkEmployeeAnnualLeave(applyData)){  //特休不足不可請假
+            if(leaveName == definePara.annualName() || leaveName == definePara.otRestName()){
+                if(!Repository.chkEmployeeAnnualLeave(applyData, 2, leaveName)){  //特休/補休 不足不可請假
                     return "notEnough";
                 }
             }
+
             int result = 0;
             
             if(applyData.ID ==0){
                 applyData.createTime = definePara.dtNow();
-                result = Repository.CreateApplyLeave(applyData, isActiveApply, loginName);
+                result = Repository.CreateApplyLeave(applyData, isActiveApply, loginName, leaveName);
             }else{  //編輯更新 未使用
                 //applyData.updateTime = definePara.dtNow();
                 //result = Repository.UpdateApplyLeave(applyData);

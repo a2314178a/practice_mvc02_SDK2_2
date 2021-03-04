@@ -4,12 +4,17 @@ using practice_mvc02.Models.dataTable;
 using practice_mvc02.Models;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace practice_mvc02.Repositories
 {
     public class DBContext : DbContext
     {
-        public DBContext (DbContextOptions options) : base(options){}
+        public DBContext (DbContextOptions options, IConfiguration configuration) : base(options){
+            Configuration = configuration;
+        }
+        public IConfiguration Configuration { get; }
+
         public DbSet<Account> accounts {get; set;}
         public DbSet<GroupRule> grouprules {get; set;}
         public DbSet<Department> departments {get; set;}
@@ -28,6 +33,8 @@ namespace practice_mvc02.Repositories
         public DbSet<EmployeeAnnualLeave> employeeannualleaves{get; set;}
         public DbSet<AnnualDaysOffset> annualdaysoffset{get; set;}
 		public DbSet<OperateLog> operateLogs{get; set;}
+		public DbSet<OvertimeApply> overtimeApply{get; set;}
+        public DbSet<OverTimeRest> overTimeRest{get; set;}
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   
@@ -78,6 +85,16 @@ namespace practice_mvc02.Repositories
                 entity.Property(b => b.rDelete).HasColumnType("tinyint(1)");
                 //entity.Property(b=>b.read).HasComment("0:未讀 1:已讀");
             });
+			
+			modelBuilder.Entity<OvertimeApply>(entity=>{
+                //entity.Property(b=>b.applyStatus).HasComment("0:申請中 1:通過 2:沒通過");
+                //entity.Property(b=>b.timeLength).HasComment("unit:minute");
+            });
+
+            modelBuilder.Entity<OverTimeRest>(entity=>{
+                entity.HasIndex(b=>b.accountID).IsUnique();
+                //entity.Property(b=>b.canRestTime).HasComment("unit:minute");
+            });
 
             modelBuilder.Entity<PunchCardLog>(entity=>{
                 entity.HasIndex(b=>new{b.accountID, b.logDate}).IsUnique();
@@ -111,13 +128,13 @@ namespace practice_mvc02.Repositories
         }
 
         private void createDefaultData(ModelBuilder modelBuilder){
-            string defUid = "DIMA", defPw = "DIMA";
+            string defUid = Configuration["DefDbAccData:defUid"];
+            string defPw = Configuration["DefDbAccData:defPwd"];
             var md5password = GetMD5(defUid + defPw);
             modelBuilder.Entity<Account>().HasData(new Account{
                 ID = 1, account = defUid, password = md5password, userName = "DIMA_Admin",
                 accLV=definePara.getDIMALV(), departmentID = 0, groupID = 0, timeRuleID = 0, createTime = definePara.dtNow(), updateTime = definePara.dtNow()
-            });
-                        
+            });            
         }
 
         public string GetMD5(string original) 

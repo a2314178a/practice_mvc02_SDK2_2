@@ -393,6 +393,14 @@ namespace practice_mvc02.Repositories
             return query.ToList();
         }
 
+        public object GetMyCanRestTime(int employeeID){
+            var time = 0;
+            var query = _DbContext.overTimeRest
+                            .FirstOrDefault(b=>b.accountID == employeeID);
+            time = query==null? 0 : query.canRestTime;          
+            return time;
+        }
+
         #endregion  //employee CRUD
 
 

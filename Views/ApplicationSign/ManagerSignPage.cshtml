@@ -41,8 +41,14 @@
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="leaveLog"?"active":"")' href="#" name="leaveSignLog" onclick="selPageContext(3);">員工請假紀錄</a>
                             </li>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page=="overtime"?"active":"")' href="#" name="overtimeSign" onclick="selPageContext(4);">加班簽核</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page=="overtimeLog"?"active":"")' href="#" name="overtimeSignLog" onclick="selPageContext(5);">員工加班紀錄</a>
+                            </li>
                         </ul>
-                        @if(ViewBag.showDepartFilter && ViewBag.Page !="leaveLog")
+                        @if(ViewBag.showDepartFilter && (ViewBag.Page =="punch" || ViewBag.Page =="leave" || ViewBag.Page =="overtime"))
                         {
                         <div id="DepartFilterDiv" style="text-align:center; margin:20px auto;">
                             <p>
@@ -59,7 +65,7 @@
                         </div>
                         }
 
-                        @if(ViewBag.Page =="leaveLog")
+                        @if(ViewBag.Page =="leaveLog" || ViewBag.Page =="overtimeLog")
                         {
                         <div id="searchFilterDiv" style="text-align:center; margin:20px auto;">
                             <p>
@@ -104,7 +110,7 @@
                                 </table>
                             </div>
                         }
-                        else
+                        else if(ViewBag.Page == "leave" || ViewBag.Page == "leaveLog")
                         {
                             <div id="leaveSignDiv" name="@ViewBag.Page">
                                 <table class="table table-hover table-bordered applyLeave_table">
@@ -125,7 +131,26 @@
                                 </table>
                             </div>
                         }
-
+                        else if(ViewBag.Page == "overtime" || ViewBag.Page == "overtimeLog")
+                        {
+                            <div id="overtimeSignDiv" name="@ViewBag.Page">
+                                <table class="table table-hover table-bordered applyLeave_table">
+                                    <thead class="thead-dark" >
+                                        <tr>
+                                            <th scope="col">員工</th>
+                                            <th scope="col">申請日期</th>
+                                            <th scope="col">備註</th>
+                                            <th scope="col">申請加班日</th>
+                                            <th scope="col">加班時間長度</th>
+                                            <th scope="col">審核狀態</th>
+                                            <th scope="col" width="15%">管理動作</th>     
+                                        </tr>
+                                    </thead> 
+                                    <tbody id="applyOvertimeList">
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
                         
 
 
@@ -180,7 +205,7 @@
                         </td>
                     </tr>
                 }
-                else
+                else if(ViewBag.Page == "leave" || ViewBag.Page == "leaveLog")
                 {
                     <tr name="applyLeaveRow">
                         <td scope="col" name="employeeName"></td>
@@ -205,6 +230,30 @@
                         </td>
                     </tr>
                 }
+                else if(ViewBag.Page == "overtime" || ViewBag.Page == "overtimeLog")
+                {
+                    <tr name="applyOvertimeRow">
+                        <td scope="col" name="employeeName"></td>
+                        <td scope="col" name="applyDate"></td>
+                        <td scope="col" name="note" style="max-width:200px;"></td>
+                        <td scope="col" name="workDate"></td>
+                        <td scope="col" name="timeLength"></td>
+                        <td scope="col" name="applyStatus"></td>
+                        <td scope="col" width="15%">
+                        @if(ViewBag.Page == "overtime")
+                        {
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
+                            <a href="javascript:void(0);" class="btn btn-primary yes_applyOvertime btnActive" >通過</a>
+                            <a href="javascript:void(0);" class="btn btn-danger no_applyOvertime btnActive" >不通過</a>
+                            }
+                        }else{
+                            @if(!ViewBag.showDepartFilter || (ViewBag.showDepartFilter && ViewBag.editPunchLog)){
+                            <a href="javascript:void(0);" class="btn btn-danger cancel_applyOvertime btnActive" >取消加班</a>
+                            }
+                        }
+                        </td>
+                    </tr>
+                }
            </table>
         </div>
 
@@ -218,7 +267,10 @@
                 <script src="~/js/applySignPage/punchWarnSign.js" type="text/javascript"></script>
             }else if(ViewBag.Page == "leave" || ViewBag.Page =="leaveLog"){
                 <script src="~/js/applySignPage/leaveSign.js" type="text/javascript"></script>
+            }else if(ViewBag.Page == "overtime" || ViewBag.Page =="overtimeLog"){
+                <script src="~/js/applySignPage/overtimeSign.js" type="text/javascript"></script>
             }
+            
 
         }
         	 

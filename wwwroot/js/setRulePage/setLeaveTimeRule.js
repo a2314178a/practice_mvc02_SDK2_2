@@ -17,7 +17,7 @@ function getAllLeaveRule(){
 
 function refreshLeaveRuleList(res){
     $("#leaveList").empty();
-    var leaveName = ["公差", "特休", "事假", "病假", "公假", "調休", "喪假", "婚假", "產假", "陪產假", "其他", "排休"];
+    var leaveName = ["公差", "特休", "事假", "病假", "公假", "調休", "喪假", "婚假", "產假", "陪產假", "其他", "排休", "補休"];
     res.forEach(function(value){
         if(!value.enable){
             return;

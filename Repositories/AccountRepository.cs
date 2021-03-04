@@ -55,9 +55,7 @@ namespace practice_mvc02.Repositories
         }
 
         public void initLeaveNames(){
-            var defaultLeaveName = new string[]{
-                "公差", "特休", "事假", "病假", "公假", "調休", "喪假", "婚假", "產假", "陪產假", "其他", "排休"
-            };
+            var defaultLeaveName = definePara.getDefaultLeaveName();
             var query = _DbContext.leavenames.Select(b=>b.leaveName).ToArray();
             var noExist = defaultLeaveName.Where(b=> !query.Contains(b)).ToArray();
 

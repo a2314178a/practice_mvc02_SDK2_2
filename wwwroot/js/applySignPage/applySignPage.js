@@ -7,8 +7,10 @@ $(document).ready(function() {
     $("input[name='searchFilterBtn']").on("click", function(){
         if($("#punchWarnDiv").length >0){
             getPunchLogWarn();
-        }else{
+        }else if($("#leaveSignDiv").length >0){
             getEmployeeApplyLeave();
+        }else if($("#overtimeSignDiv").length >0){
+            getEmployeeApplyOvertime();
         }
     });
 
@@ -33,7 +35,7 @@ function init(){
     }
     if($("#punchWarnDiv").length >0){
         getPunchLogWarn();
-    }else if($("#leaveSignDiv").length >0){
+    }else{
         if($("#searchFilterDiv").length >0){
             var date = new Date();
             var newDate = date.setDate(date.getDate() - 30);
@@ -42,7 +44,11 @@ function init(){
             var dtEnd = myObj.dateTimeFormat();
             $("#filter_eDate").val(dtEnd.ymdHtml);
         }
-        getEmployeeApplyLeave();
+        if($("#leaveSignDiv").length >0){
+            getEmployeeApplyLeave();
+        }else if($("#overtimeSignDiv").length >0){
+            getEmployeeApplyOvertime();
+        } 
     }
 }
 

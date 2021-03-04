@@ -34,8 +34,10 @@ function setAgent(res){
 
 function getMyDetail(){
     var getAccInfoSuccessFn = function(res){
-        if(res.myDetail != null)
+        if(res.myDetail != null){
             refreshMyDetail(res.myDetail);
+        }
+        showMyOvertimeRest(res);
         showMyAnnualLeave(res);
     };
     myObj.rAjaxFn("get", "/EmployeeDetail/getMyDetail", null, getAccInfoSuccessFn);
@@ -74,6 +76,12 @@ function showRow(sel){
     }else if(sel ==2){
         $("#agentRow,#btnDiv").show();
     }
+}
+
+function showMyOvertimeRest(res){
+    var allMinute = parseInt(res.myCanRestTime);
+    var hour = parseFloat(allMinute / 60);
+    $("[name='myOvertimeRest']").text(hour + " 小時");
 }
 
 function showMyAnnualLeave(res){

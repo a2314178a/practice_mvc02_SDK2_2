@@ -38,16 +38,18 @@ namespace practice_mvc02.Controllers
             ViewBag.ruleVal = ruleVal;
             ViewData["loginName"] = loginName;
             ViewBag.Auth = "Y";
-            ViewBag.Page = type==3 ? "leaveLog" : type==2 ? "leave" : "punch";
             ViewBag.loginAccLV = loginAccLV;
             ViewBag.showDepartFilter = (ruleVal & code.allEmployeeList)>0? true : false;
             ViewBag.editPunchLog = (ruleVal & code.editPunchLog)>0? true : false;
             switch(type){
-                case 1: 
-                case 2: 
-                case 3: return View("ManagerSignPage");
-                default: return RedirectToAction("logOut", "Home");
+                case 1: ViewBag.Page = "punch"; break;
+                case 2: ViewBag.Page = "leave"; break;
+                case 3: ViewBag.Page = "leaveLog"; break;
+                case 4: ViewBag.Page = "overtime"; break;
+                case 5: ViewBag.Page = "overtimeLog"; break;
+                default: ViewBag.Page = "noPage"; break;
             }   
+            return View("ManagerSignPage");
         }
 
         public object getFilterOption(){
@@ -95,6 +97,26 @@ namespace practice_mvc02.Controllers
         }
 
         #endregion //leaveOffice
+
+        //--------------------------------------------------------------------------------------------------------
+
+        #region  overtime
+
+        public object getEmployeeApplyOvertime(string fDepart, int page, DateTime sDate, DateTime eDate){
+            var code = new groupRuleCode();
+            if((ruleVal & code.allEmployeeList) > 0){
+                fDepart = String.IsNullOrEmpty(fDepart)? "" : fDepart;
+                return Repository.GetEmployeeApplyOvertime_canAll((int)loginID, fDepart, page, sDate, eDate);
+            }
+            return Repository.GetEmployeeApplyOvertime((int)loginID, page, sDate, eDate);
+        }
+
+        public int isAgreeApplyOvertime(int applyLeaveID, int isAgree){
+            return Repository.IsAgreeApplyOvertime(applyLeaveID, isAgree, (int)loginID);
+        }
+
+        #endregion //overtime
+
         
     }
 }

@@ -61,6 +61,7 @@ namespace practice_mvc02.filters
                 case "AdminFn": goLogOut = ((ruleVal & ruleCode.adminFn) == 0)? true : goLogOut; break;
                 case "ApplicationSign": goLogOut = ((ruleVal & ruleCode.applySign) == 0)? true : goLogOut; break;
                 case "ApplyLeave": goLogOut = ((ruleVal & ruleCode.baseActive) == 0)? true : goLogOut; break;
+                case "ApplyOvertime": goLogOut = ((ruleVal & ruleCode.baseActive) == 0)? true : goLogOut; break;
                 case "DepartmentList": goLogOut = ((ruleVal & ruleCode.departmentList) == 0)? true : goLogOut; break;
                 case "EmployeeDetail": break;
                 case "EmployeeList": goLogOut = ((ruleVal & ruleCode.allEmployeeList) == 0 && 

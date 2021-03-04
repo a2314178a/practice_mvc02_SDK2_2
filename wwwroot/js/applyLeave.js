@@ -195,7 +195,7 @@ var leaveApp = {
         
         var successFn = function(res){
             if(res == "notEnough"){
-                alert("剩餘的特休時數不足"); return;
+                alert("剩餘的特休或補休時數不足"); return;
             }else if(res == "noPrincipal"){
                 alert("很抱歉，無法進行請假手續，請洽人事人員，謝謝!"); return;
             }else if(res == "data_illegal"){
