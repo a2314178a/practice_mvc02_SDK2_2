@@ -29,13 +29,14 @@ namespace practice_mvc02.Controllers
         
         public AdminFnController(AdminFnRepository a_repository, MasterRepository m_repository,
                                 PunchCardRepository p_repository, AnnualLeaveRepository al_repository,
+                                ApplyOvertimeRepository ap_repository, 
                                 IHttpContextAccessor httpContextAccessor):base(httpContextAccessor)                
         {
             this.aRepository = a_repository;
             this.mRepository = m_repository;
             this.pRepository = p_repository;
             this.chkWarn = new ChkPunchLogWarn(p_repository, httpContextAccessor);
-            this.calTime = new CalWorkTime(p_repository, httpContextAccessor);
+            this.calTime = new CalWorkTime(p_repository, ap_repository, httpContextAccessor);
             this.calAnnual = new CalAnnualLeave(al_repository);
         }
 
@@ -72,9 +73,9 @@ namespace practice_mvc02.Controllers
             }
         }
 
-        public void manual_calWorkTime(){
+        public void manual_calWorkTime(int month=0){  //month:正整數 減幾個月 預設0
             if(((int)ruleVal & new groupRuleCode().adminFn) >0){
-                calTime.start();
+                calTime.start(month);
             }
         }
 

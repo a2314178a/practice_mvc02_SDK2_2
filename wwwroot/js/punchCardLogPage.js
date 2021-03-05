@@ -276,6 +276,7 @@ function refreshTimeTotalList(res){
         var dateText = dt.year + "-" + dt.month;
         row.find("[name='logDate']").text(dateText);
         row.find("[name='timeTotal']").text(value.totalTime);
+        row.find("[name='overtimeTotal']").text(value.totalOvertime);
         $("#timeTotalList").append(row);
     });
 }

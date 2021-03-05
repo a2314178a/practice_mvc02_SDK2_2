@@ -36,6 +36,14 @@ namespace practice_mvc02.Repositories
             return query;
         }
 
+        public List<OvertimeApply> GetOvertimeApplyByDateByID(int accID, DateTime sDate, DateTime eDate){
+            var query = _DbContext.overtimeApply.Where(
+                                    b=>b.accountID == accID && b.applyStatus == 1 &&
+                                    b.workDate >= sDate && b.workDate <= eDate)
+                                .OrderBy(b=>b.workDate);
+            return query.ToList();
+        }
+
         public bool chkApplyOvertimeData(OvertimeApply data){
             var result = true;
             var punchLog = _DbContext.punchcardlogs.FirstOrDefault(b=>b.accountID == data.accountID && b.logDate == data.workDate);

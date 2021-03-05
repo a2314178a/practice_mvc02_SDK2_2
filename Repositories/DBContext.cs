@@ -120,6 +120,7 @@ namespace practice_mvc02.Repositories
             modelBuilder.Entity<workTimeTotal>(entity=>{
                 entity.HasIndex(b=>new{b.accountID, b.dateMonth}).IsUnique();
                 //entity.Property(b=>b.totalTime).HasComment("unit : minute");
+				//entity.Property(b=>b.totalOvertime).HasComment("unit : minute");
             }); 
             
             

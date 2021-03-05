@@ -11,21 +11,24 @@ namespace practice_mvc02.Models
     {
         private PunchCardRepository Repository {get;}
         private punchCardFunction punchCardFn {get;}
+        private ApplyOvertimeRepository aRepository {get;}
         private punchStatusCode psCode;
 
-        public CalWorkTime(PunchCardRepository repository, IHttpContextAccessor httpContextAccessor){
+        public CalWorkTime(PunchCardRepository repository, ApplyOvertimeRepository applyRepository,
+                            IHttpContextAccessor httpContextAccessor){
             this.Repository = repository;
+            this.aRepository = applyRepository;
             this.punchCardFn = new punchCardFunction(repository, httpContextAccessor);
             psCode = new punchStatusCode();
         } 
 
-        public void start(){
-            calEmployeeWorkTime();
+        public void start(int month=0){
+            calEmployeeWorkTime(month);
         }    
 
-        private void calEmployeeWorkTime(){
+        private void calEmployeeWorkTime(int month){
             var workEmployee = Repository.GetNeedPunchAcc("全體", 2, false);
-            var dtNow = definePara.dtNow();
+            var dtNow = definePara.dtNow().AddMonths(-month);
             var startDT = dtNow.AddDays(1 - dtNow.Day).Date;
             var endDT = startDT.AddMonths(1).AddDays(-1).Date;
             //var startDT = dtNow.AddMonths(-1).AddDays(1 - dtNow.Day).Date;
@@ -33,12 +36,24 @@ namespace practice_mvc02.Models
             foreach(var employee in workEmployee){
                 var thisMonthAllLog = Repository.GetPunchLogByDateByID(employee.ID, startDT, endDT);
                 WorkTimeRule thisWorkTime = Repository.GetThisWorkTime(employee.ID);
-                countWorkTime(thisMonthAllLog, thisWorkTime);
+                var otApplies = aRepository.GetOvertimeApplyByDateByID(employee.ID, startDT, endDT);
+                countWorkTime(thisMonthAllLog, otApplies, thisWorkTime, startDT);
+            }
+            if(dtNow.Day < 6 && month == 0){    //每個月前5天 也會去算前個月的總時數
+                startDT = startDT.AddMonths(-1);
+                endDT = endDT.AddMonths(-1);
+                foreach(var employee in workEmployee){
+                    var thisMonthAllLog = Repository.GetPunchLogByDateByID(employee.ID, startDT, endDT);
+                    WorkTimeRule thisWorkTime = Repository.GetThisWorkTime(employee.ID);
+                    var otApplies = aRepository.GetOvertimeApplyByDateByID(employee.ID, startDT, endDT);
+                    countWorkTime(thisMonthAllLog, otApplies, thisWorkTime, startDT);
+                } 
             }
         }
 
-        private void countWorkTime(List<PunchCardLog> thisMonthAllLog, WorkTimeRule thisWorkTime){
+        private void countWorkTime(List<PunchCardLog> thisMonthAllLog, List<OvertimeApply> otApplies, WorkTimeRule thisWorkTime, DateTime startDT){
             var totalTimeMinute = 0.0;
+            var totalOvertimeMinute = 0;
             var restTimeMinute = 0.0;
             var endStartWorkTimeMinute = 0.0;
             var noRestWorkTimeMinute = 0.0;
@@ -87,17 +102,23 @@ namespace practice_mvc02.Models
                     }
                 }
             }
+
+            foreach (var apply in otApplies){               //計算加班
+                totalOvertimeMinute += apply.timeLength;
+            }
+
             if(thisMonthAllLog.Count>0){
-                saveTotalTimeRecord(thisMonthAllLog[0].accountID, totalTimeMinute);
+                saveTotalTimeRecord(thisMonthAllLog[0].accountID, startDT, totalTimeMinute, totalOvertimeMinute);
             }
         }
 
-        public void saveTotalTimeRecord(int accID, double totalTimeMinute){
+        public void saveTotalTimeRecord(int accID, DateTime startDT, double totalTimeMinute, int totalOvertimeMinute){
             var timeRecord = new workTimeTotal();
             timeRecord.accountID = accID;
-            timeRecord.dateMonth = definePara.dtNow().AddDays(1 - definePara.dtNow().Day).Date;
+            timeRecord.dateMonth = startDT;
             //timeRecord.dateMonth = definePara.dtNow().AddMonths(-1).AddDays(1 - definePara.dtNow().Day).Date;
             timeRecord.totalTime = totalTimeMinute;
+            timeRecord.totalOvertime = totalOvertimeMinute;
             timeRecord.createTime = definePara.dtNow();
             Repository.SaveTotalTimeRecord(timeRecord);
         }

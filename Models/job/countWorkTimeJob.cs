@@ -14,8 +14,9 @@ namespace practice_mvc02.Models
         private CalWorkTime calTime {get;}
 
 
-        public countWorkTimeJob(PunchCardRepository repository, IHttpContextAccessor httpContextAccessor){
-            this.calTime = new CalWorkTime(repository, httpContextAccessor);
+        public countWorkTimeJob(PunchCardRepository repository, ApplyOvertimeRepository aRepository, 
+                                    IHttpContextAccessor httpContextAccessor){
+            this.calTime = new CalWorkTime(repository, aRepository, httpContextAccessor);
         }
 
 

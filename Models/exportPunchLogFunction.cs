@@ -84,6 +84,8 @@ namespace practice_mvc02.Models
                     ws.Column(dCol["restDays"]).Width = 16;
                 if(dCol.ContainsKey("sumWorkMinute"))
                     ws.Column(dCol["sumWorkMinute"]).Width = 16;
+                if(dCol.ContainsKey("overtimeMinute"))
+                    ws.Column(dCol["overtimeMinute"]).Width = 16;
                 if(dCol.ContainsKey("lateCount"))
                     ws.Column(dCol["lateCount"]).Width = 16;
                 if(dCol.ContainsKey("sumLateMinute"))
@@ -109,6 +111,8 @@ namespace practice_mvc02.Models
                     ws.Column(dCol["punchStatus"]).Width = 16;
                 if(dCol.ContainsKey("sumWorkMinute"))
                     ws.Column(dCol["sumWorkMinute"]).Width = 16;
+                if(dCol.ContainsKey("overtimeMinute"))
+                    ws.Column(dCol["overtimeMinute"]).Width = 16;
             }
         }
 
@@ -123,7 +127,8 @@ namespace practice_mvc02.Models
                 dCol.Add("position", colCount++);       //職位
                 dCol.Add("workDays", colCount++);       //出勤天數
                 dCol.Add("restDays", colCount++);       //休息天數
-                dCol.Add("sumWorkMinute", colCount++);  //工作時長(小時)
+                dCol.Add("sumWorkMinute", colCount++);  //工作時長(分鐘)
+                dCol.Add("overtimeMinute", colCount++);  //加班時長(分鐘)   
                 dCol.Add("lateCount", colCount++);      //遲到次數
                 dCol.Add("sumLateMinute", colCount++);  //遲到時長(分鐘)
                 dCol.Add("earlyCount", colCount++);     //早退次數
@@ -152,13 +157,13 @@ namespace practice_mvc02.Models
                 dCol.Add("workClass", colCount++);      //班別
                 dCol.Add("department", colCount++);     //部門
                 dCol.Add("position", colCount++);       //職位
-                dCol.Add("date", colCount++);       //日期
+                dCol.Add("date", colCount++);           //日期
                 dCol.Add("workTime", colCount++);       //上班時間
-                dCol.Add("onlineTime", colCount++);  //上班打卡時間
-                dCol.Add("offlineTime", colCount++);      //下班打卡時間
-                dCol.Add("punchStatus", colCount++);  //今日狀態 
-                dCol.Add("sumWorkMinute", colCount++);
-                
+                dCol.Add("onlineTime", colCount++);     //上班打卡時間
+                dCol.Add("offlineTime", colCount++);    //下班打卡時間
+                dCol.Add("punchStatus", colCount++);    //打卡結果 
+                dCol.Add("sumWorkMinute", colCount++);  //工作時長(分鐘)
+                dCol.Add("overtimeMinute", colCount++);  //加班時長(分鐘)  
                 objectList.Add("leaveStartIndex", colCount);   //leave start col index
                 foreach(var leave in title_leaveName){     //新增請假名稱
                     dCol.Add(leave.Value, colCount++);
@@ -223,6 +228,12 @@ namespace practice_mvc02.Models
                     ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Style.WrapText = true;  
                     ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
                     titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");
+                }
+                if(dCol.ContainsKey("overtimeMinute")){
+                    ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Value = "加班時長\n(分鐘)";
+                    ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Style.WrapText = true;  
+                    ws.Cells[ rowIndex,dCol["overtimeMinute"] , rowIndex+1,dCol["overtimeMinute"]].Merge = true;
+                    titleData.Add(dCol["overtimeMinute"].ToString(), "加班時長\n(分鐘)");
                 }
                 if(dCol.ContainsKey("lateCount")){
                     ws.Cells[ rowIndex, dCol["lateCount"] ].Value = "遲到次數"; 
@@ -326,6 +337,12 @@ namespace practice_mvc02.Models
                     ws.Cells[ rowIndex,dCol["sumWorkMinute"] , rowIndex+1,dCol["sumWorkMinute"]].Merge = true;
                     titleData.Add(dCol["sumWorkMinute"].ToString(), "工作時長\n(分鐘)");  
                 }
+                if(dCol.ContainsKey("overtimeMinute")){
+                    ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Value = "加班時長\n(分鐘)";
+                    ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Style.WrapText = true;  
+                    ws.Cells[ rowIndex,dCol["overtimeMinute"] , rowIndex+1,dCol["overtimeMinute"]].Merge = true;
+                    titleData.Add(dCol["overtimeMinute"].ToString(), "加班時長\n(分鐘)");
+                }
                 var once = false;
                 foreach(var leave in title_leaveName){
                     if(dCol.ContainsKey(leave.Value)){
@@ -384,6 +401,7 @@ namespace practice_mvc02.Models
 
         private void setPunchLogData_month(int id){   //計算所需的相關資料
             List<PunchCardLog> logs = Repository.GetRequestPunchLog(qPara, id);
+            List<OvertimeApply> otApplies = Repository.GetRequestOvertimeApplyLog(qPara, id);   //已核准加班
             WorkTimeRule wtRule = Repository.GetThisWorkTimeRule(id);
             logDataCalUse ct = new logDataCalUse();
             Dictionary<string, string> logStatus = new Dictionary<string, string>(){};  
@@ -391,6 +409,10 @@ namespace practice_mvc02.Models
 
             calRestWorkTimeMinute(ct, wtRule);  //計算休息與工作時間長度
             calLeaveVal(id, ct, leaveCellsVal, wtRule); //計算請假時間
+
+            foreach(var apply in otApplies){            //計算加班時長
+                ct.overtimeMinute += apply.timeLength;
+            }
 
             foreach(var log in logs){   //計算相關需要的次數
                 if(log.logDate > definePara.dtNow().Date){
@@ -430,7 +452,7 @@ namespace practice_mvc02.Models
                     }
                 }
 
-                if(log.onlineTime.Year >1 && log.offlineTime.Year >1){  //計算工作時間
+                if(log.onlineTime.Year >1 && log.offlineTime.Year >1){  //計算工作時間  目前是以打卡時間為準而不是從上班時間開始算
                     if(log.onlineTime <= workTime.sRestDt && log.offlineTime >= workTime.eRestDt){
                         ct.sumWorkMinute += (int)((log.offlineTime - log.onlineTime).TotalMinutes) - ct.restMinute;
                     }else if(log.onlineTime < workTime.sRestDt && log.offlineTime <= workTime.eRestDt){
@@ -550,6 +572,11 @@ namespace practice_mvc02.Models
                 ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute;
                 detailData.Add(dCol["sumWorkMinute"].ToString(), ct.sumWorkMinute);
             }
+
+            if(dCol.ContainsKey("overtimeMinute")){
+                ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Value = ct.overtimeMinute;
+                detailData.Add(dCol["overtimeMinute"].ToString(), ct.overtimeMinute);
+            }
                 
             if(dCol.ContainsKey("lateCount")){
                 ws.Cells[ rowIndex, dCol["lateCount"] ].Value = ct.lateCount;
@@ -636,6 +663,7 @@ namespace practice_mvc02.Models
                 return;
             }
             var punchLogs = Repository.GetRequestPunchLog(qPara, normalData.accID);
+            var otApplies = Repository.GetRequestOvertimeApplyLog(qPara, normalData.accID);   //已核准加班
             var wtRule = Repository.GetThisWorkTimeRule(normalData.accID);
             var thisApplyLeave = Repository.GetApplyLeaveLogs(qPara, normalData.accID);
             var ct = new logDataCalUse();
@@ -669,6 +697,13 @@ namespace practice_mvc02.Models
                     ws.Cells[ rowIndex, dCol["date"] ].Value = sDateText;
                     ws.Cells[ rowIndex, dCol["date"] ].Style.WrapText = true;
                     detailData.Add(dCol["date"].ToString(), sDateText);
+                }
+
+                foreach (var apply in otApplies){   //加班
+                    if(apply.workDate == sDate && dCol.ContainsKey("overtimeMinute")){
+                        ws.Cells[ rowIndex, dCol["overtimeMinute"] ].Value = apply.timeLength;
+                        detailData.Add(dCol["overtimeMinute"].ToString(), apply.timeLength);
+                    }
                 }
 
                 foreach(var log in punchLogs){
@@ -824,6 +859,7 @@ namespace practice_mvc02.Models
             public int workDays = 0; 
             public int restDays = 0; 
             public int sumWorkMinute = 0;
+            public int overtimeMinute = 0;
             public int lateCount = 0; 
             public int sumLateMinute = 0;
             public int earlyCount = 0; 

@@ -21,7 +21,7 @@ namespace practice_mvc02.Repositories
         }
 
         public List<LeaveName> GetLeaveName(){
-            var query = _DbContext.leavenames;
+            var query = _DbContext.leavenames.Where(b=>b.enable == true);
             return query.ToList();
         }
         
@@ -39,7 +39,7 @@ namespace practice_mvc02.Repositories
                     query = baseQu.Where(d=>d.a.departmentID==0)
                                     .Select(d=>new exportXlsxData{
                                         accID=d.a.ID, name=d.a.userName, 
-                                        workClass=(d.c.name+ (d.c.type==1? "(排休制)":"(固定制)")),
+                                        workClass=(d.c.name + (d.c.type==1? "(排休制)":"(固定制)")),
                                         department=noDepartStr, position=""
                                     }).ToList();
                 }else{  //XX部門  所有部門
@@ -143,6 +143,14 @@ namespace practice_mvc02.Repositories
                              (a.endTime > qPara.sDate && a.endTime <= qPara.eDate)
                             )
                         );
+            return query.ToList();
+        }
+
+        public List<OvertimeApply> GetRequestOvertimeApplyLog(exportPunchLogXlsxPara qPara, int id){
+            var query = _DbContext.overtimeApply.Where(
+                                    b=>b.accountID == id && b.applyStatus == 1 &&
+                                    b.workDate >= qPara.sDate && b.workDate <= qPara.eDate)
+                                .OrderBy(b=>b.workDate);
             return query.ToList();
         }
 

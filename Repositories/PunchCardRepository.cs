@@ -341,13 +341,17 @@ namespace practice_mvc02.Repositories
                 _DbContext.SaveChanges();
             }else{
                 context.totalTime = data.totalTime;
+                context.totalOvertime = data.totalOvertime;
                 context.updateTime = definePara.dtNow();
                 _DbContext.SaveChanges();
             }
         }
 
         public object GetTimeTotalByID(int targetID){
-            var query = _DbContext.worktimetotals.Where(b=>b.accountID == targetID).OrderByDescending(b=>b.dateMonth);
+            var query = _DbContext.worktimetotals
+                        .Where(b=>b.accountID == targetID)
+                        .Select(b=>new{b.dateMonth, b.totalTime, b.totalOvertime})
+                        .OrderByDescending(b=>b.dateMonth);
             return query.ToList();
         }
 
