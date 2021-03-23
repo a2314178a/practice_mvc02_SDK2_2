@@ -22,33 +22,27 @@ namespace practice_mvc02.Models
             psCode = new punchStatusCode();
         } 
 
-        public void start(int month=0){
+        public void start(int month=1){
             calEmployeeWorkTime(month);
         }    
 
         private void calEmployeeWorkTime(int month){
+            var nMonth = (month > 12) || (month < 0)? 1 : month;
             var workEmployee = Repository.GetNeedPunchAcc("全體", 2, false);
-            var dtNow = definePara.dtNow().AddMonths(-month);
+            var dtNow = definePara.dtNow();
             var startDT = dtNow.AddDays(1 - dtNow.Day).Date;
             var endDT = startDT.AddMonths(1).AddDays(-1).Date;
-            //var startDT = dtNow.AddMonths(-1).AddDays(1 - dtNow.Day).Date;
-            //var endDT = startDT.AddMonths(1).AddDays(-1).Date;
-            foreach(var employee in workEmployee){
-                var thisMonthAllLog = Repository.GetPunchLogByDateByID(employee.ID, startDT, endDT);
-                WorkTimeRule thisWorkTime = Repository.GetThisWorkTime(employee.ID);
-                var otApplies = aRepository.GetOvertimeApplyByDateByID(employee.ID, startDT, endDT);
-                countWorkTime(thisMonthAllLog, otApplies, thisWorkTime, startDT);
-            }
-            if(dtNow.Day < 6 && month == 0){    //每個月前5天 也會去算前個月的總時數
-                startDT = startDT.AddMonths(-1);
-                endDT = endDT.AddMonths(-1);
+            var doCount = 1 + nMonth ;
+            for(var i = 0; i < doCount; i++){       //計算這個月與上n個月
                 foreach(var employee in workEmployee){
                     var thisMonthAllLog = Repository.GetPunchLogByDateByID(employee.ID, startDT, endDT);
                     WorkTimeRule thisWorkTime = Repository.GetThisWorkTime(employee.ID);
                     var otApplies = aRepository.GetOvertimeApplyByDateByID(employee.ID, startDT, endDT);
                     countWorkTime(thisMonthAllLog, otApplies, thisWorkTime, startDT);
-                } 
-            }
+                }
+                startDT = startDT.AddMonths(-1).Date;
+                endDT = startDT.AddMonths(1).AddDays(-1).Date;
+            }   
         }
 
         private void countWorkTime(List<PunchCardLog> thisMonthAllLog, List<OvertimeApply> otApplies, WorkTimeRule thisWorkTime, DateTime startDT){
@@ -62,6 +56,7 @@ namespace practice_mvc02.Models
             var sRestTime = thisWorkTime.sRestTime;
             var eRestTime = thisWorkTime.eRestTime;
             var restlength = TimeSpan.Zero;
+            var thisAccLeaves = getThisAccLeaves(thisMonthAllLog, thisWorkTime, startDT);
 
             if(eRestTime < sRestTime){
                 restlength = eRestTime.Add(new TimeSpan(24,0,0)) - sRestTime;
@@ -101,6 +96,15 @@ namespace practice_mvc02.Models
                         totalTimeMinute += (int)(log.offlineTime - workTime.eRestDt).TotalMinutes;
                     }
                 }
+
+                foreach(var leave in thisAccLeaves){    //工作時間需會扣掉請假時間 
+                    if(leave.startTime >= workTime.sWorkDt && leave.endTime <= workTime.eWorkDt &&
+                         leave.unit ==3){   //只處理單位為小時的請假 
+                        if(leave.startTime > workTime.sWorkDt && leave.endTime < workTime.eWorkDt){
+                            totalTimeMinute -= leave.unitVal*60;
+                        }
+                    }
+                }
             }
 
             foreach (var apply in otApplies){               //計算加班
@@ -110,6 +114,15 @@ namespace practice_mvc02.Models
             if(thisMonthAllLog.Count>0){
                 saveTotalTimeRecord(thisMonthAllLog[0].accountID, startDT, totalTimeMinute, totalOvertimeMinute);
             }
+        }
+
+        public List<LeaveOfficeApply> getThisAccLeaves(List<PunchCardLog> thisMonthAllLog, WorkTimeRule thisWorkTime, DateTime startDT){
+            if(thisMonthAllLog.Count == 0){
+                return new List<LeaveOfficeApply>();
+            }
+            var sDT = startDT;
+            var eDT = startDT.AddMonths(1).AddDays(-1).Date;
+            return Repository.GetThisTakeLeave(thisMonthAllLog[0].accountID, sDT, eDT);
         }
 
         public void saveTotalTimeRecord(int accID, DateTime startDT, double totalTimeMinute, int totalOvertimeMinute){

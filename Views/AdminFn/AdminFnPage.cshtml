@@ -21,6 +21,9 @@
                             <li class="nav-item">
                                 <a class='nav-link @(@ViewBag.Page=="operateLog"?"active":"")' href="#" onclick="showAdminFnPage('operateLog');">操作紀錄</a>
                             </li>
+                            <li class="nav-item">
+                                <a class='nav-link @(@ViewBag.Page=="oneKeyFn"?"active":"")' href="#" onclick="showAdminFnPage('oneKeyFn');">一鍵功能</a>
+                            </li>
                         </ul>
 
                         @if(ViewBag.Page=="operateLog")
@@ -71,6 +74,113 @@
                                     </tbody>
                                 </table>                                
                             </div> 
+                        }else if(ViewBag.Page=="oneKeyFn"){
+                            <div>
+                                <div>
+                                    <table class="table table-hover table-bordered oneKey_table">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <td name="oneKeyBtn">按鈕</td>
+                                                <td name="parameter">參數</td>
+                                                <td name="description">功能說明</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="oneKeyList">
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:punchCheck(0);" class="btn btn-primary">檢查員工打卡狀態</a>
+                                                </td>
+                                                <td></td>
+                                                <td>
+                                                    檢查需打卡員工的打卡狀態，如有應打卡而未打卡、缺卡等問題將進行標記。
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:countWorkTime(0);" class="btn btn-primary">刷新員工工作時數</a>
+                                                </td>
+                                                <td></td>
+                                                <td>
+                                                    計算員工每個月的總工作時數。
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:annualCheck(0);" class="btn btn-primary">刷新員工特休</a>
+                                                </td>
+                                                <td></td> 
+                                                <td>
+                                                    檢查員工是否符合特休資格並賦予特休天數。
+                                                </td>
+                                            </tr>
+                                           
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:delDataBaseOldLog(1);" class="btn btn-danger">清除請假紀錄</a>
+                                                </td>
+                                                <td>
+                                                    <input type="text" style="width:75px;" name="delApplyLeaveMonth"> 個月
+                                                </td>
+                                                <td>
+                                                    清除員工的請假紀錄。
+                                                    <h6>參數說明: 該值代表清除n個月以前的請假紀錄，輸入值需大於等於6。若無輸入，預設清除12個月以前的請假紀錄。</h6>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:delDataBaseOldLog(2);" class="btn btn-danger">清除打卡紀錄</a>
+                                                </td>
+                                                <td>
+                                                    <input type="text" style="width:75px;" name="delPunchCardLogMonth"> 個月
+                                                </td>
+                                                <td>
+                                                    清除員工的打卡紀錄。
+                                                    <h6>參數說明: 該值代表清除n個月以前的打卡紀錄，輸入值需大於等於6。若無輸入，預設清除12個月以前的打卡紀錄。</h6>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:delDataBaseOldLog(3);" class="btn btn-danger">清除操作紀錄</a>
+                                                </td>
+                                                <td>
+                                                    <input type="text" style="width:75px;" name="delOperateLogMonth"> 個月
+                                                </td>
+                                                <td>
+                                                    清除操作紀錄。
+                                                    <h6>參數說明: 該值代表清除n個月以前的清除操作，輸入值需大於等於6。若無輸入，預設清除12個月以前的清除操作。</h6>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:delDataBaseOldLog(4);" class="btn btn-danger">清除已過期特休</a>
+                                                </td>
+                                                <td>
+                                                    <input type="text" style="width:75px;" name="delAnnualDeadLineMonth"> 個月
+                                                </td>
+                                                <td>
+                                                    清除已過期的員工特休。
+                                                    <h6>參數說明: 該值代表清除已過期n個月的特休，輸入值需大於等於6。若無輸入，預設清除過期12個月的特休。</h6>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td>
+                                                    <a href="javascript:delUselessMessage(0);" class="btn btn-primary">清除訊息</a>
+                                                </td>
+                                                <td></td>
+                                                <td>
+                                                    清除訊息，該訊息需所有相關收信人皆已刪除才會被清除。
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>          
+                            </div>
                         }
 
                     </div>

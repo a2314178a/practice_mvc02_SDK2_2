@@ -49,3 +49,10 @@
 #calendar .tdRedBlue.tdHighRedBlue{
   background: linear-gradient(45deg,#F006,#00F6);
 }
+
+#calendar .tdGreenBlue{
+  background: linear-gradient(45deg, #0F02,#00F4);
+}
+#calendar .tdGreenBlue.tdHighGreenBlue{
+  background: linear-gradient(45deg,#0F06,#00F6);
+}

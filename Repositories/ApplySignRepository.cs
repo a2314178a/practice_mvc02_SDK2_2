@@ -286,7 +286,12 @@ namespace practice_mvc02.Repositories
         }
 
         public int IsAgreeApplyLeave(int applyID, int newStatus, int loginID){
-
+            var oDic = new Dictionary<string,string>{};
+            var nDic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=loginID, active="更新", 
+                category="簽核", createTime=definePara.dtNow()
+            };
             using(var trans = _DbContext.Database.BeginTransaction()){
                 var count = 0;
                 try
@@ -294,8 +299,10 @@ namespace practice_mvc02.Repositories
                     var leaveStatus = 0;    //0:沒動作 1:加回特休時數 2:減特休時數
                     var context = _DbContext.leaveofficeapplys.FirstOrDefault(b=>b.ID == applyID);
                     var leaveName = getApplyLeaveName(context.leaveID);
-
                     if(context != null){
+                        toNameFn.IsAgreeApplyLeave_convertToDic(ref oDic, context, leaveName);
+                        opLog.employeeID = context.accountID;
+
                         if(leaveName == specialName || leaveName == otRestName){   //申請假別為特休or補休
                             var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
                             if((oldStatus == 2 && newStatus == 0) || (oldStatus == 2 && newStatus == 1)){
@@ -313,6 +320,10 @@ namespace practice_mvc02.Repositories
                         count = _DbContext.SaveChanges();  
                     }
                     if(count == 1){
+                        toNameFn.IsAgreeApplyLeave_convertToDic(ref nDic, context, leaveName);
+                        opLog.content = toNameFn.IsAgreeApplyLeave_convertToText(nDic, oDic);
+                        saveOperateLog(opLog);    //紀錄操作紀錄
+                        //打卡紀錄附加請假
                         punchLogWithTakeLeave(context);
                         if(leaveName == specialName && leaveStatus >0){
                             refreshEmployeeAnnualLeave(context, leaveStatus);
@@ -511,7 +522,12 @@ namespace practice_mvc02.Repositories
         }
 
         public int IsAgreeApplyOvertime(int applyID, int newStatus, int loginID){
-
+            var oDic = new Dictionary<string,string>{};
+            var nDic = new Dictionary<string,string>{};
+            var opLog = new OperateLog(){
+                operateID=loginID, active="更新", 
+                category="簽核", createTime=definePara.dtNow()
+            };
             using(var trans = _DbContext.Database.BeginTransaction()){
                 var count = 0;
                 try
@@ -519,6 +535,9 @@ namespace practice_mvc02.Repositories
                     var overtimeStatus = 0;    //0:沒動作 1:加可補休分鐘數 2:減可補休分鐘數
                     var context = _DbContext.overtimeApply.FirstOrDefault(b=>b.ID == applyID);
                     if(context != null){
+                        toNameFn.IsAgreeOvertime_convertToDic(ref oDic, context);
+                        opLog.employeeID = context.accountID;
+
                         var oldStatus = context.applyStatus;    //0:待審 1:通過 2:未通過
                         if((oldStatus == 0 && newStatus == 1) || (oldStatus == 2 && newStatus == 1)){
                             overtimeStatus = 1;    //加可補休分鐘數
@@ -531,7 +550,11 @@ namespace practice_mvc02.Repositories
                         count = _DbContext.SaveChanges();  
                     }
                     if(count == 1){
-                        refreshOvertimeRest(context, overtimeStatus);
+                        toNameFn.IsAgreeOvertime_convertToDic(ref nDic, context);
+                        opLog.content = toNameFn.IsAgreeOvertime_convertToText(nDic, oDic);
+                        saveOperateLog(opLog);    //紀錄操作紀錄
+                        //更新可補休時間
+                        refreshOvertimeRest(context, overtimeStatus);   
                     }
                     trans.Commit();
                 }

@@ -67,55 +67,72 @@ namespace practice_mvc02.Controllers
             return new {category, userName};
         }
 
-        public void manual_refreshPunchLogWarn(){
-            if(((int)ruleVal & new groupRuleCode().adminFn) >0){
-                chkWarn.start();
-            }
+        public int manual_refreshPunchLogWarn(int day=7){ //day:正整數 刷新前n天打卡紀錄
+            var result = 0;
+            try{
+                chkWarn.start(day);
+                result = 1;
+            }catch (System.Exception){}
+            return result;
         }
 
-        public void manual_calWorkTime(int month=0){  //month:正整數 減幾個月 預設0
-            if(((int)ruleVal & new groupRuleCode().adminFn) >0){
+        public int manual_calWorkTime(int month=1){  //month:正整數 計算這個月與前n個月 預設為這個月與前1個月
+            var result = 0;
+            try{
                 calTime.start(month);
-            }
+                result = 1;
+            }catch (System.Exception){}
+            return result;
         }
 
-        public void manual_calAnnualLeave(){
-            if(((int)ruleVal & new groupRuleCode().adminFn) >0){
+        public int manual_calAnnualLeave(){
+            var result = 0;
+            try{
                 calAnnual.start();
+                result = 1;
+            }catch (System.Exception){}
+            return result;
+        }
+
+        public object clearEmployeeAnnualLeaves(int delMonth=36){   //清除舊的年假 以deadline做為判斷
+             return processClearFn(delMonth, "annual");
+        }
+        
+        public object clearEmployeeLeaveOfficeApply(int delMonth=36){    //清除舊請假紀錄 以createTime為判斷
+            return processClearFn(delMonth, "leave");
+        }
+
+        public object clearPunchCardLogs(int delMonth=36){   //清除打卡 以logDate為判斷
+            return processClearFn(delMonth, "punch");
+        }
+
+        public object clearOperateLogs(int delMonth=36){ //清除操作紀錄 以createTime為判斷
+            return processClearFn(delMonth, "operate");
+        }
+
+        public object processClearFn(int delMonth, string sel){
+            if(delMonth <= 5 || delMonth > 1200){         //至少要6個月以前
+                return new{statusCode=0};
             }
-        }
-
-        /*public void clearEmployeeAnnualLeaves(int month=36){   //清除舊的年假 以deadline做為判斷
             var dt = definePara.dtNow().Date;
-            dt = dt.AddMonths(-month);
-            aRepository.ClearEmployeeAnnualLeaves(dt);  
+            dt = dt.AddMonths(-delMonth);
+            var count = 0;
+            switch (sel){
+                case "leave": count = aRepository.ClearEmployeeLeaveOfficeApply(dt); break;
+                case "punch": count = aRepository.ClearPunchCardLogs(dt); break;
+                case "operate": count = aRepository.ClearOperateLogs(dt); break;
+                case "annual": count = aRepository.ClearEmployeeAnnualLeaves(dt); break;
+                default: count = -1; break;
+            }
+            return new{statusCode=(count==-1? 0 : 1), count};
         }
 
-        public void clearEmployeeLeaveOfficeApply(int month=36){    //清除舊請假紀錄 以createTime為判斷
-            var dt = definePara.dtNow().Date;
-            dt = dt.AddMonths(-month);
-            aRepository.ClearEmployeeLeaveOfficeApply(dt);
+        
+        public object clearMessageAndMsgSendReceive(){ //清除訊息 需寄件人與收件人都刪除才可清除
+            var count = aRepository.ClearMessageAndMsgSendReceive();
+            return new{statusCode=(count==-1? 0 : 1), count};
         }
-
-        public void clearMessageAndMsgSendReceive(){ //清除訊息 需寄件人與收件人都刪除才可清除
-            aRepository.ClearMessageAndMsgSendReceive();
-        }
-
-        public void clearOperateLogs(int month=60){ //清除操作紀錄 以createTime為判斷
-            var dt = definePara.dtNow().Date;
-            dt = dt.AddMonths(-month);
-            aRepository.ClearOperateLogs(dt);
-        }
-
-        public void clearPunchCardLogs(int month=36){   //清除打卡 以logDate為判斷
-            var dt = definePara.dtNow().Date;
-            dt = dt.AddMonths(-month);
-            aRepository.ClearPunchCardLogs(dt);
-        }
-
-        public void clearPunchLogWarns(){   //清除打卡異常紀錄 以punchLogID是否存在進行判斷
-            aRepository.ClearPunchLogWarns();
-        }*/
+        
     }
 
 }

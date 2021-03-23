@@ -22,3 +22,17 @@ td[name='category']{
 #searchFilterDiv{
   height: 50px;
 }
+
+.oneKey_table{
+  font-size: 24px;
+}
+
+td[name='oneKeyBtn']{
+  width: 25%;
+}
+td[name='parameter']{
+  width: 25%;
+}
+td[name='description']{
+  width: 50%;
+}

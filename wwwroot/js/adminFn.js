@@ -8,6 +8,13 @@ $(document).ready(function() {
         $(".add_depart").show();
         $('.btnActive').css('pointer-events', "");
     });
+
+    $("#oneKeyList").on("input", "input[type='text']", function(){ 
+        var val = $(this).val();
+        val = val.replace(/[^\d]/g, ""); //把非數字的都替換掉
+        $(this).val(val);
+    });
+
 });//.ready function
 
 function showAdminFnPage(page){
@@ -67,4 +74,84 @@ function refreshOpLogList(res){
         row.find("[name='content']").text(value.content);
         $("#opLogList").append(row);
      });
+}
+
+function punchCheck(){
+    var successFn = function(res){
+        alert((res===1)? "成功" : "失敗");
+    };
+    myObj.rAjaxFn("get", "/AdminFn/manual_refreshPunchLogWarn", {}, successFn);
+}
+
+function countWorkTime(){
+    var successFn = function(res){
+        alert((res===1)? "成功" : "失敗");
+    };
+    myObj.rAjaxFn("get", "/AdminFn/manual_calWorkTime", {}, successFn);
+}
+
+function annualCheck(){
+    var successFn = function(res){
+        alert((res===1)? "成功" : "失敗");
+    };
+    myObj.rAjaxFn("get", "/AdminFn/manual_calAnnualLeave", {}, successFn);
+}
+
+function delDataBaseOldLog(sel){
+    var delMonth = 0;
+    var url = "";
+    var confirmMsg = "";
+    switch (sel) {
+        case 1:
+            delMonth = $("input[name='delApplyLeaveMonth']").val(); 
+            url = "/AdminFn/clearEmployeeLeaveOfficeApply";
+            confirmMsg = "您真的確定要清除 請假紀錄 嗎？\n\n請確認！";
+            break;
+        case 2:
+            delMonth = $("input[name='delPunchCardLogMonth']").val(); 
+            url = "/AdminFn/clearPunchCardLogs";
+            confirmMsg = "您真的確定要清除 打卡紀錄 嗎？\n\n請確認！";
+            break;   
+        case 3:
+            delMonth = $("input[name='delOperateLogMonth']").val(); 
+            url = "/AdminFn/clearOperateLogs";
+            confirmMsg = "您真的確定要清除 操作紀錄 嗎？\n\n請確認！";
+            break;   
+        case 4:
+            delMonth = $("input[name='delAnnualDeadLineMonth']").val(); 
+            url = "/AdminFn/clearEmployeeAnnualLeaves";
+            confirmMsg = "您真的確定要清除 已過期的特休 嗎？\n\n請確認！";
+            break; 
+        default:return; 
+    }
+    if(confirm(confirmMsg)==false){
+        return;
+    }
+    delMonth = delMonth == ""? 12 : parseInt(delMonth);
+    if(delMonth <=5){
+        alert("該參數值須大於等於6"); return;
+    }
+    var successFn = function(res){
+        if(res.statusCode===1){
+            alert(`已完成，共刪除 ${res.count} 條紀錄`);
+        }else{
+            alert("清除失敗");
+        }
+    };
+    myObj.rAjaxFn("post", url, {delMonth}, successFn);
+}
+
+function delUselessMessage(){
+    var confirmMsg = "您真的確定要清除 訊息 嗎？\n\n請確認！";
+    if(confirm(confirmMsg)==false){
+        return;
+    }
+    var successFn = function(res){
+        if(res.statusCode===1){
+            alert(`已完成，共刪除 ${res.count} 條紀錄`);
+        }else{
+            alert("清除失敗");
+        }
+    };
+    myObj.rAjaxFn("get", "/AdminFn/clearMessageAndMsgSendReceive", {}, successFn);
 }

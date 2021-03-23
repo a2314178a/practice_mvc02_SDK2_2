@@ -186,6 +186,9 @@ namespace practice_mvc02.Models
                 var timeLen = (int)((processLog.onlineTime - wt.sWorkDt).TotalMinutes);
                 timeLen = (timeLen < 0 || timeLen >elasticityMin)? 0: timeLen; //上班打卡超過彈性時間 下班就已下班時間為準
                 statusCode = processLog.offlineTime< wt.eWorkDt.AddMinutes(timeLen)? (statusCode | psCode.earlyOut):statusCode;
+                if(statusCode == psCode.takeLeave && (statusCode & psCode.lateIn) == 0 && (statusCode & psCode.earlyOut) == 0){
+                    statusCode = (statusCode | psCode.normal);
+                }
             }
             else{
                 if(processLog.onlineTime.Year > 1){ //只有填上班

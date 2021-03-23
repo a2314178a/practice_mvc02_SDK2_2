@@ -119,7 +119,9 @@ function processReport(){
     var chk_eDate = new Date(eDate);
     var departName = $("#selDepart").val();
     var accID = $("#selEmployee").val();
-    if(chk_eDate <chk_sDate){
+    var sDateIsSafe = myObj.isExistDate(sDate);
+    var eDateIsSafe = myObj.isExistDate(eDate);
+    if((chk_eDate <chk_sDate) || !sDateIsSafe || !eDateIsSafe){
         alert("時間範圍有誤");
         return;
     }
@@ -206,7 +208,7 @@ function printDetail(res){
 
             if((res.type=="day" && i == res.colDef.punchStatus) || (res.type=="month" && i >= res.dayStartIndex)){
                 if(rowData[i] != "正常" && rowData[i] != "休息"){
-                    if(rowData[i] == "請假"){
+                    if(rowData[i] == "請假" || rowData[i] == "請假/正常"){
                         $(`tr[name='row_${rowIndex}'] td[name='col_${i}']`).addClass('takeRest');
                     }else{
                         $(`tr[name='row_${rowIndex}'] td[name='col_${i}']`).addClass('abnormal');

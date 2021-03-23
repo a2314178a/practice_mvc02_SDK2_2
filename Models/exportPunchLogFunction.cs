@@ -406,9 +406,10 @@ namespace practice_mvc02.Models
             logDataCalUse ct = new logDataCalUse();
             Dictionary<string, string> logStatus = new Dictionary<string, string>(){};  
             var leaveCellsVal = new Dictionary<string, double>(){};
+            var applyLeaves = Repository.GetApplyLeaveLogs(qPara, id);
 
             calRestWorkTimeMinute(ct, wtRule);  //計算休息與工作時間長度
-            calLeaveVal(id, ct, leaveCellsVal, wtRule); //計算請假時間
+            calLeaveVal(applyLeaves, ct, leaveCellsVal, wtRule); //計算請假時間
 
             foreach(var apply in otApplies){            //計算加班時長
                 ct.overtimeMinute += apply.timeLength;
@@ -418,7 +419,6 @@ namespace practice_mvc02.Models
                 if(log.logDate > definePara.dtNow().Date){
                     continue;
                 }
-                
                 WorkDateTime workTime = punchCardFn.workTimeProcess(wtRule, log);
 
                 ct.workDays += (log.onlineTime.Year>1 || log.offlineTime.Year>1) ? 1 : 0;
@@ -468,6 +468,15 @@ namespace practice_mvc02.Models
                             ct.sumWorkMinute += (int)(log.offlineTime - workTime.eRestDt).TotalMinutes;
                         }
                     }
+
+                    foreach(var leave in applyLeaves){    //工作時間需會扣掉請假時間 
+                        if(leave.startTime >= workTime.sWorkDt && leave.endTime <= workTime.eWorkDt &&
+                            leave.unit ==3){   //只處理單位為小時的請假 
+                            if(leave.startTime > workTime.sWorkDt && leave.endTime < workTime.eWorkDt){
+                                ct.sumWorkMinute -= (int)(leave.unitVal*60);
+                            }
+                        }
+                    }
                 }
                 setDictionary_daysStatus_month(logStatus, log); //判斷應顯示的打卡狀態
             }//foreach(var log in logs)
@@ -479,10 +488,9 @@ namespace practice_mvc02.Models
             setCellsValue_month(ct, logStatus, leaveCellsVal);  //寫入相關值
         }//void setPunchLogData_month
 
-        private void calLeaveVal(int id, logDataCalUse ct, Dictionary<string, double> leaveCellsVal, WorkTimeRule wtRule){
-            
-            var thisApplyLeave = Repository.GetApplyLeaveLogs(qPara, id);
-            foreach(var log in thisApplyLeave){
+        private void calLeaveVal(List<LeaveOfficeApply> leaves, logDataCalUse ct, 
+                                    Dictionary<string, double> leaveCellsVal, WorkTimeRule wtRule){
+            foreach(var log in leaves){
                 var leaveVal = 0.0;
                 if(!title_leaveName.ContainsKey(log.leaveID)){
                     continue;
@@ -543,7 +551,6 @@ namespace practice_mvc02.Models
                         leaveVal *= (ct.workNoRestMinute/60); 
                     }
                 }
-
                 if(!leaveCellsVal.ContainsKey(title_leaveName[log.leaveID])){   //累加該對應假名的值
                     leaveCellsVal.Add(title_leaveName[log.leaveID], leaveVal);
                 }else{
@@ -631,7 +638,7 @@ namespace practice_mvc02.Models
 
                         if(status != "正常"){
                             ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            if(status == "請假"){  
+                            if(status == "請假" || status == "請假/正常"){  
                                 ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
                             }else{
                                 ws.Cells[ rowIndex, dCol[sDay.ToString("M/d")] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
@@ -727,7 +734,7 @@ namespace practice_mvc02.Models
                         
                             if(status != "正常"){
                                 ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                if(status == "請假"){  
+                                if(status == "請假" || status == "請假/正常"){  
                                     ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(200,250,200));
                                 }else{
                                     ws.Cells[ rowIndex, dCol["punchStatus"] ].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(250,200,200));
@@ -773,25 +780,21 @@ namespace practice_mvc02.Models
                     }
                 }
             }
-            if(dCol.ContainsKey("sumWorkMinute")){
-                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : "";
-                detailData.Add(dCol["sumWorkMinute"].ToString(), (ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : ""));
-            }
-         
+                     
             foreach(var leave in leaves){   //計算請假時間
                 var leaveVal = 0.0;
                 if(log.logDate >= leave.startTime.Date && log.logDate <= leave.endTime){
                     if(workTime.sWorkDt >= leave.startTime && workTime.eWorkDt <= leave.endTime){
-                        leaveVal = ct.workNoRestMinute;
+                        leaveVal = ct.endStartMinute;
                     }else if(workTime.sWorkDt < leave.startTime && workTime.eWorkDt <= leave.endTime){
                         leaveVal = ((workTime.eWorkDt - leave.startTime).TotalMinutes);
-                        leaveVal = leaveVal > (ct.workNoRestMinute)*0.5? leaveVal - ct.restMinute : leaveVal; //大於工作時間的一半認定有包含休息時間
                     }else if(workTime.sWorkDt >= leave.startTime && workTime.eWorkDt > leave.endTime){
                         leaveVal = ((leave.endTime - workTime.sWorkDt).TotalMinutes);
-                        leaveVal = leaveVal > (ct.workNoRestMinute)*0.5? leaveVal - ct.restMinute : leaveVal;
                     }else{
                         leaveVal = ((leave.endTime - leave.startTime).TotalMinutes);
-                        leaveVal = leaveVal > (ct.workNoRestMinute)*0.5? leaveVal - ct.restMinute : leaveVal;
+                    }
+                    if(leave.startTime <= workTime.sRestDt && leave.endTime >= workTime.eRestDt){
+                        leaveVal = leaveVal - ct.restMinute;
                     }
 
                     if(!title_leaveName.ContainsKey(leave.leaveID)){
@@ -806,6 +809,11 @@ namespace practice_mvc02.Models
                         leaveVal *= 2;
                     }else if(unit == "小時"){
                         leaveVal *= (ct.workNoRestMinute/60); 
+                        if(ct.sumWorkMinute >0 && leave.unit == 3){
+                            if(leave.startTime > workTime.sWorkDt && leave.endTime < workTime.eWorkDt){
+                                ct.sumWorkMinute -= (int)(leaveVal*60);
+                            }
+                        }
                     }
                     ws.Cells[ rowIndex, dCol[leaveName] ].Value = leaveVal;
                     if(detailData.ContainsKey(dCol[leaveName].ToString())){
@@ -816,9 +824,13 @@ namespace practice_mvc02.Models
                     }
                 }  
             }
+            if(dCol.ContainsKey("sumWorkMinute")){
+                ws.Cells[ rowIndex, dCol["sumWorkMinute"] ].Value = ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : "";
+                detailData.Add(dCol["sumWorkMinute"].ToString(), (ct.sumWorkMinute >0? ct.sumWorkMinute.ToString() : ""));
+            }
         }
  
-#endregion //month report
+#endregion //day report
         
 
         private void calRestWorkTimeMinute(logDataCalUse ct, WorkTimeRule wtRule){  //計算工作與休息長度
@@ -849,6 +861,7 @@ namespace practice_mvc02.Models
             text = (status & psCode.hadLost)>0 ? text+="缺卡/" : text;
             text = (status & psCode.takeLeave)>0 ? text+="請假/" : text;
             text = (status & psCode.noWork)>0 ? text+="曠職/" : text;
+            text = ( (status & psCode.takeLeave)>0 && (status & psCode.normal)>0 )? text+="正常" : text;
             text = (status & psCode.normal)>0 && text==" " ? text="正常" : text;
             text = text[text.Length-1]=='/'? text.Substring(0, text.Length-1) : text;
             text = text.Trim();

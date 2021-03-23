@@ -163,25 +163,11 @@ namespace practice_mvc02.Controllers
 
             var eTime = data.startTime;
             var iTmp = 1;
-            var restLen_unit3 = 0; 
-            var add_restLen_flag = false;
             for(; iTmp<=totalMin; iTmp++)
             {
                 if(eTime.Hour == wdt.sRestDt.Hour && eTime.Minute == wdt.sRestDt.Minute){
-                    if(data.unit != 3){
-                        eTime = eTime.AddMinutes(restLengthMinute); //跳過休息時間
-                    }else{  //小時
-                        add_restLen_flag = true;
-                    }
+                    eTime = eTime.AddMinutes(restLengthMinute); //跳過休息時間
                 }
-                if(add_restLen_flag){
-                    restLen_unit3++;
-                    if(restLen_unit3 > restLengthMinute){
-                        restLen_unit3 = (int)restLengthMinute;
-                        add_restLen_flag = false;
-                    }
-                }
-
                 if(eTime.Hour == wdt.eWorkDt.Hour && eTime.Minute ==  wdt.eWorkDt.Minute){
                     //若接下來時間超過下班時間 跳到隔天的上班時間繼續加
                     eTime = eTime.AddDays(1).AddMinutes(-workLengthMinute); 
@@ -211,14 +197,13 @@ namespace practice_mvc02.Controllers
                 }
             }//for(; iTmp<=totalMin; iTmp++)
 
-            if(data.unit==3){   //小時不用忽略休息時間 
+            if(data.unit==3){   //小時
                 if(iTmp < totalMin){   //若超過下班時間 以下班時間為底 
                     var hour = iTmp/60;
                     //unitVal為實際請假時數(開始時間到下班時間)
                     data.unitVal = (float)(iTmp%60 >30? (++hour) : iTmp%60 >0? hour+0.5 : hour);    
                     data.note = "note_overEndWorkTime"; //用此判斷是否有超過下班時間
                 }
-                data.unitVal = ((data.unitVal*60) - restLen_unit3)/60;   //不過若有經過休息時間，unitVal需扣掉(主要是特休用)
                 if(useHalfVal){     //可以有0.5小時
                     var dot = data.unitVal - ((int)data.unitVal);
                     if(dot >0){
@@ -229,7 +214,6 @@ namespace practice_mvc02.Controllers
                     data.unitVal = (float)(Math.Ceiling(data.unitVal)); //無條件進位
                 }  
             }
-
             return eTime;
         }
 

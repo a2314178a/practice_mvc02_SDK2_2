@@ -299,7 +299,7 @@ namespace practice_mvc02.Repositories
             nullPunchLog.accountID = accID;
             nullPunchLog.departmentID = departID;
             nullPunchLog.logDate = targetDate;
-            nullPunchLog.punchStatus = 0;
+            nullPunchLog.punchStatus = 16;      //0x10=>16:缺卡 / 0x20=>32:曠職
             nullPunchLog.createTime = definePara.dtNow();
             try{
                 _DbContext.punchcardlogs.Add(nullPunchLog);

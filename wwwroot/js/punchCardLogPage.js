@@ -130,7 +130,7 @@ function refreshPunchLogList(res){
         status = (value.punchStatus & 0x10) ? status+="缺卡/" : status;
         status = (value.punchStatus & 0x40) ? status+="請假/" : status;
         status = (value.punchStatus & 0x20) ? status+="曠職" : status;
-        status = (value.punchStatus & 0x01) && status == "" ? status+="正常" : status;
+        status = (value.punchStatus & 0x01) && (status == "" || status == "請假/") ? status+="正常" : status;
         status = status.charAt(status.length-1) == "/" ? status.substring(0, status.length -1) :status;
         
         row.find("[name='logDate']").text(logDate);
@@ -337,16 +337,18 @@ function calendarWithPunchLog(res ,qMonth){
 
         var idStr = logMonth < thisMonth ? "#previous_" : logMonth > thisMonth ? "#next_" : "#this_";
         if(value.punchStatus != 1){
-            if(value.punchStatus == 0x40){
+            if(value.punchStatus == 0x40){      //請假
                 $("#calendar").find(idStr+logDate).addClass("tdBlue");
             }
             else if((value.punchStatus & 0x40)>0){
-                $("#calendar").find(idStr+logDate).addClass("tdRedBlue");
-            }
-            else{
+                if(value.punchStatus & 0x01){   // 請假/正常 (今日打卡正常 中間有請個幾小時)
+                    $("#calendar").find(idStr+logDate).addClass("tdGreenBlue");
+                }else{      // 請假/異常
+                    $("#calendar").find(idStr+logDate).addClass("tdRedBlue");
+                }
+            }else{
                 $("#calendar").find(idStr+logDate).addClass("tdRed");
-            }
-                
+            }  
         }else{
             $("#calendar").find(idStr+logDate).addClass("tdGreen");
         }

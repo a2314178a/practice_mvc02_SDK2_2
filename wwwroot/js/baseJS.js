@@ -156,6 +156,21 @@
     add0(num){
         return num < 10 ? ("0" + num) : num;
     }
+	isExistDate(dateStr){
+        var dateObj = dateStr.split('-'); // yyyy-mm-dd
+        //列出12個月，每月最大日期限制
+        var limitInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        var theYear = parseInt(dateObj[0]);
+        var theMonth = parseInt(dateObj[1]);
+        var theDay = parseInt(dateObj[2]);
+        var isLeap = new Date(theYear, 1, 29).getDate() === 29; // 是否為閏年?
+        if (isLeap) {
+          // 若為閏年，最大日期限制改為 29
+          limitInMonth[1] = 29;
+        }
+        // 比對該日是否超過每個月份最大日期限制
+        return theDay <= limitInMonth[theMonth - 1];
+    }
     
     
 

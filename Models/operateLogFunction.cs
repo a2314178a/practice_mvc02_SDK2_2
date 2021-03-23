@@ -125,12 +125,16 @@ namespace practice_mvc02.Models
             return txt.Substring(0,txt.Length - 1);
         }
  
-        public void IsAgreeApplyLeave_convertToDic(ref Dictionary<string, string> Dic, LeaveOfficeApply leave){
+        public void IsAgreeApplyLeave_convertToDic(ref Dictionary<string, string> Dic, 
+                                                    LeaveOfficeApply leave, String leaveName){
             if(leave == null){
                 leave = new LeaveOfficeApply();
             }
+            Dic.Add("leaveName", leaveName);
             Dic.Add("applyStatus", leave.applyStatus==0? "待審核" : leave.applyStatus==1? "通過" : "未通過");
             Dic.Add("applyDate", leave.createTime.ToString("yyyy-MM-dd HH:mm"));
+            Dic.Add("startTime", leave.startTime.ToString("yyyy-MM-dd HH:mm"));
+            Dic.Add("endTime", leave.endTime.ToString("yyyy-MM-dd HH:mm"));
         }
 
         public string IsAgreeApplyLeave_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
@@ -139,6 +143,30 @@ namespace practice_mvc02.Models
             }
             var txt="";
             txt += $"申請日期:{nDic["applyDate"]}，";
+            txt += $"請假名稱:{nDic["leaveName"]}，";
+            txt += $"請假時間:{nDic["startTime"]}~{nDic["endTime"]}，";
+            txt += $"結果:{oDic["applyStatus"]}=>{nDic["applyStatus"]}，";
+            return txt.Substring(0,txt.Length - 1);
+        }
+
+        public void IsAgreeOvertime_convertToDic(ref Dictionary<string, string> Dic, OvertimeApply apply){                             
+            if(apply == null){
+                apply = new OvertimeApply();
+            }
+            Dic.Add("applyDate", apply.createTime.ToString("yyyy-MM-dd HH:mm"));
+            Dic.Add("workDate", apply.workDate.ToString("yyyy-MM-dd"));
+            Dic.Add("timeLength", apply.timeLength.ToString());
+            Dic.Add("applyStatus", apply.applyStatus==0? "待審核" : apply.applyStatus==1? "通過" : "未通過");   
+        }
+
+        public string IsAgreeOvertime_convertToText(Dictionary<string, string> nDic, Dictionary<string, string> oDic=null){
+            if(oDic == null){
+                oDic = nDic;
+            }
+            var txt="";
+            txt += $"申請日期:{nDic["applyDate"]}，";
+            txt += $"加班工作日:{nDic["workDate"]}，";
+            txt += $"加班時間長度:{nDic["timeLength"]}分鐘，";
             txt += $"結果:{oDic["applyStatus"]}=>{nDic["applyStatus"]}，";
             return txt.Substring(0,txt.Length - 1);
         }
