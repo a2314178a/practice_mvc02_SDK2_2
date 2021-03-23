@@ -507,10 +507,12 @@ namespace practice_mvc02.Models
                     }else if(unit =="半天"){
                         leaveVal = log.unit == 1? log.unitVal*2 : log.unitVal;
                     }else{  //小時
+                        int hour = ct.workNoRestMinute / 60;
+                        double useHour = (ct.workNoRestMinute%60)>30? (hour+1):(ct.workNoRestMinute%60)>0? (hour+0.5):hour;
                         if(log.unit == 1){  //full day
-                            leaveVal = log.unitVal*(ct.workNoRestMinute)/60;
+                            leaveVal = log.unitVal*useHour;
                         }else if(log.unit == 2){    //half day
-                            leaveVal = log.unitVal*(ct.workNoRestMinute)/(60*2);
+                            leaveVal = log.unitVal*useHour/2;
                         }else{  //hour
                             leaveVal = log.unitVal;
                         }
@@ -548,7 +550,9 @@ namespace practice_mvc02.Models
                     if(unit == "半天"){
                         leaveVal *= 2;
                     }else if(unit == "小時"){
-                        leaveVal *= (ct.workNoRestMinute/60); 
+                        int hour = ct.workNoRestMinute / 60;
+                        double useHour = (ct.workNoRestMinute%60)>30? (hour+1):(ct.workNoRestMinute%60)>0? (hour+0.5):hour;
+                        leaveVal *= useHour; 
                     }
                 }
                 if(!leaveCellsVal.ContainsKey(title_leaveName[log.leaveID])){   //累加該對應假名的值
@@ -622,8 +626,8 @@ namespace practice_mvc02.Models
                 
             foreach(var leave in leaves){
                 if(dCol.ContainsKey(leave.Key)){
-                    ws.Cells[ rowIndex, dCol[leave.Key] ].Value = leave.Value;
-                    detailData.Add(dCol[leave.Key].ToString(), leave.Value);
+                    ws.Cells[ rowIndex, dCol[leave.Key] ].Value = Math.Round(leave.Value, 2);
+                    detailData.Add(dCol[leave.Key].ToString(), Math.Round(leave.Value, 2));
                 }
             }
 
@@ -808,17 +812,24 @@ namespace practice_mvc02.Models
                     if(unit == "半天"){
                         leaveVal *= 2;
                     }else if(unit == "小時"){
-                        leaveVal *= (ct.workNoRestMinute/60); 
-                        if(ct.sumWorkMinute >0 && leave.unit == 3){
-                            if(leave.startTime > workTime.sWorkDt && leave.endTime < workTime.eWorkDt){
-                                ct.sumWorkMinute -= (int)(leaveVal*60);
+                        if(leave.unit == 3){
+                            leaveVal = leave.unitVal;
+                            if(ct.sumWorkMinute >0){
+                                if(leave.startTime > workTime.sWorkDt && leave.endTime < workTime.eWorkDt){
+                                    ct.sumWorkMinute -= (int)(leaveVal*60);
+                                }
                             }
+                        }else{
+                            int hour = ct.workNoRestMinute / 60;
+                            double useHour = (ct.workNoRestMinute%60)>30? (hour+1):(ct.workNoRestMinute%60)>0? (hour+0.5):hour;
+                            leaveVal *= useHour; 
                         }
                     }
+                    leaveVal = Math.Round(leaveVal, 2);     //小數2位
                     ws.Cells[ rowIndex, dCol[leaveName] ].Value = leaveVal;
                     if(detailData.ContainsKey(dCol[leaveName].ToString())){
                         var oldVal = (double)detailData[dCol[leaveName].ToString()];
-                        detailData[dCol[leaveName].ToString()] = leaveVal + oldVal;
+                        detailData[dCol[leaveName].ToString()] = Math.Round((leaveVal + oldVal), 2);
                     }else{
                         detailData.Add(dCol[leaveName].ToString(), leaveVal);
                     }
